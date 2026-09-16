@@ -1,3 +1,5 @@
 .DS_Store
 Thumbs.db
 .obsidian/
+.claude/settings.local.json
+.claude/.headroom_wrap_marker.json
