@@ -16,7 +16,8 @@ a source file.
 1. **Scan for unprocessed material.**
    - `00-inbox/from-code-repo/<date>/` folders not yet moved under
      `00-inbox/from-code-repo/processed/`.
-   - Files directly in `00-inbox/raw/` not yet moved under
+   - Files and folders under `00-inbox/raw/` (recursively — batches may
+     be nested folder trees, not just loose files) not yet moved under
      `00-inbox/raw/processed/`.
    - If nothing unprocessed, say so and stop.
    - If more than ~15-20 files are unprocessed at once, tell the user
@@ -44,7 +45,7 @@ a source file.
    |---|---|
    | Major decision with real alternatives considered | New or updated `03-decisions/ADR-XXX-<slug>.md` |
    | Small decision, no real alternatives weighed | Appended dated entry in `03-decisions/decisions-log.md` |
-   | A stage of work completed, blocked, or redirected | New or updated `02-journey/<date>-<stage>.md`, plus an updated line in `02-journey/00-index.md` |
+   | A stage of work completed, blocked, or redirected | New or updated `02-journey/<date>-<stage>.md`, plus an updated line AND an updated/extended flowchart node in `02-journey/00-index.md` |
    | Troubleshooting / root-cause digging (including incidents) | New or updated `04-investigations/INV-XXX-<slug>.md` |
    | Current system behavior, component, or data flow | `06-architecture/<section>.md` (create the section file only if it doesn't exist) |
    | Step-by-step procedure someone must repeat | `05-docs/how-to/<slug>.md` |
@@ -93,7 +94,10 @@ a source file.
    `00-inbox/raw/` files) into the sibling `processed/` folder,
    preserving relative paths. Never delete originals.
 
-9. **Commit** the result with a message summarizing the batch (e.g.
+9. **Commit** only the files touched by the approved change-set plus the
+   moved inbox sources — never `git add -A` or a blanket `git add .`,
+   which would sweep unrelated unprocessed inbox material into this
+   batch's commit. Use a message summarizing the batch (e.g.
    `sync: ingest Docs/PRDs batch — ADR-001, ADR-002,
    architecture goals+building-blocks`).
 

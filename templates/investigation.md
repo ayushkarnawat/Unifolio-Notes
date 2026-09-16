@@ -1,5 +1,9 @@
 # Investigation: <title>
 
+Status: Open | Resolved | Superseded by INV-YYY
+Date: YYYY-MM-DD
+Related: <journey stage, decision, feature>
+
 ## Trigger
 
 ## Expected behavior

@@ -35,8 +35,21 @@ vault, and turn it into structured records.
    `00-inbox/from-code-repo/processed/<date>/` — the pulled files stay
    there as evidence, they are not deleted.
 
-## For pasted Claude conversations, meeting notes, or screenshots (not
-from the code repo)
+## For pasted Claude conversations, meeting notes, or screenshots (not from the code repo)
 
 Same idea, simpler: drop the file(s) directly into `00-inbox/raw/`, then
 run `/sync-documentation`.
+
+## For the initial migration batches (pre-existing vault content)
+
+`01-overview/roadmap.md` lists 6 batches of pre-existing files already in
+this vault (e.g. `Docs/PRDs/`, `AWS Readiness/`) that need to go through
+the same inbox → sync pipeline. To stage one batch:
+
+1. Move (don't copy — these files already live in this vault, no need to
+   duplicate them) the batch's folder or files into `00-inbox/raw/`.
+2. Run `/sync-documentation`.
+3. Review and approve the change-set as above.
+4. Only move the next batch in after this one is fully processed — the
+   roadmap's batch order is deliberate (foundational content seeds later
+   batches' cross-references).
