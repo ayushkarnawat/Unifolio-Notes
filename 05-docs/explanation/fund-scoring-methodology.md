@@ -1,5 +1,27 @@
 # Why the fund score works the way it does
 
+> **Status banner, 2026-09-17 (batch 2a).** Two fund-scoring methodologies
+> exist in Unifolio's records, and they are not in conflict — they are two
+> different things at two different stages:
+>
+> 1. **This page's formula is superseded for what is actually live.** The
+>    two-ingredient version described below was the design-time methodology.
+>    What shipped on 2026-08-13 is the three-ingredient composite in
+>    [ADR-010](../../03-decisions/ADR-010-fund-scorer-composite-formula.md),
+>    which is the current, running score. Treat the body of this page as
+>    historical design rationale, not as a description of the live score.
+> 2. **A separate, updated methodology based on per-fund stock-holdings data
+>    is planned**, but is blocked pending availability of that holdings data,
+>    and is not yet documented anywhere in the vault. This is a forward-looking
+>    initiative, not a live discrepancy.
+>
+> Source: vault owner, live conversation, 2026-09-17 — not yet corroborated
+> against a written plan or spec; corroborate against source material if one
+> surfaces in a later batch. See [R-015](../../07-risks-and-debt.md) and the
+> [2026-09-17 decisions-log entry](../../03-decisions/decisions-log.md) for
+> the full record of this clarification. The rest of this page is unchanged
+> below.
+
 ## What the score is
 
 A single number per fund, computed by Unifolio from public data, saying how that fund has

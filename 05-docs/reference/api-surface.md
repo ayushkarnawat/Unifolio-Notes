@@ -7,8 +7,20 @@ the code repo. This exists to confirm that every PRD requirement has an endpoint
 
 | Endpoint | Method | Source |
 |---|---|---|
-| `/auth/otp/request` | POST | PRD-02 FR-2 |
-| `/auth/otp/verify` | POST | PRD-02 FR-2 — creates a session |
+| `/auth/otp/request` | POST | PRD-02 FR-2 — accepts a phone number or, since 2026-08-14, an email address |
+| `/auth/otp/verify` | POST | PRD-02 FR-2 — returns one of three outcomes: session created, phone required, or link required |
+| `/auth/google/verify` | POST | ADR-008 — verifies a Google ID token; same three-way outcome |
+| `/auth/pending/{id}/phone` | POST | ADR-008 — completes the mandatory phone step for a pending verification |
+| `/auth/pending/{id}/link` | POST | ADR-008 — step-up re-authentication, then links the new identity |
+| `/onboarding` | PATCH | PRD-02 — onboarding field updates on the acting user, resolved from the session |
+
+**There is deliberately no `GET /auth/me`.** It was considered on 2026-08-05
+and not added, because it was not in the approved design. Recorded because
+the restraint is the point, not because the route is missing by oversight.
+
+**No IDOR by construction:** every onboarding and household-member write
+resolves the acting user from the session token via a shared dependency,
+never from a request body or query parameter.
 
 ## Import — two-phase parse/confirm (TDD generation)
 
@@ -42,13 +54,29 @@ and the schema table is `household_members`. Flagged, not resolved.
 
 | Endpoint | Method | Source |
 |---|---|---|
-| `/household-members` | GET/POST | PRD-02 FR-5 |
-| `/household-members/{id}/holdings` | GET | PRD-03 FR-1–FR-3 |
-| `/household-members/{id}/cash-flow` | GET | PRD-03 FR-7 |
+| `/household-members` | GET/POST | PRD-02 FR-5. **No PATCH exists** — callers resolve the `self` row list-then-create |
+| `/household-members/{id}/holdings` | GET | PRD-03 FR-1–FR-3 — FIFO cost basis |
+| `/household-members/{id}/allocation` | GET | Coarse view: `by_asset_class` / `by_amc` |
+| `/household-members/{id}/sips` | GET | PRD-03 — active-SIP detection, 40-day window |
+| `/household-members/{id}/cash-flow` | GET | PRD-03 FR-7 — switch transactions excluded |
 | `/household-members/{id}/snapshots` | GET | PRD-03 FR-8 |
+| `/household-members/{id}/distributor-comparison` | GET | PRD-03 FR-11 — **as implemented 2026-08-07**. Contested; see below |
+| `/funds/{scheme_id}/distributor-comparison` | GET | PRD-03 FR-11 — the TDD's shape, recorded in this file since batch 1 |
 | `/household/aggregate` | GET | PRD-03 FR-9 — the default landing view |
-| `/funds/{scheme_id}/distributor-comparison` | GET | PRD-03 FR-11 |
-| `/household-members/{id}/allocation` | GET | Pre-existing coarse view: `by_asset_class` / `by_amc` |
+
+**Two shapes are recorded for distributor comparison, and only one can be
+right.** The TDD's fund-global route is what this reference has carried since
+batch 1. The 2026-08-07 design corrected it to sit under the household
+member, on the reasoning that "your returns by distributor" is meaningless
+without knowing whose returns — and that is what was built. Both rows are
+left here rather than one being deleted. See
+[R-017](../../07-risks-and-debt.md) — unresolved.
+
+**Family-aggregate response shape, uniformly:** aggregate responses wrap a
+per-member status list, so a member with no data is returned as
+present-but-empty rather than silently dropped. Every compute function behind
+these routes takes a list of member IDs, so the per-member and aggregate
+paths are one implementation.
 
 ## Analytics
 
@@ -57,7 +85,7 @@ and the schema table is `household_members`. Flagged, not resolved.
 | `/analytics/household-members/{id}/allocation` | GET | PRD-04 FR-1–FR-2 — granular `by_category` plus re-exposed `by_amc`. **Built 2026-08-10** |
 | `/analytics/household/aggregate/allocation` | GET | PRD-04 FR-1–FR-2, family aggregate. Built 2026-08-10 |
 | `/funds/{scheme_id}/category-rank` | GET | PRD-04 FR-3–FR-4 |
-| `/funds/{scheme_id}/score` | GET | PRD-04 FR-5–FR-7 |
+| `/funds/{scheme_id}/score` | GET | PRD-04 FR-5–FR-7 — three-ingredient composite, **built 2026-08-13**. Formula in [ADR-010](../../03-decisions/ADR-010-fund-scorer-composite-formula.md); the FR-7 breakdown is recomputed on read and never persisted |
 | `/household-members/{id}/benchmark-comparison` | GET | PRD-04 FR-8–FR-9 |
 
 **On the two `/allocation` routes:** the Dashboard's coarse
@@ -65,6 +93,14 @@ and the schema table is `household_members`. Flagged, not resolved.
 `/analytics/household-members/{id}/allocation` are **intentionally separate**, on distinct
 prefixes, serving different granularities. This is documented explicitly in the TDD
 because it looks like a route collision and is not one.
+
+Confirmed by implementation on 2026-08-06 and 2026-08-10. One further
+correction: the TDD's API table listed the **coarse** allocation endpoint
+under the Analytics service. Phase 3 recorded that as a documentation slip
+and placed it in Dashboard, where the holdings engine it depends on already
+lives. The Analytics service re-exposes the coarse `by_amc` view inside its
+own response rather than recomputing it, so the analytics tab is one request
+over one holdings computation.
 
 ## Related
 
