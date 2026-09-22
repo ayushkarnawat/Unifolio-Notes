@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Unifolio — Analytics "Still Computing" State Options</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=DM+Sans:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  /* ---- Unifolio design tokens, copied verbatim from frontend/src/styles/tokens.css (light mode) ---- */
+  :root {
+    --color-bg: #FCFCFC;
+    --color-ink: #111111;
+    --color-surface: #FFFFFF;
+    --color-border: #E5E5E5;
+    --color-text-secondary: #5C5C5C;
+    --color-accent: #22C55E;
+    --color-positive: #22C55E;
+    --color-negative: #EF4444;
+    --color-neutral-badge: #94A3B8;
+    --color-warning: #F59E0B;
+
+    --font-display: "DM Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --font-body: "Manrope", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+    --type-h1-font: var(--font-display); --type-h1-weight: 700; --type-h1-size: 24px; --type-h1-line-height: 1.3;
+    --type-h2-font: var(--font-display); --type-h2-weight: 600; --type-h2-size: 18px; --type-h2-line-height: 1.4;
+    --type-body-font: var(--font-body); --type-body-weight: 400; --type-body-size: 15px; --type-body-line-height: 1.5;
+    --type-caption-font: var(--font-body); --type-caption-weight: 400; --type-caption-size: 13px; --type-caption-line-height: 1.4;
+    --type-data-large-font: var(--font-display); --type-data-large-weight: 600; --type-data-large-size: 20px;
+
+    --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-6: 24px; --space-8: 32px; --space-12: 48px;
+
+    --radius-sm: 8px; --radius-md: 12px; --radius-lg: 20px;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.06);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+    --motion-fast: 150ms ease-out;
+    --motion-reveal: 400ms ease-in-out;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: #EDEDED;
+    color: var(--color-ink);
+    font-family: var(--type-body-font);
+    font-size: var(--type-body-size);
+    line-height: var(--type-body-line-height);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page-intro {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: var(--space-8) var(--space-6) var(--space-4);
+  }
+  .page-intro h1 {
+    font-family: var(--type-h1-font); font-weight: var(--type-h1-weight);
+    font-size: 28px; margin: 0 0 var(--space-2);
+  }
+  .page-intro p { color: var(--color-text-secondary); margin: 0 0 var(--space-2); max-width: 640px; }
+
+  .option-block { max-width: 900px; margin: var(--space-8) auto; padding: 0 var(--space-6); }
+  .option-label {
+    display: flex; align-items: baseline; gap: var(--space-3); margin-bottom: var(--space-3);
+  }
+  .option-label .num {
+    font-family: var(--type-h1-font); font-weight: 700; font-size: 15px;
+    color: #fff; background: var(--color-ink); width: 26px; height: 26px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .option-label h2 { font-family: var(--type-h2-font); font-weight: 700; font-size: 19px; margin: 0; }
+  .option-label .when { font-family: var(--type-caption-font); color: var(--color-text-secondary); }
+
+  .frame {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+  }
+
+  /* ---- App chrome shared by every mockup, matching NavigationShell.tsx ---- */
+  .app-nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: var(--space-3) var(--space-6);
+    border-bottom: 1px solid var(--color-border);
+  }
+  .app-nav .left { display: flex; align-items: center; gap: var(--space-6); }
+  .logo { font-family: var(--type-h1-font); font-weight: 700; font-size: 18px; letter-spacing: -0.02em; }
+  .logo .dot { color: var(--color-accent); }
+  .tabs { display: flex; gap: var(--space-4); font-size: 14px; font-weight: 600; color: var(--color-text-secondary); }
+  .tabs .active { color: var(--color-ink); }
+  .app-nav .right { display: flex; align-items: center; gap: var(--space-3); font-size: 13px; color: var(--color-text-secondary); }
+
+  .app-body { padding: var(--space-6); min-height: 340px; }
+
+  /* ---- Shimmer skeleton, matching Skeleton.module.css ---- */
+  .skel {
+    background: linear-gradient(90deg, var(--color-border) 25%, #F2F2F2 50%, var(--color-border) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite ease-in-out;
+    border-radius: var(--radius-sm);
+  }
+  @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+  .skel-row { display: flex; align-items: center; gap: var(--space-4); padding: var(--space-3) 0; }
+
+  /* ---- Badge, matching Badge.module.css ---- */
+  .badge {
+    display: inline-flex; align-items: center; gap: var(--space-2);
+    border-radius: var(--radius-sm); padding: 4px 10px;
+    font-family: var(--font-body); font-size: 12px; font-weight: 600;
+  }
+  .badge.calculating {
+    background: color-mix(in srgb, var(--color-warning) 14%, transparent);
+    color: #B8790A;
+  }
+  .badge .dot {
+    width: 6px; height: 6px; border-radius: 50%; background: var(--color-warning);
+    animation: pulse 1.4s infinite ease-in-out;
+  }
+  @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.75); } }
+
+  .caption { font-family: var(--type-caption-font); font-size: 13px; color: var(--color-text-secondary); }
+
+  /* ---- Option 3: stale-while-revalidate dimmed real content ---- */
+  .stale-content { opacity: 0.55; filter: saturate(0.7); pointer-events: none; transition: opacity var(--motion-reveal); }
+  .refresh-pill {
+    position: relative;
+    display: inline-flex; align-items: center; gap: var(--space-2);
+    background: var(--color-ink); color: #fff;
+    border-radius: 999px; padding: 8px 16px; font-size: 13px; font-weight: 600;
+    box-shadow: var(--shadow-md);
+    margin: var(--space-4) auto 0; width: fit-content;
+  }
+  .refresh-pill .spinner {
+    width: 12px; height: 12px; border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.35); border-top-color: #fff;
+    animation: spin 0.7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ---- Option 4: cold-start dedicated state ---- */
+  .cold-start { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: var(--space-12) var(--space-6); }
+  .cold-start .ring {
+    width: 56px; height: 56px; border-radius: 50%;
+    border: 3px solid var(--color-border); border-top-color: var(--color-accent);
+    animation: spin 0.9s linear infinite;
+    margin-bottom: var(--space-6);
+  }
+  .cold-start h3 { font-family: var(--type-h2-font); font-weight: 700; font-size: 17px; margin: 0 0 var(--space-2); }
+  .cold-start p { color: var(--color-text-secondary); font-size: 14px; max-width: 340px; margin: 0; }
+
+  /* ---- Option 5: per-card progressive reveal (cold start, mixed state) ---- */
+  .card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
+  .card {
+    border: 1px solid var(--color-border); border-radius: var(--radius-md);
+    padding: var(--space-4); background: var(--color-surface);
+  }
+  .card-title { font-family: var(--type-h2-font); font-weight: 700; font-size: 14px; margin-bottom: var(--space-3); display: flex; align-items: center; justify-content: space-between; }
+  .card .ring-sm {
+    width: 16px; height: 16px; border-radius: 50%;
+    border: 2px solid var(--color-border); border-top-color: var(--color-accent);
+    animation: spin 0.9s linear infinite;
+  }
+  .card .waiting-caption { color: var(--color-text-secondary); font-size: 13px; padding: var(--space-6) 0; text-align: center; }
+
+  .verdict { max-width: 900px; margin: var(--space-12) auto var(--space-12); padding: 0 var(--space-6); }
+  .verdict .frame { padding: var(--space-6); background: var(--color-surface); }
+  .verdict h2 { font-family: var(--type-h2-font); font-size: 17px; margin: 0 0 var(--space-2); }
+  .verdict ol { padding-left: 20px; color: var(--color-text-secondary); font-size: 14px; }
+  .verdict li { margin-bottom: var(--space-2); }
+</style>
+</head>
+<body>
+
+<div class="page-intro">
+  <h1>"Still computing" loading states — decided</h1>
+  <p><strong>Decision (2026-08-27):</strong> Option 3 for returning visits, Option 5 for genuine cold start
+  (Option 4's single-ring/no-progress-bar treatment, but shown per-card instead of as one full-page block — see
+  Option 5 below for why). Options 1, 2, and the original two-indicator version of 4 are kept here only as the
+  rejected alternatives, for the record.</p>
+</div>
+
+<!-- OPTION 1 -->
+<div class="option-block">
+  <div class="option-label">
+    <div class="num">1</div>
+    <h2>Skeleton + quiet caption</h2>
+    <span class="when">— cold start, minimal deviation from today</span>
+  </div>
+  <div class="frame">
+    <div class="app-nav">
+      <div class="left">
+        <div class="logo">Unif<span class="dot">●</span>lio</div>
+        <div class="tabs"><span>Dashboard</span><span class="active">Analytics</span></div>
+      </div>
+      <div class="right">Family Combined · Per Member</div>
+    </div>
+    <div class="app-body">
+      <div class="skel" style="width:280px;height:22px;margin-bottom:8px;"></div>
+      <div class="caption" style="margin-bottom:var(--space-6);">Calculating your portfolio analytics — this can take a few seconds the first time.</div>
+      <div class="skel" style="width:100%;height:120px;margin-bottom:var(--space-4);"></div>
+      <div class="skel-row"><div class="skel" style="width:32px;height:32px;border-radius:50%;"></div><div class="skel" style="width:40%;height:16px;"></div><div class="skel" style="width:15%;height:16px;margin-left:auto;"></div></div>
+      <div class="skel-row"><div class="skel" style="width:32px;height:32px;border-radius:50%;"></div><div class="skel" style="width:55%;height:16px;"></div><div class="skel" style="width:15%;height:16px;margin-left:auto;"></div></div>
+      <div class="skel-row"><div class="skel" style="width:32px;height:32px;border-radius:50%;"></div><div class="skel" style="width:35%;height:16px;"></div><div class="skel" style="width:15%;height:16px;margin-left:auto;"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- OPTION 2 -->
+<div class="option-block">
+  <div class="option-label">
+    <div class="num">2</div>
+    <h2>Skeleton + status badge in header</h2>
+    <span class="when">— cold start, more visible acknowledgement</span>
+  </div>
+  <div class="frame">
+    <div class="app-nav">
+      <div class="left">
+        <div class="logo">Unif<span class="dot">●</span>lio</div>
+        <div class="tabs"><span>Dashboard</span><span class="active">Analytics</span></div>
+      </div>
+      <div class="right">
+        <span class="badge calculating"><span class="dot"></span>Calculating</span>
+      </div>
+    </div>
+    <div class="app-body">
+      <div class="skel" style="width:100%;height:120px;margin-bottom:var(--space-4);"></div>
+      <div class="skel-row"><div class="skel" style="width:32px;height:32px;border-radius:50%;"></div><div class="skel" style="width:40%;height:16px;"></div><div class="skel" style="width:15%;height:16px;margin-left:auto;"></div></div>
+      <div class="skel-row"><div class="skel" style="width:32px;height:32px;border-radius:50%;"></div><div class="skel" style="width:55%;height:16px;"></div><div class="skel" style="width:15%;height:16px;margin-left:auto;"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- OPTION 3 -->
+<div class="option-block">
+  <div class="option-label">
+    <div class="num">3</div>
+    <h2>Stale-while-revalidate — show last-known data, dimmed</h2>
+    <span class="when">— returning visit, background refresh in progress (the common case)</span>
+  </div>
+  <div class="frame">
+    <div class="app-nav">
+      <div class="left">
+        <div class="logo">Unif<span class="dot">●</span>lio</div>
+        <div class="tabs"><span>Dashboard</span><span class="active">Analytics</span></div>
+      </div>
+      <div class="right">Family Combined · Per Member</div>
+    </div>
+    <div class="app-body">
+      <div class="stale-content">
+        <div style="font-family:var(--type-data-large-font);font-weight:700;font-size:22px;margin-bottom:4px;">₹87,69,363</div>
+        <div class="caption" style="margin-bottom:var(--space-6);">Total Portfolio Value · as of a few minutes ago</div>
+        <div class="skel-row" style="border-top:1px solid var(--color-border);"><div style="width:32px;height:32px;border-radius:50%;background:var(--color-border);"></div><div style="flex:1;">Edelweiss Mid Cap Fund</div><div style="color:var(--color-positive);font-weight:600;">↑ ₹90,098</div></div>
+        <div class="skel-row"><div style="width:32px;height:32px;border-radius:50%;background:var(--color-border);"></div><div style="flex:1;">Parag Parikh Flexi Cap Fund</div><div style="color:var(--color-positive);font-weight:600;">↑ ₹2,76,465</div></div>
+        <div class="skel-row"><div style="width:32px;height:32px;border-radius:50%;background:var(--color-border);"></div><div style="flex:1;">ICICI Prudential Focused Equity</div><div style="color:var(--color-negative);font-weight:600;">↓ ₹2,296</div></div>
+      </div>
+      <div class="refresh-pill"><span class="spinner"></span>Updating with latest data…</div>
+    </div>
+  </div>
+</div>
+
+<!-- OPTION 4 -->
+<div class="option-block">
+  <div class="option-label">
+    <div class="num">4</div>
+    <h2>Dedicated cold-start screen</h2>
+    <span class="when">— cold start, explains the one-time wait instead of imitating a fast skeleton</span>
+  </div>
+  <div class="frame">
+    <div class="app-nav">
+      <div class="left">
+        <div class="logo">Unif<span class="dot">●</span>lio</div>
+        <div class="tabs"><span>Dashboard</span><span class="active">Analytics</span></div>
+      </div>
+      <div class="right">Family Combined · Per Member</div>
+    </div>
+    <div class="app-body">
+      <div class="cold-start">
+        <div class="ring"></div>
+        <h3>Setting up your analytics</h3>
+        <p>We're calculating category rankings, benchmarks, and scores for your portfolio for the first time. This happens once — future visits will be instant.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- OPTION 5 -->
+<div class="option-block">
+  <div class="option-label">
+    <div class="num">5</div>
+    <h2>Cold start, per-card progressive reveal</h2>
+    <span class="when">— what Option 4 actually looks like once fast sections land before slow ones</span>
+  </div>
+  <div class="frame">
+    <div class="app-nav">
+      <div class="left">
+        <div class="logo">Unif<span class="dot">●</span>lio</div>
+        <div class="tabs"><span>Dashboard</span><span class="active">Analytics</span></div>
+      </div>
+      <div class="right">Family Combined · Per Member</div>
+    </div>
+    <div class="app-body">
+      <div class="caption" style="margin-bottom:var(--space-4);">Setting up your analytics for the first time — each section appears as soon as it's ready.</div>
+      <div class="card-grid">
+        <div class="card">
+          <div class="card-title">Allocation</div>
+          <div style="display:flex;align-items:center;gap:var(--space-3);">
+            <div style="width:64px;height:64px;border-radius:50%;background:conic-gradient(var(--color-accent) 0 55%, var(--color-neutral-badge) 55% 80%, var(--color-warning) 80% 100%);"></div>
+            <div class="caption">Equity 55% · Debt 25% · Hybrid 20%</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">TER (Direct vs Regular)</div>
+          <div style="font-family:var(--type-data-large-font);font-weight:700;font-size:20px;">0.62% <span style="color:var(--color-text-secondary);font-size:13px;font-weight:400;">avg</span></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Benchmark Comparison<div class="ring-sm"></div></div>
+          <div class="waiting-caption">Comparing against category benchmarks…</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Category Ranking &amp; Score<div class="ring-sm"></div></div>
+          <div class="waiting-caption">Ranking against 140 peer funds…</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="verdict">
+  <div class="frame">
+    <h2>Decided</h2>
+    <ol>
+      <li><strong>Option 3</strong> is the default for anyone who already has data — real numbers shown instantly, dimmed, with a single background-refresh pill.</li>
+      <li><strong>Option 4's ring-only treatment, applied per-card as Option 5</strong> is the cold-start state. One indicator only (spinning ring — the progress bar was dropped as redundant with it).</li>
+      <li><strong>Why per-card, not one full-page block:</strong> AnalyticsView already fetches its 7 sections independently and today shows each as soon as it resolves — Allocation/TER/Benchmark typically land in well under a second, Category Ranking/Score is the slow leg (network NAV warm + peer-universe CAGR calc). On cold start, per-household precompute writes each section's row as it finishes, not all-at-once — so a single full-page "Setting up your analytics" block would sit idle for the fast sections' data for no reason. Option 5 keeps that same instant-when-ready behavior: each card shows real data the moment its own precompute lands, and only the still-computing cards show the ring, scoped to that card, not the page.</li>
+      <li>Skip 1 and 2 as separate states — both were "pretend it's fast" treatments for a wait that, on cold start, genuinely isn't fast; 5 tells the truth per-section instead, and 3 covers the fast path for everyone else.</li>
+    </ol>
+  </div>
+</div>
+
+</body>
+</html>

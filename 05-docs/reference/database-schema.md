@@ -61,6 +61,15 @@ entity list.
 - **No `default_view` column.** The family-aggregate default is computed from a count of
   household members, so it cannot go stale.
 
+**A note on the first of those two.** The no-PAN-column position is now stated
+five different ways across five dates — being rewritten to masked-on-display
+(2026-08-25), kept as-is until a schema change actually lands (2026-08-26), to
+be stored encrypted at rest (ADR-007, 2026-09-16), and reaffirmed live on
+2026-09-19 as encrypted both at rest and in transit, with documentation still
+pending. Nothing has changed in the schema; no PAN column exists today. The
+open question is tracked as R-043 and must not be read as resolved from any
+single document.
+
 ## History worth knowing
 
 The source document had gone stale by three to four migrations before a compliance audit
@@ -70,6 +79,26 @@ password tables were all reconciled in at once. A second audit pass on the same 
 found the `(user_id) WHERE relationship = 'self'` unique index had never been specified
 in the document at all, even before the code caught up. **Treat this document as lagging
 the migrations by default, not as authoritative over them.**
+
+- **`0006_email_password_auth` (2026-08-17)** added
+  `auth_identities.password_hash`, `auth_identities.email_confirmed_at` and
+  `pending_identity_verifications.password_hash`; created
+  `password_reset_tokens` and `email_confirmation_tokens`; dropped
+  `otp_requests.email` and the exactly-one-identifier check constraint; and
+  restored `phone_number` to `NOT NULL`. Reversed the same day in product
+  terms; password storage was removed again by `0007`–`0008`. The
+  `EMAIL_OTP` provider enumeration value was deliberately **not** removed,
+  because PostgreSQL enumerations grow cheaply and shrink expensively — which
+  is what made the reversal cheap.
+- **`0009` is unaccounted for in this vault.** No record here says what it
+  does. See R-050.
+- **`0010_demat_accounts_and_equity_holdings` (2026-08-26, planned, not
+  applied)** adds `demat_accounts`, `equity_holdings`, `bond_holdings`,
+  `demat_mutual_fund_holdings` and `equity_price_history`, plus a depository
+  type enumeration. Holdings are stored as a **snapshot** keyed on demat
+  account, ISIN and statement date — deliberately not as opening-balance
+  transactions, which is what the research document had proposed. Bond and
+  demat-held mutual-fund tables are created but not surfaced anywhere (R-045).
 
 ## Related
 

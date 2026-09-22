@@ -129,3 +129,66 @@ government tax ID has been completed. None of the three is true as of this ADR's
 - Contradicting (now stale, not rewritten): `08-evidence/documents/PRD-01-CAS-Parser-v2.md`
   FR-2; `08-evidence/documents/Database-Schema-Unifolio.md` Data Classification table;
   `08-evidence/documents/TDD-Unifolio.md` Security NFR.
+
+## Addendum — 2026-09-18: earlier written evidence found, and a mechanism discrepancy
+
+Ingesting the 2026-08-17 → 2026-08-31 plans and specs surfaced written material
+about PAN persistence that predates this ADR by three weeks. It is recorded
+here without altering anything above.
+
+**What was found.** The 2026-08-25 Phase 2 demat research document and its
+companion decision memo both state, as a starting constraint, that "the 'no PAN
+persistence, ever' rule is being rewritten: Unifolio will now store PAN, masked
+wherever displayed." This ADR's Context notes that the reversal had no written
+artifact. It has one.
+
+**Why this does not simply confirm the ADR.** Three differences:
+
+1. **Mechanism.** This ADR specifies PAN encrypted at rest. The 2026-08-25
+   documents specify PAN masked wherever displayed. Those are different
+   controls — one governs storage, one governs presentation — and satisfying
+   one does not satisfy the other.
+2. **Purpose.** This ADR's motivation is per-member matching against CAS
+   filings (`Updated-CAS-PRD.md` FR-4). The 2026-08-25 motivation is automated
+   ingestion of emailed depository statements, a Phase 2 concern that did not
+   exist when FR-4 was written.
+3. **A later contrary decision.** On 2026-08-26 — one day after those
+   documents, and three weeks before this ADR — the Phase 2 backend
+   implementation plan recorded: "Decided during planning: keep
+   never-persisting PAN. Revisit if/when that reversal actually lands in the
+   schema."
+
+The 2026-08-25 decision memo also contradicts itself internally: it lists the
+rule-being-rewritten among its starting constraints, then later asserts that a
+clipboard pre-fill trick "cannot extend to PAN" precisely because the hard
+no-PAN rule still stands.
+
+**Status unchanged.** This ADR remains *Planned — not yet implemented*. No PAN
+column exists in the schema. Nothing above is superseded by this addendum; the
+new evidence is registered and the resulting open questions are tracked as
+R-043, which needs a human decision on whether PAN is stored, by what
+mechanism, and for which purpose.
+
+### Addendum evidence
+
+- `08-evidence/documents/specs/2026-08-25-phase-2-stocks-demat-research.md` (§7-A, §8a)
+- `08-evidence/documents/specs/2026-08-25-phase-2-demat-integration-decision-memo.md` (starting constraints; option H)
+- `08-evidence/documents/plans/2026-08-26-phase-2-stocks-demat-import-backend.md` (deviation 1)
+
+## Addendum — 2026-09-19: direction reaffirmed, in-transit detail added, documentation pending
+
+In a live conversation, the vault owner reaffirmed this ADR's direction:
+PAN will most likely be stored encrypted at rest, consistent with the
+decision above, and will most likely also be encrypted in transit (stated
+verbally as "TLS 3.1" — no such protocol version exists; TLS 1.3 is the
+current standard and the most plausible intended reference, recorded here
+as an inference, not a confirmed fact). Detailed documentation is being
+prepared by a colleague and does not yet exist.
+
+**Status unchanged.** This ADR remains *Planned — not yet implemented*.
+No PAN column exists in the schema. This addendum does not settle R-043 —
+it narrows the range of open questions (storage mechanism direction is
+now reaffirmed) without closing them (in-transit mechanism unconfirmed,
+no written documentation yet to cite as a source).
+
+Source: vault owner, live conversation, 2026-09-19.

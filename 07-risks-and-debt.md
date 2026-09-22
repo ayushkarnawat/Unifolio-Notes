@@ -276,6 +276,119 @@ portfolio rollup, "AAUM-weighted" for anything computed across the universe.
 No code change is implied; the risk is entirely that one is implemented where
 the other was meant.
 
+### R-035 — The app auto-switches to mobile on viewport width, and a repo document says it must not (Open, medium)
+
+`App.tsx` renders the mobile tree when the route is a mobile route **or** when
+a `max-width: 767px` media query matches. The code repo's
+`Docs/MOBILE_APP_EXECUTION.md` states that mobile must not automatically
+replace the web experience based on viewport or device detection. Both cannot
+be right.
+
+The 2026-08-19 mobile system plan found this, recommended keeping the code and
+correcting the document, and said explicitly that it was flagging rather than
+silently picking a side. The recommendation has not been applied — the document
+in question lives in the code repo, which this vault does not modify.
+
+**Recommended resolution (not applied):** correct
+`Docs/MOBILE_APP_EXECUTION.md` in the code repo, or remove the viewport clause
+from `App.tsx`. The mobile design work assumes the current behaviour, so
+changing the code is the more expensive option.
+
+**To verify:** cross-check against the current state of the Unifolio code repo.
+
+*Source: `08-evidence/documents/specs/2026-08-19-mobile-uiux-system-plan.md` §0.1*
+
+### R-043 — PAN persistence now has five dated positions across five dates (Open, high — direction reaffirmed 2026-09-19, detailed documentation pending)
+
+The most consequential open question in this batch. In date order:
+
+1. **Through batch 1 and 2a** — PAN is never persisted. A permanent guard test
+   was added on 2026-08-04 to keep it that way. R-001 tracked the resulting
+   conflict with the CAS PRD's per-member matching requirement.
+2. **2026-08-25**, the Phase 2 demat research and decision memo, both as a
+   stated starting constraint — "the 'no PAN persistence, ever' rule is being
+   rewritten: Unifolio will now store PAN, **masked wherever displayed**".
+   Motivated by automated statement ingestion.
+3. **2026-08-26**, the Phase 2 backend plan, deviation 1 — "Decided during
+   planning: **keep never-persisting PAN.** Revisit if/when that reversal
+   actually lands in the schema."
+4. **2026-09-16**, already in this vault — ADR-007 and the matching
+   decisions-log entry: PAN **will** be stored, **encrypted at rest**, to
+   support per-member matching against CAS filings (FR-4). Direction confirmed,
+   not implemented.
+5. **2026-09-19**, live conversation with the vault owner — PAN
+   storage direction reaffirmed: encrypted at rest, and encrypted in
+   transit (most likely TLS 1.3, inferred from a spoken "TLS 3.1," not
+   independently confirmed). Detailed documentation is pending from a
+   colleague and has not yet been written. This reaffirms position 4
+   (ADR-007) rather than replacing it, and adds the in-transit detail that
+   ADR-007 did not specify.
+
+Positions 2 and 4 are not the same decision. Masked-on-display is a
+presentation control; encrypted-at-rest is a storage control. They have
+different threat models, different implementation work, and different
+motivations — statement ingestion versus per-member matching. A design that
+satisfies one does not necessarily satisfy the other.
+
+There is also a contradiction **inside a single document**: the 2026-08-25
+decision memo lists the rule-being-rewritten as a starting constraint, and
+then, discussing browser-native pickup conveniences, states that the same
+clipboard trick "cannot extend to PAN — Unifolio's own schema already has a
+hard 'no PAN persistence, ever' rule, so we structurally can't remember it even
+for this."
+
+Nothing in the schema has changed either way. No PAN column exists today.
+
+**Direction is reaffirmed but not yet fully settled.** As of 2026-09-19: (a)
+PAN is most likely stored — yes; (b) most likely both encrypted at rest and
+encrypted in transit; (c) for per-member CAS matching (FR-4), per ADR-007 —
+the 2026-08-25 masked-on-display / statement-ingestion motivation is not
+reaffirmed and is not known to still be live. What remains open: the
+colleague's detailed documentation, which will need to be ingested as its own
+future batch once it exists, and formal confirmation of the in-transit
+mechanism. A DPDP Act assessment is still outstanding regardless, per
+ADR-007's own follow-up note.
+
+*Sources: `08-evidence/documents/specs/2026-08-25-phase-2-stocks-demat-research.md` §7-A and §8a; `08-evidence/documents/specs/2026-08-25-phase-2-demat-integration-decision-memo.md` constraints and option H; `08-evidence/documents/plans/2026-08-26-phase-2-stocks-demat-import-backend.md` deviation 1; ADR-007; vault owner, live conversation, 2026-09-19*
+
+### R-046 — The marketing brief's trust-bar claim contradicts how Unifolio actually imports statements (Open, high — launch-facing)
+
+The 2026-08-31 marketing brief's placeholder trust-bar copy reads "Works with
+your CAS from every AMC — powered by MFCentral", and justifies it on the
+grounds that the repository's CAS ingestion is built against the MFCentral API.
+
+This vault records the opposite. `05-docs/explanation/why-we-parse-cas-pdfs.md`
+documents user-uploaded CAS PDFs parsed with `casparser`. The
+"Deferred by decision" list already records MFCentral OTP/API import and
+Account Aggregator import as gated behind a regulatory path the company does
+not hold. This same batch's Phase 2 research costs MFCentral-class access as a
+future phase, not a current capability.
+
+The brief does ask for a marketing and legal check before launch, and flags
+that any AMC-count claim needs a real number. That instinct is right; the
+justification behind the claim is not. This is the kind of statement that gets
+repeated by press and by answer engines — and the brief's own strategy is
+built on repeating entity statements verbatim so answer engines converge on
+them.
+
+**Recommended resolution (not applied):** replace the claim with one grounded
+in what the product does, and confirm the real AMC coverage number, before the
+brief goes to Manus as final.
+
+*Source: `08-evidence/documents/specs/2026-08-31-marketing-website-design.md` §3 (Home), §6 item 3*
+
+### R-047 — The demat decision memo cites a PRD that does not exist (Open, low)
+
+The 2026-08-25 decision memo references `PRD-05-Stocks-Demat-Import.md` as a
+source. The 2026-08-26 backend plan states that document does not exist. One
+of the two is wrong about the input to a phase of work, which matters because
+the memo's recommendation was accepted on the strength of its sourcing.
+
+**To verify:** cross-check against the current state of the Unifolio code repo
+and its `Docs/PRDs/` folder.
+
+*Sources: `08-evidence/documents/specs/2026-08-25-phase-2-demat-integration-decision-memo.md`; `08-evidence/documents/plans/2026-08-26-phase-2-stocks-demat-import-backend.md`*
+
 ## Technical debt
 
 ### R-009 — Test fixtures for the parse-accuracy NFR do not exist (Open, high)
@@ -527,6 +640,286 @@ third-party sign-in is offered — at which point this stops being a $99
 question. Neither is urgent. Both are cheaper to decide now than to
 rediscover.
 
+### R-031 — `users.email` is never backfilled for email-and-password identities (Open, medium)
+
+The 2026-08-17 backend work names this as a known limitation it chose not to
+fix: a user who signs up with email and password and fully confirms their
+address still gets a null email back from `/auth/me`, because the value is
+written to the identity row and never propagated to the user row. The feature
+was reversed the same day and password storage was removed by migrations
+`0007`–`0008`, so this may no longer be reachable — but the same propagation
+gap could exist for any provider that writes an email to an identity.
+
+**To verify:** cross-check against the current state of the Unifolio code repo.
+
+*Source: `08-evidence/documents/plans/2026-08-17-email-password-signup-backend.md`*
+
+### R-032 — PRD-03's SIP behaviour is contradicted by ADR-012 and has no superseding note (Open, medium)
+
+ADR-012 removes the 40-day active-SIP window. PRD-03 FR-6 and its edge-case
+table still document it. The design that produced ADR-012 requires a short
+superseding note to be added to the PRD, explicitly on the grounds that a PRD
+conflict must be flagged rather than silently resolved. That note is a code-repo
+document change and has not been made.
+
+This is not urgent while ADR-012 remains unimplemented, and becomes a live
+documentation defect the moment it ships.
+
+*Source: `08-evidence/documents/specs/2026-08-18-active-sips-cadence-redesign-design.md`*
+
+### R-033 — One decorative auth panel went through four concepts in 48 hours, with no accepted design record (Open, medium)
+
+In order: a "fund-signal ring" specified on 2026-08-18 and never built; a
+chaos-loop-to-grid performance-path graphic with milestone tooltips that is
+what actually shipped (commit `75a1925`); a particles-converging-into-the-arc
+direction that was "built out through several mockup rounds and ultimately
+dropped"; a "fragments align and sharpen" direction specified on 2026-08-19 as
+v2.0; and an editorial/typographic "Direction B" planned the same day, whose
+first two tasks are ticked.
+
+Each individual rejection was made for a defensible, written reason — which is
+the good part, and why the alternatives survive in the evidence. The problem is
+the aggregate: an element with no functional requirement absorbed several
+rounds of design and at least two rounds of implementation in two days, and no
+document in this batch reconciles the last two directions or marks either as
+the accepted one.
+
+**Recommended resolution (not applied):** name one accepted direction for this
+component and mark the others superseded, so the next person who opens the
+file knows which document is live.
+
+**To verify:** cross-check against the current state of the Unifolio code repo
+to establish which direction is actually in the product.
+
+*Sources: `08-evidence/documents/specs/2026-08-18-auth-onboarding-import-review-visual-motion-redesign.md` §4.3, §5.5; `08-evidence/documents/specs/2026-08-19-auth-left-visual-redesign.md` §0; `08-evidence/documents/plans/2026-08-19-auth-left-panel-editorial-refinement.md`*
+
+### R-034 — An illustration variant was built for the import flow and never wired in (Open, low)
+
+`OnboardingIllustration`'s `"upload"` variant exists, was built for the CAS
+import flow, and is not used anywhere. A second, smaller instance of the same
+class of problem: `AddFamilyMembers.tsx` renders the `household` variant while
+an unused `family` variant exists. Both are cheap to resolve and both represent
+work already paid for and not collected.
+
+**To verify:** cross-check against the current state of the Unifolio code repo.
+
+*Sources: `08-evidence/documents/specs/2026-08-19-cas-import-illustration-redesign.md`; `08-evidence/documents/specs/2026-08-20-mobile-privacy-onboarding-fullscreen-plan.md`*
+
+### R-036 — Two components render the same mobile fund detail (Open, medium)
+
+`MobileFundDetailView` and `MobileFundDetailSheet` duplicate each other. The
+2026-08-19 mobile system plan raised this deliberately as a product and
+maintenance decision for a human rather than resolving it — a sheet and a full
+view are not obviously the same product decision, and picking one changes
+behaviour. It remains open.
+
+**To verify:** cross-check against the current state of the Unifolio code repo.
+
+*Source: `08-evidence/documents/specs/2026-08-19-mobile-uiux-system-plan.md` §4.5*
+
+### R-037 — The desktop Main Dashboard is still a placeholder while the mobile one is mature (Open, high)
+
+`DashboardPlaceholder.tsx` is a literal stub. `MobileDashboardView.tsx` is a
+666-line mature implementation. The product's primary screen, on its primary
+platform, does not exist.
+
+This inverts the assumption in most of the design documentation, where mobile
+adapts what desktop establishes. The mobile system plan's recommendation is
+that when the desktop dashboard is built it should follow the product semantics
+already settled on mobile, not the reverse — which is a genuine architectural
+instruction, not a consolation.
+
+**To verify:** cross-check against the current state of the Unifolio code repo.
+
+*Source: `08-evidence/documents/specs/2026-08-19-mobile-uiux-system-plan.md` §0.3*
+
+### R-038 — Empty, loading and error states are the one real cross-cutting gap on mobile (Open, medium)
+
+The mobile system plan's survey found the design system otherwise complete —
+no new tokens needed — with one systemic hole: empty, loading and error states
+are not specified anywhere and are handled ad hoc per screen. A smaller related
+gap: numeric inputs are missing `inputmode` attributes, so mobile keyboards
+open in the wrong mode.
+
+The 2026-08-27 analytics loading-state decision covers exactly one surface of
+this. It is a precedent, not a solution.
+
+**To verify:** cross-check against the current state of the Unifolio code repo.
+
+*Source: `08-evidence/documents/specs/2026-08-19-mobile-uiux-system-plan.md` §3, §4.9*
+
+### R-039 — The PDF export's capability-token store is in-process only (Open, medium)
+
+ADR-013's export tokens live in an in-process dictionary. It does not survive a
+restart and does not work across multiple workers — so the feature breaks the
+first time the API runs with more than one worker, which is the normal
+production configuration. The plan requires the limitation to be recorded
+inline at the point of implementation, which is the right minimum; it is not a
+fix.
+
+Not urgent — the plan is unexecuted — and must be resolved before the feature
+is deployed rather than after.
+
+*Source: `08-evidence/documents/plans/2026-08-20-analytics-pdf-export.md`*
+
+### R-040 — `compute_holdings` keeps a per-folio N+1, deliberately (Open, low)
+
+The 2026-08-20 distributor-comparison design fixes its own query pattern and
+explicitly declines to fix the pre-existing per-folio N+1 in `compute_holdings`,
+on the grounds of not risking a regression in a working path for an unrelated
+cleanup — that path had already taken four review rounds of performance work.
+The design asks for it to be logged as a follow-up, which is what this entry
+is.
+
+The 2026-08-18 SIP plan fixes a different N+1 in its own path and adds a
+query-count regression guard; the same guard technique would apply here.
+
+**To verify:** cross-check against the current state of the Unifolio code repo.
+
+*Source: `08-evidence/documents/specs/2026-08-20-distributor-comparison-portfolio-level-design.md`*
+
+### R-041 — Exact-string category matching may make legacy-header schemes invisible to comparison (Open, medium)
+
+`get_category_universe` matches categories by exact string. A scheme filed
+under a legacy AMFI header therefore does not appear in any peer universe — it
+is not mis-categorised, it is absent, and nothing signals its absence.
+
+Found as a side note during the index-fund investigation (INV-005) and not
+measured. If real, it is a data-completeness defect in the analytics the
+product's credibility rests on, and it is larger than the deferral it was
+found underneath.
+
+**To verify:** cross-check against the current state of the Unifolio code repo,
+and count how many schemes fall under legacy headers.
+
+*Source: `08-evidence/documents/specs/2026-08-20-index-fund-mega-category-split-deferred.md`*
+
+### R-042 — A per-household analytics precompute is referenced but documented nowhere (Open, medium)
+
+The 2026-08-27 loading-state decision's rationale states that on cold start, a
+per-household precompute writes each analytics section's row as it finishes.
+No document in this batch, and no record in this vault, describes that
+mechanism being designed or built. The chosen cold-start treatment depends on
+it — per-card progressive reveal is only meaningful if sections genuinely
+complete independently and are persisted as they do.
+
+Either the mechanism exists and is undocumented, or the loading-state decision
+assumes infrastructure that does not exist. Both are worth knowing.
+
+**To verify:** cross-check against the current state of the Unifolio code repo.
+
+*Source: `08-evidence/documents/specs/2026-08-27-analytics-loading-state-mockups.html`*
+
+### R-044 — Two Phase 2 data-format assumptions are unverified (Open, medium)
+
+First: the NSE bhavcopy URL and its column naming (ISIN and closing-price
+columns) have not been checked against a real file, and the equity price
+history depends on them. The backend plan flags this as an assumption.
+
+Second: no real depository Statement of Transactions sample has been obtained.
+The research describes it as reading like a custody-movement ledger rather than
+a priced trade blotter, and states plainly that a real sample should be
+obtained before committing engineering time to it. That precondition is unmet.
+
+Both are cheap to close and both sit underneath committed plans.
+
+*Sources: `08-evidence/documents/plans/2026-08-26-phase-2-stocks-demat-import-backend.md`; `08-evidence/documents/specs/2026-08-25-phase-2-stocks-demat-research.md`*
+
+### R-045 — Phase 2's first cut has four stated scope gaps (Open, low)
+
+Each is deliberate and each is a hole a user can see: there is no aggregate
+(household-level) equity-holdings endpoint, so equities are member-view only;
+mobile is out of scope entirely for demat import, in a product where mobile is
+currently the more complete platform (R-037); bond and demat-held mutual-fund
+holdings are stored by migration `0010` but not surfaced anywhere; and pension
+holdings present in the parsed statement are explicitly out of scope, flagged
+rather than dropped.
+
+*Sources: `08-evidence/documents/plans/2026-08-26-phase-2-stocks-demat-import-backend.md`; `08-evidence/documents/plans/2026-08-26-phase-2-stocks-demat-import-frontend.md`*
+
+### R-048 — A second external agent widens the gap R-029 already describes (Open, medium)
+
+R-029 records that ADR-011's orchestration workflow covers Claude Code, Codex
+and Claude subagents, and says nothing about an agent outside the team's own
+tooling — at the time, Google Antigravity. This batch adds five more Antigravity
+handoffs (2026-08-18, three on 2026-08-19, 2026-08-20, 2026-08-25) and a second
+vendor: **Manus**, which builds *and hosts* the marketing website, in a
+repository the team does not control, on a public-facing surface.
+
+The compensating practice has held up well — the design specs end with
+ready-to-paste agent prompts that require the agent to name itself in
+`session.md` and `CLAUDE.md`, preserving provenance. That is still good practice
+invented per occasion. Hosting by a third party is a materially different
+exposure from implementation by one, and nothing in the vault covers it.
+
+**Recommended resolution (not applied):** extend R-029's recommendation — an
+external-agent worker category appended to ADR-011 — to distinguish an external
+*implementer* from an external *builder-and-host*, and state what is required
+of each.
+
+*Sources: `08-evidence/documents/specs/2026-08-31-marketing-website-design.md`; the 2026-08-18 to 2026-08-25 design specs*
+
+### R-049 — Four small UI decisions were left open and will be defaulted if nobody chooses (Open, low)
+
+Each was raised deliberately rather than guessed at, and each has a stated
+default that will take effect by inaction: privacy point two has no dedicated
+illustration (default: reuse the existing inline icon at illustration scale);
+the dark-mode treatment of the mobile hero band is undecided; `AddFamilyMembers`
+uses the `household` illustration variant while an unused `family` variant
+exists (R-034); and the 543KB hero SVG's paint cost on low-end devices has not
+been measured, a smaller concern now that the blur treatment was rejected.
+
+*Sources: `08-evidence/documents/specs/2026-08-20-mobile-privacy-onboarding-fullscreen-plan.md` §6; `08-evidence/documents/specs/2026-08-19-mobile-auth-onboarding-review-plan.md`*
+
+### R-050 — Migration 0009 is unaccounted for in the vault's evidence (Open, low)
+
+The vault records migration `0002` (transaction dedupe, INV-003), `0004`/`0005`
+(named as the point the schema document went stale), `0006` (this batch,
+email-and-password auth), `0007`–`0008` (password storage removed) and `0011`
+(the point the schema document was reconciled to). This batch adds `0010`
+(demat accounts and equity holdings). **Nothing in the vault says what `0009`
+did.**
+
+Not a defect, a traceability hole: the migration chain is the vault's most
+reliable record of what the schema actually is, and it has a gap in it.
+
+**To verify:** cross-check against the current state of the Unifolio code repo's
+migration folder.
+
+*Sources: this batch's plans; `decisions-log.md` 2026-08-17 and 2026-09-02*
+
+### R-051 — Six of the eight implementation plans in this batch were not fully executed (Open, high)
+
+Of the plans covering 2026-08-17 to 2026-08-31: two are fully ticked (the
+email-and-password backend and frontend, both subsequently reversed); one is
+partially ticked (the auth panel editorial refinement, with its verification
+task outstanding); and five are entirely unticked — the SIP cadence redesign,
+the analytics PDF export, the portfolio-level distributor comparison, and both
+Phase 2 demat plans. Four of the design specs carry no execution record at all.
+
+The design output of this fortnight substantially exceeds its build output.
+That is not automatically wrong — research and design ahead of build is the
+point of both — but it means almost everything described in this batch is
+**intent, not shipped behaviour**, and every downstream record in this vault
+has been written to say so. The 2026-08-25 mobile plan reaches the same
+conclusion independently, telling the implementing agent not to assume the
+preceding week's work is in place and to check current state first.
+
+**To verify:** cross-check against the current state of the Unifolio code repo.
+This is the single highest-value verification pass available to this vault.
+
+*Source: execution status of all eight files in `08-evidence/documents/plans/` for this batch*
+
+**Update, 2026-09-19 (live conversation).** The vault owner states
+that all six not-fully-executed plans above (SIP cadence redesign,
+analytics PDF export, portfolio-level distributor comparison, auth
+left panel verification task, both Phase 2 demat plans) have since
+been completed in later work. Recorded as a forward pointer, not
+verified fact. Source: vault owner, live conversation, 2026-09-19 —
+not yet corroborated by source material. Corroborate against
+subsequent batches as they are ingested, and ultimately against the
+current state of the Unifolio code repo.
+
 ## Deferred by decision (not debt, tracked so it is not lost)
 
 - **Cap-wise portfolio composition and stock-level overlap between funds** — deferred in
@@ -563,3 +956,24 @@ rediscover.
   mechanism.
 - **Persisting the FR-7 score breakdown** — recomputed on read instead, so
   the `fund_scores` table's columns stay as the schema document fixes them.
+- **Splitting AMFI's index-fund mega-category** — 1,150 schemes in one peer
+  universe. Two splits were costed and both rejected: a name-pattern split
+  works but invents every boundary, and AMFI's own parallel headers cover
+  largely different feed rows. Revisit only if load time for index-fund holders
+  becomes a demonstrated user-facing problem (2026-08-20). See INV-005.
+- **A missed-SIP / `is_actual` flag and step-up detection** — considered
+  alongside ADR-012 and rejected as speculative. Unifolio shows what is due and
+  deliberately does not editorialise about what did not arrive, which removes
+  the flag's only plausible consumer (2026-08-18).
+- **Broker APIs, aggregator gateways and the Account Aggregator framework for
+  equities** — ruled out for Phase 2 on cost, coverage and calendar, not on
+  merit. The Account Aggregator route remains the strategically correct
+  destination and ADR-014 is deliberately built so as not to foreclose it
+  (2026-08-25).
+- **`gsap`** — installed and unused. The 2026-08-25 mobile landing plan
+  considered it for the convergence animation and explicitly declined, keeping
+  the motion on the already-used animation library. A dependency that has now
+  been considered and passed over twice is a candidate for removal, not use.
+- **Mobile demat import** — out of scope for Phase 2's first cut by decision,
+  on the platform that is currently the more complete one (2026-08-26). See
+  R-045.

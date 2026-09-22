@@ -166,3 +166,34 @@ screen, and any real email delivery.
 - Plans: `08-evidence/documents/plans/2026-08-14-multi-method-auth-backend-plan.md`,
   `08-evidence/documents/plans/2026-08-14-multi-method-auth-frontend-plan.md`
 - Prior state: `08-evidence/documents/specs/2026-08-05-phase-2-auth-onboarding-backend-design.md`
+
+## Addendum — 2026-09-18: the email-and-password episode of 2026-08-17
+
+On 2026-08-17 a third identity provider, `EMAIL_PASSWORD`, was added and
+implemented in full — migration `0006`, a bcrypt dependency, five routes, two
+token tables, and deletion of the email-OTP client path — before being reversed
+the same day by management decision. Password storage was removed again by
+migrations `0007`–`0008`.
+
+Three points matter for this ADR:
+
+1. **The phone anchor held throughout.** The password design's own analysis of
+   an account-squatting scenario concluded it was a nuisance only, precisely
+   because the verified phone number remained the hard bar. The anchor was
+   never the thing in question.
+2. **The retired `EMAIL_OTP` enum value was deliberately kept** rather than
+   removed, on the reasoning that PostgreSQL enumerations grow cheaply and
+   shrink expensively. That restraint is what made the same-day reversal cheap.
+3. **The provider precedence map is not enforced to be total** over the
+   provider enumeration. Adding `EMAIL_PASSWORD` without adding its precedence
+   entry produced a crash reachable by every user the new feature created; see
+   INV-006. The structural cause is untouched and will recur for the next
+   provider added — Apple, if R-030 is ever resolved.
+
+Nothing in this ADR's decision or consequences is superseded.
+
+### Addendum evidence
+
+- `08-evidence/documents/specs/2026-08-17-email-password-signup-design.md`
+- `08-evidence/documents/plans/2026-08-17-email-password-signup-backend.md`
+- `08-evidence/documents/plans/2026-08-17-email-password-signup-frontend.md`

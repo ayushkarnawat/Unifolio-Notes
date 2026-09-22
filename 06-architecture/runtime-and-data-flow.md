@@ -92,6 +92,40 @@ confirms.** The parse phase produces a preview only. Duplicate rejection is enfo
 a database constraint rather than application logic, so re-uploading an overlapping
 statement is safe by construction rather than by care — see [data model](data-model.md).
 
+## Demat import — a parallel pipeline (planned, not built)
+
+ADR-014's Phase 2 ingestion deliberately does not extend the CAS state machine.
+A depository statement is uploaded, parsed, reviewed and confirmed through its
+own routes and its own tables; the existing `/cas-imports` lifecycle is
+untouched and continues to reject demat statements outright. A bug in one
+pipeline therefore cannot regress the other.
+
+Two properties of the source data shape everything downstream:
+
+- **Holdings, not transactions.** The depository statement is a position
+  snapshot. There is no per-trade record in it, so equities arrive with no
+  purchase history and no cost basis, and none is fabricated — the UI states
+  that cost is unavailable. Demat-held *mutual fund* holdings are the
+  exception: they do carry average cost, total cost and profit-and-loss.
+- **Snapshot-keyed storage.** Holdings are keyed on demat account, ISIN and
+  statement date, so re-importing a later statement adds a new snapshot rather
+  than mutating a running position.
+
+Equity prices follow the same on-demand fetch-and-cache pattern the NAV module
+uses, because no scheduled-job infrastructure exists yet for anything — see
+`## Scheduled reference-data refresh`, which describes the intended mechanism,
+not a running one.
+
+A second ingestion mode is planned and not designed in detail: automatic
+collection of the statements SEBI's July 2024 circular obliges the depositories
+and RTAs to email every investor, built in-house on AWS SES. It cannot be
+specified further until the PAN question (R-043) is settled, and it inherits a
+problem it cannot fully solve — statements are password-protected and users may
+set their own password, so there is no universal formula for unattended
+decryption.
+
+*Evidence: `08-evidence/documents/specs/2026-08-25-phase-2-stocks-demat-research.md`; `08-evidence/documents/plans/2026-08-26-phase-2-stocks-demat-import-backend.md`*
+
 ## Dashboard load — family aggregate by default
 
 ```mermaid
@@ -170,6 +204,12 @@ have converted silent drops into 500-level integrity errors.
 Full account: [INV-003](../04-investigations/INV-003-transaction-dedupe-silent-drop.md).
 The PRDs still carry two older, narrower keys —
 [R-003](../07-risks-and-debt.md).
+
+**Reaffirmed 2026-08-26.** The Phase 2 planning found its source documents
+describing a four-column dedupe key (folio, scheme, date, amount, units) and
+corrected it back to the five-column key established by INV-003 and migration
+`0002`. Recorded as deviation 6 of seven in that plan, rather than silently
+applied.
 
 ## Authentication
 

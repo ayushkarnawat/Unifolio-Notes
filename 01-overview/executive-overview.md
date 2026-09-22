@@ -8,34 +8,40 @@ abandoned), current architecture, and open risks — built from the same
 material the engineering team works from, processed into a form a
 non-technical reader can follow.
 
-## Status as of 2026-09-17
+## Status as of 2026-09-18
 
-Two batches of six are ingested. Batch 1 was the product and architecture
+Three ingestion passes are complete: batch 1 (the product and architecture
 foundation — four product requirement documents, the technical design, the
 database schema, the app flow, the design system, and the architecture
-decision set. Batch 2a is the first eleven days of the build itself
-(2026-08-04 to 2026-08-14): fourteen engineering plans and eleven paired
-design specifications.
+decision set), batch 2a (the first eleven days of the build itself,
+2026-08-04 to 2026-08-14), and batch 2b (the second half of August,
+2026-08-17 to 2026-08-31 — eight engineering plans and sixteen paired design
+specifications, continuing the same `Docs/superpowers/{plans,specs}` source
+batch 2a began). Nine files from that same folder remain unprocessed, tracked
+as batch 2c.
 
-Together they now exist here as eleven decision records, four investigations,
-eight journey stages, an eight-section architecture description, ten
-supporting reference and how-to documents, and a risk register carrying
-thirty open items.
+Together they now exist here as fourteen decision records, seven
+investigations, fifteen journey stages, an eight-section architecture
+description, ten supporting reference and how-to documents, and a risk
+register carrying fifty-one open items.
 
-Four batches remain: the rest of the implementation plans and specs, the
-engineering-loop working files, the AWS readiness notes, and the scattered
-personal notes.
+Batch 2c and four further batches remain: the rest of the implementation
+plans and specs, the engineering-loop working files, the AWS readiness notes,
+and the scattered personal notes.
 
 **What changed in this batch, in one line each:**
-- The product is further along than batch 1 suggested — import, onboarding,
-  the whole main dashboard, distributor comparison and two analytics
-  subsystems are built.
-- Nothing can actually log a real user in yet: neither the SMS nor the email
-  one-time-code channel sends a real message.
-- A Privacy Policy page does not exist and blocks Google sign-in from
-  launching.
-- Two incompatible versions of the fund-score methodology are now on record
-  and need a product decision.
+- The second half of August produced far more design than build: of eight
+  implementation plans, only two were executed in full — and both were for a
+  feature that was reversed the same day. Five were never started (R-051).
+- The desktop Main Dashboard is still a placeholder stub while the mobile
+  dashboard is a mature, built implementation — the product's primary screen,
+  on its primary platform, does not exist yet.
+- Whether and how Unifolio stores PAN now has five different recorded
+  positions across five dates; most recently reaffirmed live but not yet
+  backed by written documentation (R-043).
+- A marketing brief handed to an external builder on 2026-08-31 claims CAS
+  import is "powered by MFCentral" — it is not, and the claim contradicts how
+  the product actually ingests statements (R-046).
 
 ## Where to look
 
@@ -47,3 +53,6 @@ personal notes.
 - What's unresolved: `07-risks-and-debt.md`
 - Unfamiliar terms: `06-architecture/glossary.md`
 - Investigations — how a specific problem was actually diagnosed: `04-investigations/`
+- Everything designed but not yet built as of 2026-08-31 — ADR-012, ADR-013,
+  ADR-014 and R-051, which lists the execution status of every plan in the
+  fortnight.

@@ -78,11 +78,55 @@ finding to raise, not something to silently work around by swapping the font.**
   shadows. Where a shadow is needed: `0 1px 2px rgba(0,0,0,0.06)` at rest, slightly
   stronger only on active/hover.
 
+## Auth panel — a deliberate exception to the theme system
+
+`AuthShowcasePanel` does not follow the application's light/dark theme. It is
+**always dark**, and the 2026-08-19 editorial refinement records that as an
+intentional, documented exception rather than an inconsistency. It is an
+editorial hero surface, not application chrome; making it theme-aware would
+mean designing and maintaining two of it.
+
+It carries its own token family rather than overriding semantic tokens:
+
+| Token | Role |
+|---|---|
+| `--auth-panel-bg` | Panel base |
+| `--auth-panel-bg-2` | Secondary panel base, for the layered backdrop |
+| `--auth-panel-ink` | Primary text on the panel |
+| `--auth-panel-ink-soft` | Secondary text on the panel |
+| `--auth-panel-glow` | Accent glow behind the editorial type |
+| `--auth-panel-ghost` | Ghosted decorative element |
+| `--auth-panel-ghost-soft` | Ghosted decorative element, lower emphasis |
+
+Two motion tokens were added alongside them, extending rather than replacing
+the existing three-token motion scale:
+
+| Token | Role |
+|---|---|
+| `--motion-hero-reveal` | Reveal duration for the hero editorial sequence |
+| `--motion-hero-stagger` | Per-line delay within that sequence |
+
+The wider 2026-08-18 redesign of auth, onboarding and import review **changed
+no token values at all**, and built its entire motion system from the three
+pre-existing motion tokens (`--motion-fast` 150ms, `--motion-reveal` 400ms,
+`--motion-page` 300ms), two stagger tiers, and exactly two shared-element
+anchors (`fund-signal-ring`, `brand-mark`). The one stated visual exception is
+a cream-and-gold pairing that exists only inside `OnboardingIllustration.tsx`'s
+SVG fills and is not a token.
+
+The 2026-08-19 mobile system survey separately confirmed that the mobile work
+needs **no new design tokens**.
+
+*Evidence: `08-evidence/documents/plans/2026-08-19-auth-left-panel-editorial-refinement.md`; `08-evidence/documents/specs/2026-08-18-auth-onboarding-import-review-visual-motion-redesign.md`; `08-evidence/documents/specs/2026-08-19-mobile-uiux-system-plan.md`*
+
 ## Still needs prototyping
 
 The source document names its own unfinished work, and it is worth keeping visible: the
 Fund Signal arc has not been tested at holdings-table row size, in a dense list of 30+
 funds, or for dark-mode legibility. The *direction* is settled; the *execution* is not.
+- **The dark-mode treatment of the mobile auth hero band** — the band shows the
+  auth illustration crisp over an overlapping white card; how it behaves in
+  dark mode was left open on 2026-08-19 (R-049).
 
 ## Related
 

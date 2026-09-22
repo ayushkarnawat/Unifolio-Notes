@@ -22,6 +22,16 @@ the restraint is the point, not because the route is missing by oversight.
 resolves the acting user from the session token via a shared dependency,
 never from a request body or query parameter.
 
+The following were added on 2026-08-17 and **removed again the same day** when
+the email-and-password decision was reversed; password storage was dropped by
+migrations `0007`–`0008`. Listed because they were built, not because they
+exist: `POST /auth/signup/email`, `POST /auth/login/email`,
+`POST /auth/password/forgot`, `POST /auth/password/reset`,
+`POST /auth/email/confirm`. Behavioural rules that were specified with them and
+are worth carrying forward if password auth ever returns: reset requests always
+answer 200 regardless of whether the address exists; failed logins answer a
+generic 401; and "correct password, email unconfirmed" answers a distinct 403.
+
 ## Import — two-phase parse/confirm (TDD generation)
 
 | Endpoint | Method | Source |
@@ -78,6 +88,21 @@ present-but-empty rather than silently dropped. Every compute function behind
 these routes takes a list of member IDs, so the per-member and aggregate
 paths are one implementation.
 
+**Planned, not built (ADR-012, 2026-08-18):**
+
+| Route | Returns |
+|---|---|
+| `GET /household-members/{member_id}/sips/monthly` | Expected SIP contributions for a given month for one member, projected from each plan's own cadence |
+| `GET /household/aggregate/sips/monthly` | The same, aggregated across the household |
+
+**Planned, not built (2026-08-20):** the fund-scoped distributor-comparison
+route is to be **deleted, not deprecated**, and replaced by a portfolio-level
+computation over a member-id list returning per-distributor rows each carrying
+a per-scheme breakdown. One behavioural change comes with it: a scheme with no
+available NAV is dropped from that distributor's breakdown only, rather than
+causing the whole response to be dropped. The implementation plan was never
+started and ends on an unanswered design question.
+
 ## Analytics
 
 | Endpoint | Method | Source |
@@ -101,6 +126,31 @@ and placed it in Dashboard, where the holdings engine it depends on already
 lives. The Analytics service re-exposes the coarse `by_amc` view inside its
 own response rather than recomputing it, so the analytics tab is one request
 over one holdings computation.
+
+**Planned, not built (ADR-013, 2026-08-20):**
+
+| Route | Auth | Returns |
+|---|---|---|
+| `POST /analytics/export/pdf` | Session bearer token | A rendered PDF of the analytics dashboard, produced by a server-side headless browser |
+| `GET /analytics/export/payload` | **Capability token in the query string — deliberately no current-user dependency** | The export payload for one issued token |
+
+The second route's lack of a user dependency is a design decision, not an
+oversight: the token is a capability, not a credential. The token store is
+in-process and does not survive a restart or a multi-worker deployment (R-039).
+
+## Demat and equities — planned, not built (ADR-014, 2026-08-26)
+
+A pipeline parallel to CAS import, not an extension of it. The existing
+`/cas-imports` lifecycle is untouched and continues to reject demat statements.
+
+| Route | Purpose |
+|---|---|
+| `POST /demat-imports/parse` | Parse an uploaded depository statement into a reviewable set of holdings |
+| `POST /demat-imports/confirm` | Commit a reviewed parse to the member's holdings |
+| `GET /household-members/{member_id}/equity-holdings` | Equity holdings for one member |
+
+No household-level aggregate equity endpoint exists in this cut, so equities
+are member-view only (R-045).
 
 ## Related
 

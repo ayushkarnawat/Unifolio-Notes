@@ -38,6 +38,24 @@ reasons the Google OAuth redirect flow was rejected in
 [ADR-008](../03-decisions/ADR-008-phone-anchored-multi-method-identity.md) in
 favour of the rendered sign-in button and ID-token verification.
 
+The position held through the whole of the second half of August and gained two
+new expressions of it.
+
+**Mobile navigates by props, not routes.** The 2026-08-19 mobile system plan
+sets the rule directly: share device-agnostic screens, keep mobile-specific
+components only where density, input mode or layout genuinely differ, and move
+between screens with `onBack`-style props rather than routes.
+
+**A second entry point is mounted, not routed.** The planned print view for PDF
+export is mounted by `main.tsx` at `/print/analytics`, bypassing the
+application shell and the auth provider entirely. That is what a second entry
+point looks like in a router-free application: a separate mount, not a route.
+
+**One genuine contradiction, unresolved.** `App.tsx` renders the mobile tree on
+a mobile route **or** a sub-768px viewport match, which the code repo's
+`Docs/MOBILE_APP_EXECUTION.md` says must not happen. Flagged, not resolved —
+see R-035.
+
 ## Feature boundaries
 
 - `features/import-review/` — S8–S12 (Upload, Parsing, Review, Error,
@@ -52,6 +70,17 @@ An auth context resolves session state **once on load** and drives the
 top-level render branch. This is the only global state in the application:
 there is no state library, and no React context beyond auth and the
 per-flow ones.
+
+**The mobile tree is ahead of the desktop one.** As of 2026-08-19 the desktop
+Main Dashboard is `DashboardPlaceholder.tsx`, a stub, while
+`MobileDashboardView.tsx` is a mature 666-line implementation. The mobile
+system plan's architectural instruction follows from that: when the desktop
+dashboard is built, it should follow the product semantics already established
+on mobile, not the reverse. See R-037.
+
+Auth and onboarding have **no mobile-specific component tree at all** — they
+are shared responsive components, so mobile treatments are applied at the
+`AuthShell` level and inherited by every screen inside it, including OTP entry.
 
 ## Rules that hold everywhere
 
@@ -119,6 +148,14 @@ One deliberate carve-out is recorded in the analytics design: the existing
 allocation donut is reused **unchanged** rather than replaced with a
 new-library equivalent, because the design schema's consistent-chart-language
 rule outweighs visual consistency with a component library.
+
+**Update, 2026-08-25.** Still no new dependencies. `gsap` remains installed and
+unused; the mobile landing plan considered it for a convergence animation and
+explicitly declined, keeping the motion on the animation library already in
+use. `AuthShowcasePanel` is an always-dark exception to the theme system with
+its own `--auth-panel-*` token family (see
+`05-docs/reference/design-tokens.md`). The 2026-08-18 redesign changed zero
+token values.
 
 ## Related
 

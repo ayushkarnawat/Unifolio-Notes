@@ -36,6 +36,15 @@ differently and the two are not reconciled** — see the note at the end and
 | S20 | Fund score detail | Analytics | Tap a fund's score on S18/S19 |
 | S21 | Empty state — no holdings yet | Dashboard | Instead of S13/S14 if no import has completed |
 | S22 | Family member placeholder | Dashboard | Within S14, per member with no CAS yet |
+| — | `ImportPathChoice` | Import | Choose between requesting a CAS by email and uploading one. Specified 2026-08-19, mirrors the existing household question screen; no execution record |
+| — | CAS import "waiting" screen | Import | Shown after a statement has been requested by email. Exists in code and is **currently unreachable** — see INV-007 |
+| — | `MobileOnboardingScreen` | Onboarding | Full-screen mobile onboarding shell. Specified 2026-08-20; element order fixed as top bar → headline → illustration → subtext → content → CTA, no eyebrow |
+| — | `DematImportFlow` / `DematReviewTable` | Import | Upload and review a depository statement. Planned 2026-08-26, not built. Sibling to the mutual-fund import flow, reusing `UploadForm` |
+| — | `EquityHoldingsTable` | Dashboard | Member-level equity holdings. Planned 2026-08-26, not built. Shows "Cost basis unavailable" rather than a fabricated number |
+| — | `PrintAnalyticsView` | Analytics | Print-only analytics rendering at `/print/analytics`. Planned 2026-08-20, not built. Mounted directly by `main.tsx`, bypassing the app shell and auth provider |
+| — | `DashboardPlaceholder` | Dashboard | The desktop Main Dashboard. **Still a stub** as of 2026-08-19 while the mobile equivalent is mature (R-037) |
+
+*Rows with no `S` number are screens named in this batch's plans and specs, not in the original `App-Flow-Unifolio.md` inventory; they carry no ID in that numbering scheme.*
 
 ## The three structural decisions inside that table
 
@@ -62,6 +71,22 @@ password retry that does **not** require re-uploading the file, a named
 Summary-vs-Detailed validation error, and an attribution step assigning the import to a
 household member.
 
+## Import flow — the 2026-08-19 correction (specified, not implemented)
+
+The current generation derives which screen the user sees from two independent
+pieces of state: a pending-import identifier and a three-way tab selection.
+Requesting a statement by email sets the first and moves the second, which
+makes the waiting screen's condition unsatisfiable at the only moment it should
+be true — the user lands on the plain upload form instead. See INV-007.
+
+The specified correction replaces the three-way tab state with a single
+explicit view state covering choice, request, waiting, upload and history. The
+existing per-member resume check is unaffected.
+
+Two related findings from the same document: the "Step 1 / Step 2" framing in
+the current UI is a mislabel, and `CoverageGapBanner` is still on an older
+visual system.
+
 ## Unreconciled
 
 `App-Flow-Unifolio.md` v1.2 describes S24/S25/S26 — a queue built into the onboarding
@@ -69,6 +94,16 @@ screen sequence. `Updated-CAS-App-Flow.md` describes a modal Import CAS panel wi
 Request/Upload tabs and an attribution dialog. They cover the same feature one generation
 apart and have not been merged. Both are preserved. Do not treat either as settled until
 someone decides.
+
+- **`MobileFundDetailView` and `MobileFundDetailSheet` render the same thing.**
+  Raised on 2026-08-19 as a product decision for a human rather than resolved
+  in passing. See R-036.
+- **`OnboardingIllustration`'s `"upload"` variant** was built for the import
+  flow and is not used anywhere; `AddFamilyMembers` uses the `household`
+  variant while an unused `family` variant exists. See R-034.
+- **No mobile-specific onboarding views existed** as of 2026-08-18, and auth
+  and onboarding are purely shared responsive components with no mobile tree
+  (2026-08-19, §4.3).
 
 ## Related
 

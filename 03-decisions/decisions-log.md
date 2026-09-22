@@ -304,6 +304,61 @@ converging on a mandatory verified phone number. Password storage was removed fr
 schema by migrations 0007–0008. **Why:** recorded as a reversal rather than a clean
 decision because the churn is the useful fact.
 
+## 2026-08-17 — bcrypt was chosen over Argon2id, and the retired enum value was kept
+
+Password hashing for the email-and-password flow uses bcrypt via
+`passlib[bcrypt]`, a new dependency, rather than Argon2id. **Why:** maturity
+and operational familiarity outweighed the marginal hardening, for a flow whose
+real security anchor is the verified phone number. In the same work the
+`EMAIL_OTP` provider value was deliberately left in the provider enumeration
+even though its code path was being deleted, because PostgreSQL enums grow
+cheaply and shrink expensively and leaving the value costs nothing. The second
+half of that decision turned out to be load-bearing when the feature was
+reversed the same day.
+
+## 2026-08-17 — Password flows are anti-enumeration by default, with one deliberate exception
+
+Password-reset requests always return a success response regardless of whether
+the address is registered, and failed logins return a generic 401. **Why:** the
+response must not be usable as an oracle for which email addresses have
+accounts. The one deliberate exception is a distinct 403 for "correct password,
+but email not yet confirmed" — it reveals nothing to anyone who does not
+already hold the password, and without it the user cannot be told why they are
+stuck. Reset tokens are stored SHA-256-hashed with a thirty-minute lifetime.
+
+## 2026-08-17 — Two repository hygiene rules were adopted after two near-misses
+
+`git add -A` is never to be used in this repository — a staging attempt pulled
+in roughly 295 files that differed only by line endings. And a dependency
+change is verified by installing into a fresh virtual environment. **Why:** the
+second rule came from a real bug in which a package was imported without being
+declared, and worked locally only because something else had already installed
+it.
+
+## 2026-08-18 — The 40-day active-SIP window is removed
+
+Active-SIP detection moves from a fixed 40-day recency window to projecting
+each plan's own cadence forward from its transaction history; the only
+remaining exclusion is a fully-redeemed folio. **Why:** the window silently
+hides a plan whose debit date drifts, and cannot answer the forward-looking
+question the dashboard needs to ask. This reverses one of the three
+portfolio-accounting conventions fixed on 2026-08-06; that entry is left
+untouched. The product owner rejected the window behaviour explicitly, and the
+design names PRD-03's original behaviour as the documented fallback if the new
+model does not hold up in use. See ADR-012 — designed and planned, not yet
+implemented.
+
+## 2026-08-18 — The visual and motion redesign changes no token values and freezes the state machines
+
+The auth, onboarding and import-review redesign handed to an external coding
+agent changes zero design-token values and alters no component's step machine,
+with exactly two named structural exceptions (`AuthShell`, `OnboardingCardStack`)
+and one visual exception (a cream-and-gold pairing that exists only inside the
+onboarding illustration's SVG fills). **Why:** the fastest way to lose a design
+system to an external implementer is to let the visual pass quietly redefine
+its primitives. Motion is built from the three motion tokens that already
+exist, two stagger tiers, and exactly two shared-element anchors.
+
 ## 2026-08-19 — The `LATERAL` optimisation is deferred, with a benchmark attached
 
 The "obviously faster" per-scheme index-seek rewrite of `_bulk_nav_on_or_before` measured
@@ -311,6 +366,149 @@ The "obviously faster" per-scheme index-seek rewrite of `_bulk_nav_on_or_before`
 on real Postgres. **Why:** the guardrail against coding blind for one dialect cuts both
 ways. The measurement is attached so nobody redoes it on faith. See
 `07-risks-and-debt.md`.
+
+## 2026-08-19 — The auth left panel is a documented always-dark exception to the theme system
+
+`AuthShowcasePanel` does not follow the application's light/dark theme and is
+always dark, using its own `--auth-panel-*` token family. **Why:** it is an
+editorial hero surface, not application chrome, and making it theme-aware would
+mean designing two of it. Recorded as an intentional exception rather than left
+as an inconsistency for someone to "fix" later. Two motion tokens
+(`--motion-hero-reveal`, `--motion-hero-stagger`) were added alongside it.
+
+## 2026-08-19 — The blurred mobile hero band was rejected at mockup review
+
+The mobile auth screen shows the auth illustration crisp, in a hero band cropped
+to bias toward its upper area, over an overlapping white card. **Why:** the
+first version proposed a blurred, dark-scrimmed full-bleed treatment of the same
+illustration; the product owner reviewed it as a mockup and rejected it —
+the illustration should be clearly visible, not atmosphere. A side effect worth
+keeping: without the blur, the 543KB SVG's paint cost is a smaller concern. The
+dark-mode treatment of the band is still undecided.
+
+## 2026-08-19 — The mobile routing contradiction is settled in favour of the code, and flagged rather than applied
+
+`App.tsx` switches to the mobile tree on a mobile route **or** a sub-768px
+viewport match, while the code repo's `Docs/MOBILE_APP_EXECUTION.md` states
+mobile must not replace the web experience based on viewport or device
+detection. The recommendation is to keep the code and correct the document.
+**Why:** the behaviour has been in use and is what the mobile design work
+assumes; the document is the cheaper thing to change. Recorded as a
+recommendation only — the document lives in the code repo and has not been
+changed. See R-035.
+
+## 2026-08-20 — Distributor comparison moves to portfolio level and the old route is deleted, not deprecated
+
+The fund-scoped distributor-comparison endpoint and its row schema are removed
+outright and replaced by a portfolio-level computation over a member-id list,
+returning per-distributor rows with a per-scheme breakdown. **Why:** the
+question users actually ask is about the whole portfolio, and keeping both
+variants would mean maintaining two code paths and two caches for one feature.
+A behavioural change comes with it: a scheme with no available NAV is now
+dropped from that distributor's breakdown only, where previously it caused the
+entire response to be dropped. The implementation plan for this was never
+started and ends on an unanswered question.
+
+## 2026-08-20 — The index-fund mega-category split is deferred, with a written revisit trigger
+
+AMFI's index-fund category holds 1,150 schemes and will not be split. **Why:**
+a name-pattern split works numerically but every boundary is invented, which is
+a bad trade for a product whose credibility rests on trustworthy category
+comparisons; and AMFI's own parallel index-fund headers cover largely different
+feed rows and barely shrink the category. There is no split that is both
+AMFI-native and effective. Revisit only if load time for index-fund holders
+becomes a demonstrated user-facing problem. See INV-005.
+
+## 2026-08-20 — The second privacy point is a client-side state change, not a new onboarding step
+
+The privacy primer's two points are split inside the component using local
+state rather than by adding a second persisted onboarding step. **Why:** a new
+step value would have to be accepted by the backend's onboarding-step
+persistence, which is a schema-adjacent change for a purely presentational
+split. The stated trade-off is accepted: a user who leaves during the second
+point resumes at the first.
+
+## 2026-08-25 — The 3D device-tilt landing direction was rejected at mockup review, and no new dependency is added
+
+The mobile landing visual is a static phone frame with fragments drifting in
+and converging — the same "scattered becoming one clear picture" story the
+desktop auth illustration tells. **Why:** the premium 3D pedestal/tilt
+direction was built out and reviewed as one of three alternatives, and the
+product owner chose this one. Separately: `gsap` is already installed and
+unused, and this work does not reach for it — zero new dependencies. The
+inspiration stills supplied for this work were also found not to match the
+reference video they were described as representing, which is recorded so the
+brief is not trusted more than it deserves.
+
+## 2026-08-25 — A written statement that the no-PAN rule is being rewritten appears, three weeks before ADR-007
+
+The Phase 2 demat research and decision memo both state, as a starting
+constraint, that "the 'no PAN persistence, ever' rule is being rewritten —
+Unifolio will now store PAN, masked wherever it is displayed", motivated by
+automated statement ingestion. **Why this entry exists:** ADR-007, dated
+2026-09-16, records the PAN reversal as a verbal direction with no written
+artifact behind it. There is one, and it predates the ADR by three weeks. It is
+**not** the same decision — masked-on-display and encrypted-at-rest are
+different mechanisms with different purposes — and the memo containing it
+contradicts itself elsewhere. Recorded as evidence, not as a settled position.
+See R-043 and the dated addendum on ADR-007.
+
+## 2026-08-26 — Seven deviations from the source documents were carried as flags, not silently resolved
+
+The Phase 2 backend plan lists seven numbered departures from its own source
+documents, each confirmed with the product owner during planning rather than
+absorbed: keeping never-persisted PAN for now; using the parser's bundled ISIN
+data instead of a custom security-master table; a corrected module reference;
+on-demand price fetching because no scheduled-job infrastructure exists yet for
+anything; a correction to the claim that demat holdings never carry cost basis
+(demat-held mutual funds do); restoring the five-column transaction dedupe key
+established by INV-003 in place of the documents' four-column key; and pension
+holdings declared out of scope rather than dropped. **Why:** a plan that
+quietly disagrees with its inputs leaves no trace of the disagreement.
+
+## 2026-08-27 — The analytics "still computing" state gets two treatments, not one
+
+A returning visit shows the last known data dimmed with a single
+background-refresh indicator; a genuine cold start reveals each card as it
+finishes, with one spinning indicator. **Why:** five options were mocked up and
+three were rejected as "pretend it's fast" treatments for a wait that, on cold
+start, genuinely is not fast. A progress bar was dropped from the cold-start
+option as redundant alongside the per-card reveal. The two-treatment split is
+possible because the analytics view already fetches its sections
+independently — allocation, expense-ratio and benchmark sections land quickly
+while category ranking and scoring are the slow leg.
+
+## 2026-08-31 — The marketing website is built and hosted outside the product repository
+
+Unifolio's public marketing site is handed to Manus (manus.im), which builds
+and hosts it; it is not implemented in the product repo. **Why:** it is a
+content and SEO surface with no shared code with the application, and the brief
+is a creative brief rather than a software specification. This makes Manus the
+second external coding agent used on this product, after Google Antigravity,
+neither of which is covered by ADR-011's orchestration workflow. See R-029 and
+R-048.
+
+## 2026-09-19 — The six plans R-051 found unbuilt are stated to have since shipped
+
+The vault owner confirmed, live, that every plan batch 2b found
+partially or entirely unexecuted (SIP cadence, analytics PDF export,
+portfolio-level distributor comparison, the auth panel verification
+task, both Phase 2 demat plans) has since been built. **Why:** recorded
+as a dated forward pointer rather than silently upgrading each
+record's status — none of this batch's own source material shows the
+work done, so the journey stages, ADR-012/013/014, and R-051 itself
+are left describing what the Aug 2026 documents actually show. See
+R-051 and later batches for corroboration.
+
+## 2026-09-19 — PAN storage direction reaffirmed: encrypted at rest and in transit, documentation pending
+
+The vault owner reaffirmed, live, that PAN will most likely be stored
+encrypted at rest and encrypted in transit (most likely TLS 1.3).
+**Why:** recorded as a reaffirmation, not a resolution — detailed
+documentation is still being prepared by a colleague and does not yet
+exist, so R-043's open questions about mechanism and purpose are
+narrowed, not closed. See [ADR-007](ADR-007-pan-storage-and-encryption.md)
+and [R-043](../07-risks-and-debt.md).
 
 ## 2026-09-02 — The schema document is treated as lagging the migrations, by default
 
