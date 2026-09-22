@@ -20,6 +20,11 @@ file with the full for-stakeholders/technical-detail record.
 | 2026-08-20 → 2026-08-27 | [Analytics deepening, and a category split that was deferred](2026-08-20-analytics-deepening-and-a-deferred-split.md) | PDF export via a server-side headless browser and a capability token (ADR-013); distributor comparison moved to portfolio level, old route deleted; the 1,150-scheme index-fund category found unsplittable and deferred (INV-005). No plan executed |
 | 2026-08-25 → 2026-08-26 | [Phase 2: stocks and demat import](2026-08-25-phase-2-stocks-and-demat-import.md) | Nine ingestion routes assessed; statement upload plus in-house email ingestion chosen, broker APIs and the Account Aggregator ruled out for this phase (ADR-014). No equity cost basis exists in the source data and none is fabricated. Seven deviations flagged, including the PAN question (R-043) |
 | 2026-08-31 | [The marketing website goes to a second external agent](2026-08-31-marketing-website-handoff.md) | A creative brief handed to Manus, which builds and hosts outside the product repo. Five placeholders outstanding, one carrying a factual claim that contradicts how ingestion actually works (R-046) |
+| 2026-09-02 | [Analytics precompute architecture designed and built](2026-09-02-analytics-precompute-architecture.md) | Live-compute-on-read replaced by a per-household precompute (ADR-015), resolving R-042. Merged to `feat/enhanced-ui`, full suite green |
+| 2026-09-10 | [Frontend catches up to the precompute merge, and a staging push is sequenced](2026-09-10-frontend-migration-and-staging-push-plan.md) | The frontend migration confirmed done; a 10-step staging push plan written. An AMFI period-selection bug found and fixed (INV-008) |
+| 2026-09-11 | [A detailed staging deployment runbook replaces the prior plan](2026-09-11-aws-staging-deployment-runbook.md) | An exact, copy-paste runbook written; Terraform state found already ahead of `session.md`'s own notes and reconciled (R-052). Execution against the runbook itself unconfirmed |
+| 2026-09-11 | [Fund Score card redesigned for plain-English readability](2026-09-11-fund-score-card-redesign.md) | A plain-verdict card and a tier-display fix designed and fully planned (ADR-017). No execution evidence in this batch (R-053) |
+| 2026-09-16 | [This documentation vault itself is designed and built](2026-09-16-second-brain-vault-built.md) | ADR-016: flat Markdown + Git, manual pull, propose-then-approve sync. Fully executed the same day — the vault this index lives in |
 
 ```mermaid
 flowchart LR
@@ -67,5 +72,18 @@ flowchart LR
     V -->|"Trust-bar claim contradicts\nactual CAS ingestion"| V2["R-046 — OPEN,\nlaunch-facing"]
     U --> W["6 of 8 plans in this\nfortnight not fully built\n(R-051)"]
     V --> H
-    W --> H
+    W --> X["2026-09-02\nAnalytics precompute\narchitecture (ADR-015)"]
+    X -->|"Resolves an earlier\nunverified rumor"| X2["R-042 resolved:\nmechanism now built"]
+    X --> Y["2026-09-10\nFrontend migration +\nstaging push plan"]
+    Y -->|"Wrong AMFI period\nselection, max vs min"| Y2["INV-008:\naaum-quarterly bug,\nfixed same day"]
+    Y --> Z["2026-09-11\nAWS staging runbook"]
+    Z -->|"Terraform state was\nahead of session.md"| Z2["R-052 — OPEN,\ndocs can lag infra"]
+    Z --> AA["2026-09-11\nFund Score card\nredesign (ADR-017)"]
+    AA -->|"Designed + planned,\nno execution evidence"| AA2["R-053 — OPEN"]
+    AA --> AB["2026-09-16\nThis vault's own\narchitecture (ADR-016)"]
+    X2 --> H
+    Y2 --> H
+    Z2 --> H
+    AA2 --> H
+    AB --> H
 ```

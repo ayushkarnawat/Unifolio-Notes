@@ -16,5 +16,15 @@ from depository statements, with automatic email ingestion behind it
 (ADR-014). None is built. Phase 2's email ingestion is additionally blocked on
 the PAN decision (R-043).
 
+**Built since, confirmed 2026-09-10.** The Analytics precompute architecture
+(ADR-015) — designed 2026-09-02, merged to `feat/enhanced-ui` the same week.
+This is a separate thread from the four items above; it replaces
+live-compute-on-read for Analytics, not any of the still-unbuilt items listed
+above it.
+
+**Designed and waiting, as of 2026-09-11 (added).** The Fund Score card
+redesign (ADR-017) — plain-English verdict, display-only tier fix. Fully
+planned; no execution evidence in this batch's material (R-053).
+
 **Not on the roadmap and load-bearing:** the desktop Main Dashboard, which is
 still a placeholder (R-037).

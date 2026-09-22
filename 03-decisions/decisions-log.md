@@ -494,6 +494,41 @@ Where `Database-Schema-Unifolio.md` and the code-repo migrations disagree, the m
 win. **Why:** a compliance audit found the document three to four migrations stale, and a
 second pass the same day found an index it had never specified at all.
 
+## 2026-09-02 — The Analytics fix is scoped as the full precompute architecture, not a stopgap
+
+Rapid tab-switching in Analytics was exhausting the database connection pool. The fix
+is explicitly mandated as the complete precompute redesign (a new `analytics_sections`
+table, recomputed via ECS Fargate `RunTask`), not a pool-size bump or a
+disconnect-check alone. **Why:** resolves [R-042](../07-risks-and-debt.md), which had
+flagged the precompute mechanism an earlier design assumed as undesigned; this decision
+designed and (per later evidence) built it. See
+[ADR-015](ADR-015-analytics-precompute-architecture.md).
+
+## 2026-09-10 — AMFI's `aaum-quarterly` job picked the wrong period: `max()` should have been `min()`
+
+AMFI's period/year `id` counts down from the most recent period, not up, so the
+original code's `max()` call to find "the latest period" usually picked the oldest
+year instead. **Why:** root-caused the same day the job first ran on staging and fixed
+by switching to `min()` (commit `037aa4c`). See
+[INV-008](../04-investigations/INV-008-amfi-aaum-period-selection-bug.md).
+
+## 2026-09-11 — Google Sign-In and real OTP delivery excluded from the staging beta pass
+
+Staging targets beta/friends-and-family users; the Google OAuth button stays hidden
+client-side and OTP delivery stays in stub mode for this pass. **Why:** deliberate
+scope decision, not a gap to close before beta opens — both are real gaps for a public
+launch, tracked as Phase 7 hardening.
+
+## 2026-09-11 — Fund Score card rebuilt around a plain-English verdict; tier badge flipped for display only
+
+The technical, percentile-heavy Fund Score card is replaced by a score-out-of-10 with a
+plain verdict sentence and Strengths/Watch-outs framing; the on-screen tier badge is
+flipped (`displayTier = 6 - risk_adjusted_tier`) without touching the persisted,
+write-only `risk_adjusted_tier` column. **Why:** approved design plus a full
+implementation plan exist, but no execution evidence exists in this batch's source
+material — see [ADR-017](ADR-017-fund-score-card-redesign.md) and
+[R-053](../07-risks-and-debt.md).
+
 ## 2026-09-16 — PAN storage direction resolved: encrypted at rest, planned future work
 
 Unifolio will store each family member's PAN, encrypted at rest, to support per-member
@@ -501,6 +536,16 @@ matching against CAS filings (`Updated-CAS-PRD.md` FR-4). **Why:** resolves R-00
 open contradiction between that requirement and PRD-01/schema/TDD's "PAN never
 persisted." See [ADR-007](ADR-007-pan-storage-and-encryption.md) — direction confirmed,
 not yet implemented; no PAN column exists in the schema today.
+
+## 2026-09-16 — This documentation vault is rebuilt as a structured second-brain system
+
+The vault moves from an unstructured pile of raw notes to a fixed structure — dated
+inboxes, append-only decision/journey history, always-current status files, and a
+propose-then-approve sync workflow implemented as a Claude Code skill — with three
+alternatives explicitly rejected: a dedicated app over plain Markdown+Git, mandatory
+arc42 sections over folders created only on real content, and automatic ingestion over
+a manual, approved pull. **Why:** the plan was written and executed in full the same
+day; see [ADR-016](ADR-016-second-brain-vault-architecture.md).
 
 ## 2026-09-17 — R-015 clarified: two fund-score methodologies, not one contradiction
 

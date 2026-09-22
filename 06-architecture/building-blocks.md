@@ -129,6 +129,18 @@ per-user analytics tables; portfolio-level scores are computed, not stored,
 and the FR-7 score breakdown is recomputed on every read rather than
 persisted.
 
+> **Correction, 2026-09-22 (batch 2c).** The "no per-user analytics tables,
+> computed not stored" description above was accurate through batch 2b, but
+> is superseded as of 2026-09-02. Two new tables now exist —
+> `analytics_sections` (per household, per scope, per section) and
+> `analytics_recompute_status` — and the read path this paragraph describes
+> is replaced by a consolidated `GET /analytics/{scope}` reading precomputed,
+> persisted rows, with recomputation dispatched via ECS Fargate `RunTask`
+> rather than happening inline on read. See
+> [ADR-015](../03-decisions/ADR-015-analytics-precompute-architecture.md).
+> This correction is left above the original paragraph, not merged into it,
+> so the "as originally built" description stays intact.
+
 Two things it owns that are not in Postgres at all: the **category
 universe**, parsed from AMFI's daily full-NAV text file and cached to local
 disk for 24 hours ([INV-001](../04-investigations/INV-001-category-universe-gap.md)),

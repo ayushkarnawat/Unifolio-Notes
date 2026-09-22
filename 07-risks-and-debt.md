@@ -810,6 +810,16 @@ assumes infrastructure that does not exist. Both are worth knowing.
 
 *Source: `08-evidence/documents/specs/2026-08-27-analytics-loading-state-mockups.html`*
 
+**Update, 2026-09-02 — resolved.** The mechanism is now designed and, per
+cross-document evidence in this batch, built: `analytics_sections` and
+`analytics_recompute_status` tables, dispatched via ECS Fargate `RunTask`,
+merged to `feat/enhanced-ui` (`f2daf84`, regression fix `8c2f0ef`, 628
+passed/6 skipped). See [ADR-015](03-decisions/ADR-015-analytics-precompute-architecture.md)
+and the [2026-09-02 journey entry](02-journey/2026-09-02-analytics-precompute-architecture.md).
+*Source: `08-evidence/documents/specs/2026-09-02-analytics-precompute-architecture-design.md`;
+`08-evidence/documents/plans/2026-09-02-analytics-precompute-architecture.md`;
+`08-evidence/documents/plans/2026-09-10-analytics-frontend-precompute-migration.md`.*
+
 ### R-044 — Two Phase 2 data-format assumptions are unverified (Open, medium)
 
 First: the NSE bhavcopy URL and its column naming (ISIN and closing-price
@@ -919,6 +929,66 @@ verified fact. Source: vault owner, live conversation, 2026-09-19 —
 not yet corroborated by source material. Corroborate against
 subsequent batches as they are ingested, and ultimately against the
 current state of the Unifolio code repo.
+
+### R-052 — Terraform state can silently drift ahead of `session.md`'s documented status (Open, medium)
+
+Preparing the 2026-09-11 staging runbook, the draft stated Phase 4
+(S3+CloudFront), Phase 5 (ACM/DNS/ALB HTTPS) and the analytics-recompute
+dispatcher's ECS task definition were "authored, reviewed, not applied." A
+`terraform plan` run during actual execution showed all of it already present
+in Terraform state — refreshed, not created — traced to a stray
+`tfplan-step7` file dated earlier the same day, predating the session that
+produced the runbook. Caught and reconciled before anything was duplicated;
+only 2 EventBridge jobs and one IAM policy change were genuinely outstanding.
+
+Infrastructure state moved faster than the notes describing it, once,
+undetected until a plan diff was actually run. Nothing in the vault's process
+currently forces a `terraform plan` check before trusting a status note. A
+related, smaller recurring issue from the same session: Docker builds on WSL
+intermittently fail with a `.pytest_tmp` xattr/permission error (a known
+WSL/drvfs BuildKit issue); `pytest.ini`'s `--basetemp` was moved outside the
+repo to stop it recurring, not confirmed as a permanent fix.
+
+**To verify:** cross-check against the current state of the Unifolio code
+repo's Terraform state and CI configuration.
+
+*Source: `08-evidence/documents/plans/2026-09-11-aws-staging-prerequisites.md`*
+
+### R-053 — Fund Score card redesign is approved and fully planned, but has no execution evidence in this batch (Open, low)
+
+A plain-English verdict card and a display-only tier-badge fix were designed
+and given a 9-task implementation plan on 2026-09-11. Unlike the 2026-09-02
+analytics precompute work, no later document in this batch references it as
+built — no commit hash, no test-run count, no `session.md` note.
+
+Low severity: this is a UI readability fix with an explicit backend/schema
+non-goal (the persisted `risk_adjusted_tier` column is deliberately left
+untouched), not a blocker for anything else in the vault.
+
+**To verify:** cross-check against the current state of the Unifolio code
+repo, or against a later batch's source material.
+
+*Sources: `08-evidence/documents/specs/2026-09-11-fund-score-card-redesign-design.md`;
+`08-evidence/documents/plans/2026-09-11-fund-score-card-redesign.md`*
+
+### R-054 — A "7 in-process caches" hardening item is sourced from a document this vault has not yet ingested (Open, low — flagged, not verified)
+
+The 2026-09-11 AWS staging runbook references an external readiness report
+(`AWS Readiness/aws-golive-readiness-report.md`, its own §22 "Phase 7")
+naming "in-process caches off single-task-only state" as its highest-priority
+hardening item ahead of a public launch. That report itself has not been
+ingested into this vault as of this batch — its contents, and even its exact
+claim, are known only second-hand, through one reference inside the runbook.
+
+Recorded as a hypothesis pointer, not a verified vault fact, per the vault's
+rule against treating unverified conversation/document claims as settled.
+
+**To verify:** ingest `AWS Readiness/aws-golive-readiness-report.md` itself in
+a future batch (per the vault's roadmap) and confirm or correct this claim
+against its actual text.
+
+*Source: `08-evidence/documents/plans/2026-09-11-aws-staging-prerequisites.md`
+(second-hand reference only — source document itself not yet in the vault)*
 
 ## Deferred by decision (not debt, tracked so it is not lost)
 

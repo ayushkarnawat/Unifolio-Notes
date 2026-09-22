@@ -103,12 +103,22 @@ the wrong bucket.
 
 ## What this model deliberately does not cover
 
-- Per-user analytics tables. Portfolio-level scores are computed on read; `fund_scores`
-  is fund-level reference data, not per-user.
 - Partition maintenance automation (creating next year's partition ahead of time) — an
   operational runbook item, not a schema design question.
 - Auth and security policy at the schema level (rate-limiting, session-expiry UX, device
   management) — deferred to the Auth/Security PRD.
+
+> **Correction, 2026-09-22 (batch 2c).** This section previously listed
+> "per-user analytics tables" as deliberately out of scope, true through
+> batch 2b. As of migration `0012` (2026-09-02), that is no longer the
+> model's shape: `analytics_sections` and `analytics_recompute_status` are
+> now per-household analytics tables, added deliberately to fix a connection-
+> pool exhaustion problem. `fund_scores` remains fund-level reference data,
+> unchanged. See [ADR-015](../03-decisions/ADR-015-analytics-precompute-architecture.md).
+> The migration chain referenced elsewhere in this vault has also moved on:
+> `0012_analytics_sections`, `0013_account_deletion_grace_period`,
+> `0014_analytics_recompute_generation` — none confirmed applied to the real
+> staging RDS instance as of the 2026-09-11 source material (R-052).
 
 ## Related
 

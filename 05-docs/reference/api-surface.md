@@ -105,12 +105,28 @@ started and ends on an unanswered design question.
 
 ## Analytics
 
+**Superseded 2026-09-02 (ADR-015).** The seven per-section routes below were
+the live-compute-on-read design through batch 2b, and are historically
+accurate for that period. As of the analytics precompute rework, they are
+replaced by one consolidated read route and one retry route, both reading
+from the new `analytics_sections` table rather than computing on request:
+
 | Endpoint | Method | Source |
 |---|---|---|
-| `/analytics/household-members/{id}/allocation` | GET | PRD-04 FR-1–FR-2 — granular `by_category` plus re-exposed `by_amc`. **Built 2026-08-10** |
-| `/analytics/household/aggregate/allocation` | GET | PRD-04 FR-1–FR-2, family aggregate. Built 2026-08-10 |
+| `/analytics/{scope}` | GET | Consolidated read across all analytics sections for one scope (household member or aggregate), from precomputed, persisted rows. [ADR-015](../../03-decisions/ADR-015-analytics-precompute-architecture.md) — **built, merged 2026-09-10** |
+| `/analytics/{scope}/retry` | POST | Re-dispatches recomputation for a scope via ECS Fargate `RunTask`, for a section stuck in a failed/stale state. [ADR-015](../../03-decisions/ADR-015-analytics-precompute-architecture.md) — **built, merged 2026-09-10** |
+
+The routes below are the pre-2026-09-02 shape, kept for historical accuracy
+(and because the underlying computations — allocation, category rank,
+score, benchmark comparison — still exist, just behind the consolidated
+route now):
+
+| Endpoint | Method | Source |
+|---|---|---|
+| `/analytics/household-members/{id}/allocation` | GET | PRD-04 FR-1–FR-2 — granular `by_category` plus re-exposed `by_amc`. **Built 2026-08-10, superseded 2026-09-02** |
+| `/analytics/household/aggregate/allocation` | GET | PRD-04 FR-1–FR-2, family aggregate. Built 2026-08-10, superseded 2026-09-02 |
 | `/funds/{scheme_id}/category-rank` | GET | PRD-04 FR-3–FR-4 |
-| `/funds/{scheme_id}/score` | GET | PRD-04 FR-5–FR-7 — three-ingredient composite, **built 2026-08-13**. Formula in [ADR-010](../../03-decisions/ADR-010-fund-scorer-composite-formula.md); the FR-7 breakdown is recomputed on read and never persisted |
+| `/funds/{scheme_id}/score` | GET | PRD-04 FR-5–FR-7 — three-ingredient composite, **built 2026-08-13**. Formula in [ADR-010](../../03-decisions/ADR-010-fund-scorer-composite-formula.md); the FR-7 breakdown was recomputed on read and never persisted through batch 2b — as of ADR-015 it is persisted in `analytics_sections` |
 | `/household-members/{id}/benchmark-comparison` | GET | PRD-04 FR-8–FR-9 |
 
 **On the two `/allocation` routes:** the Dashboard's coarse

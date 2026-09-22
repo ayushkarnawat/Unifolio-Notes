@@ -3,75 +3,76 @@
 _Overwritten each update — this is a snapshot, not a history. For
 history, see `02-journey/`._
 
-**As of 2026-09-18:** Batch 2b ingested — 2026-08-17 to 2026-08-31, the second
-half of August, continuing directly from batch 2a. The vault now holds fourteen
-decisions (ADR-001 to ADR-014), seven investigations, fifteen journey stages,
-an eight-section architecture description, and a risk register of fifty-one
-items. Nothing from batches 1 or 2a has been rewritten.
+**As of 2026-09-22:** Batch 2c ingested — 2026-09-02 to 2026-09-16, picking
+up three weeks after batch 2b's material ends. The vault now holds seventeen
+decisions (ADR-001 to ADR-017), eight investigations, twenty journey stages,
+an eight-section architecture description, and a risk register of
+fifty-four items. Nothing from earlier batches has been rewritten.
 
-**The single most important thing this batch changes about the picture:** the
-fortnight produced far more design than build. Of eight implementation plans,
-two were executed in full — and both were for a feature that was reversed the
-same day. One was partially executed. Five were never started, and four design
-specifications carry no execution record at all (R-051). Almost everything
-described below is **intent, not shipped behaviour**, and every record in the
-vault has been written to say which is which.
+**The single most important thing this batch changes about the picture:**
+the pattern from batch 2b — heavy design, light build — partly reverses.
+The Analytics precompute rework (ADR-015) was designed on 2026-09-02 and
+is confirmed **merged and green** by 2026-09-10 (628 passed/6 skipped),
+resolving a risk this vault had been carrying open since batch 2b (R-042).
+The frontend caught up the same week, an AMFI ingestion bug was found and
+fixed same-day (INV-008), and a detailed staging deployment runbook was
+written on 2026-09-11 — though whether that runbook was actually run is
+unconfirmed. A second thread, the Fund Score card redesign (ADR-017,
+2026-09-11), was fully designed and planned but has **no execution evidence
+anywhere in this batch** (R-053) — the two threads sit at opposite ends of
+the same fortnight.
 
-**Where the product stands.** Unchanged in what a user can actually do: sign
-up, onboard, add family members, upload CAS statements, and see a valued
-dashboard with holdings, allocation, SIPs, cash flow, family aggregate,
-distributor comparison and the first analytics subsystems. What this batch adds
-to the picture is what is designed and waiting: a cadence-based SIP model
-replacing the 40-day window (ADR-012), a PDF export of the analytics dashboard
-(ADR-013), portfolio-level distributor comparison, and a whole second asset
-class — direct equity, imported from depository statements (ADR-014).
+**Where the product stands.** The live-compute-on-read pattern behind
+Analytics is gone: a `analytics_sections` table now stores each section per
+household, recomputed via ECS Fargate `RunTask` and read through one
+consolidated endpoint. This is the mechanism batch 2b's loading-state
+decision had assumed but that this vault could not previously confirm
+existed (R-042, now resolved). What a user can do is otherwise unchanged
+from batch 2b — sign up, onboard, add family members, upload CAS statements,
+see a valued dashboard — plus, if built, a plainer-English Fund Score card
+still awaiting confirmation.
 
-**A finding that changes the plan rather than adding to it:** the desktop Main
-Dashboard is still a placeholder stub, while the mobile dashboard is a mature
-implementation (R-037). The product's primary screen on its primary platform
-does not exist, and the mobile work is now the reference for what it should do.
+**A new finding this batch: infrastructure can drift ahead of the notes
+describing it, silently.** Preparing the 2026-09-11 staging runbook, a
+`terraform plan` run mid-session showed HTTPS, CloudFront, and the
+analytics dispatcher's task definition already applied — from a stray
+plan file predating the session — while the draft runbook still described
+them as "not yet applied." Caught and reconciled once; nothing says this
+can't happen again (R-052).
 
-**Three things nothing works without, and none of them is done:**
+**Three things nothing works without, and none of them is confirmed done
+by this batch's material:**
 
-1. **Neither OTP channel actually delivers a message.** Phone SMS has no
-   provider chosen at all (R-025); email has a provider chosen and a stub
-   implementation (ADR-009, R-024). No real user can log in today.
-2. **There is no Privacy Policy page anywhere**, and Google will not publish
-   a sign-in consent screen without one (R-023). This is a legal deliverable
-   with a lead time, not an engineering task. Note that the mobile
-   "privacy onboarding" work of 2026-08-20 is a trust-primer screen, not this.
-3. **The database still runs on SQLite.** The move to AWS RDS PostgreSQL is
-   specified and has a runbook, and the PostgreSQL branch of migration `0002`
-   has never been executed against a live instance (R-021).
+1. **Neither OTP channel actually delivers a message**, per batch 2b
+   (R-024, R-025) — this batch's staging scope explicitly keeps real OTP
+   delivery and Google Sign-In out of the beta pass, deliberately, not as
+   an oversight.
+2. **There is still no Privacy Policy page** (R-023) — untouched by this
+   batch's material.
+3. **The database migration chain has moved to `0014`**
+   (`0012_analytics_sections`, `0013_account_deletion_grace_period`,
+   `0014_analytics_recompute_generation`), and as of the 2026-09-11 runbook
+   none of the three had yet been applied to the real staging RDS instance.
 
-**The open question most worth a decision:** whether Unifolio stores PAN, and
-by what mechanism. There are now five different recorded positions across
-five dates — being rewritten to masked-on-display (2026-08-25), kept
-never-persisted until a schema change lands (2026-08-26), stored encrypted
-at rest (ADR-007, 2026-09-16), and reaffirmed live on 2026-09-19 as encrypted
-both at rest and in transit, with detailed documentation still pending from a
-colleague — plus a document that contradicts itself on the point. Nothing has
-changed in the schema. Until this is fully settled and documented, the
-automatic email ingestion that makes Phase 2's equity import effortless
-cannot be designed (R-043).
+**The open question most worth a decision, still:** PAN storage and
+encryption (R-043) — **nothing in this batch bears on it directly.** None
+of the nine source files mention PAN. The question remains exactly where
+batch 2b left it.
 
-**Second on that list, and cheap to fix:** the marketing brief handed to an
-external builder on 2026-08-31 carries a placeholder claim that Unifolio's CAS
-import is "powered by MFCentral". It is not — ingestion is user-uploaded CAS
-PDFs, and MFCentral-class access is a deferred, regulator-gated future phase.
-The brief's own SEO strategy is built on repeating entity statements verbatim
-so answer engines converge on them, which makes a wrong one expensive (R-046).
+**Also worth noting: this vault redesigned and rebuilt itself.** On
+2026-09-16, the vault's own structure — the one this document lives in —
+was designed (ADR-016) and fully executed the same day, confirmed against
+this repository's own `git log`. It is recorded as a journey stage and a
+decision like any other piece of delivered work, since it is one.
 
 Still true from earlier batches: two incompatible fund-score methodologies
-remain on the books pending a product call (R-015), the parse-accuracy targets
-for the core import feature have no test fixtures behind them (R-009), and PAN
-storage is a confirmed direction that is not implemented and is in direct
-tension with a guard test written in August to prevent exactly it (R-018).
+remain on the books pending a product call (R-015), the desktop Main
+Dashboard is still a placeholder stub while mobile is mature (R-037), and
+the marketing brief's "powered by MFCentral" claim is still wrong (R-046).
 
-**Next:** a verification pass against the current code repo. Most of this
-batch's risk entries are marked "to verify" for the same reason — the vault now
-describes a great deal of designed work whose build status is known only up to
-2026-08-31. Note also a live-conversation forward pointer (2026-09-19, not yet
-corroborated by source material): the vault owner states that all six
-not-fully-executed plans in this batch have since shipped in later work — see
-R-051.
+**Next:** a verification pass against the current code repo remains the
+single highest-value action — most of both this batch's and the prior
+batch's risk entries are marked "to verify" for the same reason. Also
+outstanding: the `AWS Readiness/aws-golive-readiness-report.md` document
+referenced (but not ingested) in this batch's runbook is a candidate for a
+future batch (R-054).
