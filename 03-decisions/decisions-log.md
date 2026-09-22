@@ -488,28 +488,6 @@ second external coding agent used on this product, after Google Antigravity,
 neither of which is covered by ADR-011's orchestration workflow. See R-029 and
 R-048.
 
-## 2026-09-19 — The six plans R-051 found unbuilt are stated to have since shipped
-
-The vault owner confirmed, live, that every plan batch 2b found
-partially or entirely unexecuted (SIP cadence, analytics PDF export,
-portfolio-level distributor comparison, the auth panel verification
-task, both Phase 2 demat plans) has since been built. **Why:** recorded
-as a dated forward pointer rather than silently upgrading each
-record's status — none of this batch's own source material shows the
-work done, so the journey stages, ADR-012/013/014, and R-051 itself
-are left describing what the Aug 2026 documents actually show. See
-R-051 and later batches for corroboration.
-
-## 2026-09-19 — PAN storage direction reaffirmed: encrypted at rest and in transit, documentation pending
-
-The vault owner reaffirmed, live, that PAN will most likely be stored
-encrypted at rest and encrypted in transit (most likely TLS 1.3).
-**Why:** recorded as a reaffirmation, not a resolution — detailed
-documentation is still being prepared by a colleague and does not yet
-exist, so R-043's open questions about mechanism and purpose are
-narrowed, not closed. See [ADR-007](ADR-007-pan-storage-and-encryption.md)
-and [R-043](../07-risks-and-debt.md).
-
 ## 2026-09-02 — The schema document is treated as lagging the migrations, by default
 
 Where `Database-Schema-Unifolio.md` and the code-repo migrations disagree, the migrations
@@ -539,3 +517,25 @@ conversation, 2026-09-17 — not yet corroborated against a written plan or
 spec; corroborate against source material if one surfaces in a later batch.
 See [R-015](../07-risks-and-debt.md) and the status banner on
 [`05-docs/explanation/fund-scoring-methodology.md`](../05-docs/explanation/fund-scoring-methodology.md).
+
+## 2026-09-19 — The six plans R-051 found unbuilt are stated to have since shipped
+
+The vault owner confirmed, live, that every plan batch 2b found
+partially or entirely unexecuted (SIP cadence, analytics PDF export,
+portfolio-level distributor comparison, the auth panel verification
+task, both Phase 2 demat plans) has since been built. **Why:** recorded
+as a dated forward pointer rather than silently upgrading each
+record's status — none of this batch's own source material shows the
+work done, so the journey stages, ADR-012/013/014, and R-051 itself
+are left describing what the Aug 2026 documents actually show. See
+R-051 and later batches for corroboration.
+
+## 2026-09-19 — PAN storage direction reaffirmed: encrypted at rest and in transit, documentation pending
+
+The vault owner reaffirmed, live, that PAN will most likely be stored
+encrypted at rest and encrypted in transit (most likely TLS 1.3).
+**Why:** recorded as a reaffirmation, not a resolution — detailed
+documentation is still being prepared by a colleague and does not yet
+exist, so R-043's open questions about mechanism and purpose are
+narrowed, not closed. See [ADR-007](ADR-007-pan-storage-and-encryption.md)
+and [R-043](../07-risks-and-debt.md).
