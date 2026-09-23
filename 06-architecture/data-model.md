@@ -119,6 +119,13 @@ the wrong bucket.
 > `0012_analytics_sections`, `0013_account_deletion_grace_period`,
 > `0014_analytics_recompute_generation` — none confirmed applied to the real
 > staging RDS instance as of the 2026-09-11 source material (R-052).
+>
+> **Update, 2026-09-23 (batch 4d).** A demo-prep walkthrough dated
+> 2026-09-12 — one day later than the source above — opens with the same
+> warning, confirming migrations `0012`-`0014` were still not applied to the
+> staging RDS instance as of that date either. No new migration activity
+> found; see R-052. *Source:
+> `08-evidence/documents/2026-09-12-backend-technical-walkthrough.md`*
 
 ## Related
 

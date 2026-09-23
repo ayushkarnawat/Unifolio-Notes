@@ -96,3 +96,24 @@ spike, since it is judged the piece most likely to blow up in scope.
 ### Evidence
 
 - `08-evidence/documents/orchestration/scorer-v2-pe-pb-feasibility-findings.md`
+
+### Addendum, 2026-09-23 (batch 4d) — annex now ingested; Scorer v2 has an ADR
+
+`Docs/Scorer-v2-Calculation-Annex-Open-Questions.md`, cited above as "not yet
+ingested," is now in this vault. Its open question 6 ("Path A: build the
+overlay in-house vs. Path B: license a data feed") matches this
+investigation's own framing and resolution exactly, with no new information
+on that specific question. The annex adds 12 further open questions (rolling
+window definitions, recency-weighting curve, category-average definition,
+minimum peer-set size, and others) spanning the rest of the Scorer v2
+methodology, none of which this investigation covers.
+
+Scorer v2 as a whole now has its own record:
+[ADR-019](../03-decisions/ADR-019-scorer-v2-proprietary-methodology.md),
+which captures the approved-at-formula-level methodology and cross-links the
+full annex. This investigation's scope remains narrowed to the Valuation
+Overlay component only; its "remaining uncertainty" note above (no ADR yet
+existed) is superseded by ADR-019's existence, not by any change to this
+investigation's own findings.
+
+Evidence: `08-evidence/documents/Scorer-v2-Calculation-Annex-Open-Questions.md`

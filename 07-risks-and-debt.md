@@ -313,6 +313,15 @@ changing the code is the more expensive option.
 
 *Source: `08-evidence/documents/specs/2026-08-19-mobile-uiux-system-plan.md` §0.1*
 
+**Update, 2026-09-23 (batch 4d).** `Docs/MOBILE_APP_EXECUTION.md` itself is
+now directly ingested — previously this vault only had the mobile plan's
+indirect citation of it. Its exact text: "mobile preview must not
+automatically replace the web experience based on viewport/device
+detection." This confirms the 2026-08-19 plan's characterisation precisely;
+it does not resolve the contradiction, since `App.tsx`'s behaviour has not
+been re-checked against the current code repo. Status unchanged: **Open**.
+*Source: `08-evidence/documents/MOBILE_APP_EXECUTION.md`*
+
 ### R-043 — PAN persistence now has five dated positions across five dates (Open, high — direction reaffirmed 2026-09-19, detailed documentation pending)
 
 The most consequential open question in this batch. In date order:

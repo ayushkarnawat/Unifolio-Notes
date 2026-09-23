@@ -56,6 +56,15 @@ a mobile route **or** a sub-768px viewport match, which the code repo's
 `Docs/MOBILE_APP_EXECUTION.md` says must not happen. Flagged, not resolved —
 see R-035.
 
+> **Update, 2026-09-23 (batch 4d).** `Docs/MOBILE_APP_EXECUTION.md` is now
+> directly ingested (previously only cited indirectly via
+> `2026-08-19-mobile-uiux-system-plan.md`) — see
+> `08-evidence/documents/MOBILE_APP_EXECUTION.md`. Its own text confirms the
+> stated rule exactly: "mobile preview must not automatically replace the web
+> experience based on viewport/device detection." No change to R-035's status
+> (still Open) — this is corroborating primary-source evidence, not a new
+> finding.
+
 ## Feature boundaries
 
 - `features/import-review/` — S8–S12 (Upload, Parsing, Review, Error,
@@ -156,6 +165,13 @@ use. `AuthShowcasePanel` is an always-dark exception to the theme system with
 its own `--auth-panel-*` token family (see
 `05-docs/reference/design-tokens.md`). The 2026-08-18 redesign changed zero
 token values.
+
+> **Update, 2026-09-23 (batch 4d).** `Docs/frontend_execution.md` — the
+> execution-contract doc that planned shadcn/ui + Bklit UI as the frontend
+> stack for this branch — is now directly ingested; see
+> `08-evidence/documents/frontend_execution.md`. It is the "design intent"
+> side of R-019, already resolved per that risk's 2026-09-23 addendum (Bklit
+> was never installed or adopted); no status change here.
 
 ## Related
 

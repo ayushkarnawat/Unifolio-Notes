@@ -168,6 +168,16 @@ previously ingested:
   Commit `dc4df5c`. 338/2 → 341/2. The controller fixed one genuine bug in
   the plan's own test code (a test that never overrode `get_db`, so it hit
   the real un-migrated DB instead of the fake one).
+- **Stakeholder-facing methodology doc.** Commit `f7a0bc2`.
+  `Docs/Scorer-Methodology-Unifolio.md` — the plain-language write-up of this
+  same accepted 45/30/25 formula, for a non-technical reader. Now directly
+  ingested (2026-09-23, batch 4d): its formula, weights, and worked example
+  (78/65/70 → 72.1 → 76th percentile → Tier 4 → +0.25 → 76.25) match this
+  ADR's own accepted formula exactly — no drift found. It supersedes
+  `05-docs/explanation/fund-scoring-methodology.md` as the current
+  stakeholder-facing reference; that file's own 2026-09-17 status banner is
+  left as-is per this vault's no-rewrite convention. Evidence:
+  `08-evidence/documents/Scorer-Methodology-Unifolio.md`.
 
 All four tasks were dispatched to Codex with verification deferred to the
 controller (sandbox environments across all four had no reachable `.venv`

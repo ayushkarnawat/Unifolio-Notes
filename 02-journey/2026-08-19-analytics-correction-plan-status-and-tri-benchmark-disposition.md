@@ -134,3 +134,22 @@ as an untriaged backlog.
 - Evidence: `08-evidence/documents/orchestration/analytics-correction-plan-status.md`
 - Evidence: `08-evidence/documents/orchestration/correction-plan-round2-handoff.md`
 - Evidence: `08-evidence/documents/orchestration/tri-benchmark-deferred-plan.md`
+
+### Addendum, 2026-09-23 (batch 4d) — primary source pair now ingested
+
+Two documents this stage's cross-reference was built from were previously
+known to this vault only by filename (a 2026-08-14-session housekeeping note
+in `08-evidence/documents/engineering-loop/session.md:1156`), never ingested
+in full: the verbatim 22-item plan itself
+(`Docs/Analytics-Dashboard-Internal-Correction-Plan.md`, 18 Aug 2026) and its
+companion CA-facing sign-off document
+(`Docs/Analytics-Dashboard-Formula-Implementation-Review.md`, 18 Aug 2026,
+written for a Chartered Accountant/finance-leader audience, covering XIRR,
+CAGR, TRI-benchmark treatment, family-level aggregation, and rounding
+policy). Both are now directly ingested. Their content matches this entry's
+existing description item-for-item (same P0.1-P0.4/P1.1-P1.10/P2.1-P2.8
+numbering, same TRI/CAGR/switch-transaction/clamp findings) — this is
+corroborating primary-source evidence, not a new fact; no disposition above
+changes. Evidence:
+`08-evidence/documents/Analytics-Dashboard-Internal-Correction-Plan.md`,
+`08-evidence/documents/Analytics-Dashboard-Formula-Implementation-Review.md`.
