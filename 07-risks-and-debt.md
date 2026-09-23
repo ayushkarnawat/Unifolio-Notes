@@ -679,6 +679,21 @@ gap could exist for any provider that writes an email to an identity.
 
 *Source: `08-evidence/documents/plans/2026-08-17-email-password-signup-backend.md`*
 
+**Resolved, 2026-09-23 (per newly-ingested source material, recorded
+2026-09-23).** `remove-password-auth-handoff.md` confirms migration `0008`
+drops `password_hash` and the related password-auth columns/tables
+outright, and `EMAIL_PASSWORD` is benched in favour of `EMAIL_OTP`. The
+specific reachability question this entry flagged is now answered: the
+`EMAIL_PASSWORD` provider and its associated unbackfilled-`users.email`
+code path no longer exist in the current design. This is **not** a full
+closure of the underlying propagation-gap pattern, though: the same
+question — does a verified email on an identity row reliably propagate to
+`users.email`? — has not been checked against `EMAIL_OTP` (the provider
+now active in its place) or Google sign-in. Left open as a narrower,
+re-scoped question rather than closed outright.
+
+*Resolution source: `08-evidence/documents/orchestration/remove-password-auth-handoff.md`*
+
 ### R-032 — PRD-03's SIP behaviour is contradicted by ADR-012 and has no superseding note (Open, medium)
 
 ADR-012 removes the 40-day active-SIP window. PRD-03 FR-6 and its edge-case
@@ -1289,6 +1304,33 @@ live.
 *Source: `02-journey/2026-09-02-compliance-audit-group-1-and-non-pan-duplicate-detection.md`,
 "What actually happened" (non-PAN duplicate-person detection) and
 "Result" sections.*
+
+**Update, 2026-09-23 (per newly-ingested source material, recorded
+2026-09-23) — partially resolved, architectural risk still open.**
+`two-parallel-import-backends-architectural-gap.md` and
+`f8-nav-unavailable-degraded-row-handoff.md` supply the concrete git
+archaeology this entry's own "To verify" note asked for. The specific
+duplicate-detection confirmation-gate gap named in this entry's title
+**was closed 2026-09-03**: a shared `enforce_attribution_confirmation()`
+helper was added and wired into all 3 backend commit sites across both
+`service.py`/`/imports/*` (the live production path) and
+`lifecycle_service.py`/`/cas-imports/*`, reviewed and independently
+re-verified (614 backend tests/1 skipped, 397 frontend/75 files, matching
+the implementer's self-report). The underlying architectural risk named
+in this entry's "What needs to be fixed" section — the two import
+backends remain two separate code paths, not consolidated — is confirmed
+**still open**: `/imports/*` (added `5c81231`/`1e823d1`, 2026-08-04,
+wired to the live frontend `ImportFlow.tsx` at `038342a`, 2026-08-05) and
+`/cas-imports/*` (added `4d60c8e`, 2026-08-10, with its own frontend
+`ImportLifecycleView.tsx` at `e7db4c1`, same day, never mounted into any
+route) drifted apart undetected for ~3.5 weeks before this finding
+surfaced them. No consolidation work has been done; the fix-once
+mechanism (shared helper) now exists for this *one* invariant only, not
+as a general safeguard against the next such drift. Full detail:
+[2026-09-02 journey entry addendum](../02-journey/2026-09-02-compliance-audit-group-1-and-non-pan-duplicate-detection.md).
+
+*Resolution source: `08-evidence/documents/orchestration/two-parallel-import-backends-architectural-gap.md`,
+`08-evidence/documents/orchestration/non-pan-duplicate-person-detection-handoff.md`*
 
 ### R-060 — No per-key single-flight coordination on cache-miss recompute (Open, low — accepted limitation)
 

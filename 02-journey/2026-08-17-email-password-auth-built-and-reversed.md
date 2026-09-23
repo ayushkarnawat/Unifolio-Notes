@@ -114,3 +114,37 @@ then. No evidence in this batch settles which. See §4, contradiction C3.
 - Evidence: `08-evidence/documents/specs/2026-08-17-email-password-signup-design.md`
 - Evidence: `08-evidence/documents/plans/2026-08-17-email-password-signup-backend.md`
 - Evidence: `08-evidence/documents/plans/2026-08-17-email-password-signup-frontend.md`
+
+## Addendum — 2026-09-23 (from batch 4c orchestration ingestion): the migration `0007`/`0008` split, and two Critical bugs found on the way
+
+This entry's "Result" section already named migrations `0007`-`0008` as
+having removed password storage, sourced from `decisions-log.md`'s
+summary-level entry. Later-ingested source material distinguishes what
+each migration actually did, and records two related security findings
+from the same day that this entry did not previously cover:
+
+- **Migration `0007`** belongs to a *different*, earlier same-day task
+  (`email-otp-signup`): replacing the old link-based email confirmation
+  with an inline email-OTP step, sequenced before the existing phone
+  gate — not itself the password-removal migration.
+- **Migration `0008`** is the actual password-removal migration described
+  in this entry's "What actually happened" section: it drops
+  `auth_identities.password_hash`, `auth_identities.email_confirmed_at`,
+  `pending_identity_verifications.password_hash`, and the
+  `password_reset_tokens` table outright, and benches `EMAIL_PASSWORD` in
+  favour of reactivating `EMAIL_OTP`.
+
+Both `email-otp-signup` (migration 0007) and `remove-password-auth`
+(migration 0008) each had a **Critical, account-takeover-adjacent OTP
+account-binding bug** found by this project's mandatory adversarial-review
+gate and fixed the same day, 2026-08-17 — a repeatable failure pattern
+(missing binding checks between a verified OTP and the record it's
+applied to) worth its own investigation entry rather than a passing
+mention here. See [INV-012](../04-investigations/INV-012-otp-verification-account-binding-bugs.md)
+for full technical detail on both bugs and their fixes.
+
+### Addendum evidence
+
+- `08-evidence/documents/orchestration/email-otp-signup-handoff.md`
+- `08-evidence/documents/orchestration/remove-password-auth-handoff.md`
+- `08-evidence/documents/orchestration/delegation-log.md` (2026-08-17 entries)

@@ -15,7 +15,9 @@ file with the full for-stakeholders/technical-detail record.
 | 2026-08-13 → 2026-08-18 | [Dashboard NAV and holdings cache race hardening](2026-08-13-dashboard-nav-and-holdings-cache-race-hardening.md) | Six review rounds fix three real concurrency races in the dashboard's caching layer, plus a missing prefetch TTL and a wholly absent frontend cache. One coordination gap accepted as a documented limitation (R-060) |
 | 2026-08-14 | [Multi-method auth and the analytics frontend](2026-08-14-multi-method-auth-and-the-analytics-frontend.md) | Google and email sign-in added on a mandatory phone anchor, with non-silent account linking (ADR-008) and Postmark chosen but stubbed (ADR-009). Privacy Policy, real email delivery and Apple all outstanding |
 | 2026-08-14 | [A second branch reconciled: CAS import lifecycle rebuild, UI foundation, and the Scorer's backend](2026-08-14-cas-import-lifecycle-and-branch-reconciliation.md) | A parallel branch merged in: the full CAS import lifecycle redesign (ADR-018), a new design-token/mobile UI foundation, and the fund Scorer's backend completed. All tests pass; most of it skipped the mandatory independent review pass — recorded as a gap (R-004), not smoothed over |
-| 2026-08-17 | [Email and password auth, built in full and reversed](2026-08-17-email-password-auth-built-and-reversed.md) | Migration `0006`, bcrypt, five routes, two tables and the email-OTP path deleted — then reversed the same day by management. A reachable crash in identity selection found by reading and fixed (INV-006) |
+| 2026-08-17 | [Email and password auth, built in full and reversed](2026-08-17-email-password-auth-built-and-reversed.md) | Migration `0006`, bcrypt, five routes, two tables and the email-OTP path deleted — then reversed the same day by management. A reachable crash in identity selection found by reading and fixed (INV-006); two further Critical OTP account-binding bugs found and fixed the same day in adjacent auth work (INV-012) |
+| 2026-08-17 | [Dashboard load time: connection reuse and import-preview concurrency](2026-08-17-dashboard-load-time-connection-reuse-and-import-preview-concurrency.md) | A missing HTTP connection-reuse/de-dup layer for NAV fetches, and a sequential import-preview fetch loop, both root-caused, fixed and adversarially reviewed the same day; merged as PR #4 |
+| 2026-08-17 → 2026-08-19 | [BUG-001/DATA-001: Analytics load-time investigation and a 7-item correctness fix batch](2026-08-17-bug-001-data-001-analytics-load-and-correctness-fixes.md) | Five Analytics endpoints investigated; a seed-data identity-corruption artifact distinguished from a real XIRR ×100 display bug via an independently-built verification tool; 7 fix items landed and re-confirmed intact by a fresh post-implementation read |
 | 2026-08-18 | [The active-SIP window is replaced by a cadence model](2026-08-18-active-sip-cadence-redesign.md) | The 40-day window rejected by the product owner and replaced by cadence projection (ADR-012), reversing one clause of the 2026-08-06 accounting conventions. Designed and planned, not built |
 | 2026-08-18 → 2026-08-19 | [A visual and motion redesign, and four concepts for one auth panel](2026-08-18-visual-motion-redesign-and-the-auth-panel.md) | A zero-token-change design system pass handed to an external agent; one decorative panel through four concepts in 48 hours with no accepted record (R-033); a real import-flow routing defect found on the way (INV-007) |
 | 2026-08-19 | [Analytics correction-plan status and the TRI benchmark disposition](2026-08-19-analytics-correction-plan-status-and-tri-benchmark-disposition.md) | A 22-item cross-reference reviewed and corrected, 4 items fixed same day (category CAGR, mixed-plan-type holdings merge, switch-transaction XIRR, unclamped Scorer score); full TRI benchmark sourcing deferred with a 5-step guide rather than built |
@@ -33,6 +35,7 @@ file with the full for-stakeholders/technical-detail record.
 | 2026-09-10 | [Phase 4/5 confirmed live, scheduler authored, and a beta-scoped hardening plan](2026-09-10-phase4-5-confirmed-live-scheduler-authored-and-a-beta-scoped-hardening-plan.md) | `staging.unifolio.in`/`staging-api.unifolio.in` confirmed live over HTTPS; EventBridge scheduler Terraform authored (ADR-006 piece 2); trunk/production branch strategy decided; Phase 7 rescoped around a 5→30-user beta with named revisit triggers |
 | 2026-09-11 | [A detailed staging deployment runbook replaces the prior plan](2026-09-11-aws-staging-deployment-runbook.md) | An exact, copy-paste runbook written; Terraform state found already ahead of `session.md`'s own notes and reconciled (R-052). Execution against the runbook itself unconfirmed |
 | 2026-09-11 | [Fund Score card redesigned for plain-English readability](2026-09-11-fund-score-card-redesign.md) | A plain-verdict card and a tier-display fix designed and fully planned (ADR-017). No execution evidence in this batch (R-053) |
+| 2026-09-11 | [A 10-item investor-requested feature batch is built, reviewed twice, and left open](2026-09-11-investor-beta-feature-batch.md) | Profile page, account deletion with grace period, contact change, dashboard XIRR and more — two full review rounds each found real issues, all fixed; a third review gate remains owed. Status confirmed OPEN, not DONE |
 | 2026-09-16 | [This documentation vault itself is designed and built](2026-09-16-second-brain-vault-built.md) | ADR-016: flat Markdown + Git, manual pull, propose-then-approve sync. Fully executed the same day — the vault this index lives in |
 
 ```mermaid
@@ -69,6 +72,13 @@ flowchart LR
     O --> P["2026-08-17\nEmail+password auth\nbuilt in full"]
     P -->|"Reversed the same day\nby management"| P2["Passwordless restored;\npassword tables dropped\n(0007-0008)"]
     P -->|"New provider missing from\nthe precedence map"| P3["INV-006:\nreachable KeyError,\nfixed same day"]
+    P -->|"Two OTP endpoints missing\nverified-identity binding checks"| P4["INV-012:\n2 Critical account-binding\nbugs, fixed same day"]
+    P4 --> H
+    AH --> AJ["2026-08-17\nDashboard load time:\nconnection reuse +\nimport-preview concurrency"]
+    AJ --> H
+    AH --> AK["2026-08-17 → 08-19\nBUG-001/DATA-001:\nAnalytics load-time +\ncorrectness fixes"]
+    AK -->|"XIRR displayed at 1/100\nof correct value"| AK2["Confirmed root cause,\nfixed; seed-data identity\ncorruption also found"]
+    AK2 --> H
     P2 --> Q["2026-08-18\nSIP cadence model\nreplaces the 40-day window\n(ADR-012)"]
     Q -->|"Reverses one clause of the\n2026-08-06 conventions"| Q2["PRD-03 FR-6 note\nstill unwritten (R-032)"]
     Q --> AI["2026-08-19\nCorrection-plan cross-ref\n+ TRI benchmark disposition"]
@@ -110,6 +120,9 @@ flowchart LR
     Z --> AA["2026-09-11\nFund Score card\nredesign (ADR-017)"]
     AA -->|"Designed + planned,\nno execution evidence"| AA2["R-053 — OPEN\n(now Resolved, see\naddendum 2026-09-22)"]
     AA --> AB["2026-09-16\nThis vault's own\narchitecture (ADR-016)"]
+    Z --> AL["2026-09-11\nInvestor beta feature\nbatch, 10 items"]
+    AL -->|"2 full review rounds,\n13 findings, all fixed;\n3rd gate still owed"| AL2["Status confirmed\nOPEN, not DONE"]
+    AL2 --> H
     O4 --> H
     AC2 --> H
     AD2 --> H

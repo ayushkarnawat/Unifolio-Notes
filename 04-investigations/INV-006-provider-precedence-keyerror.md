@@ -74,6 +74,31 @@ enforced total over the provider enumeration) is untouched and unverified,
 and remains a live risk for the next new provider (Apple, per R-030). Not
 yet checked against the code repo.
 
+**Update, 2026-09-23 (from batch 4c orchestration ingestion — actual
+confirming evidence, superseding the 2026-09-19 belief above).**
+`remove-password-auth-handoff.md` (Status REVIEW, work performed
+2026-08-17, the same day as this investigation) confirms directly:
+migration `0008` drops `auth_identities.password_hash`,
+`auth_identities.email_confirmed_at`,
+`pending_identity_verifications.password_hash`, and the
+`password_reset_tokens` table outright, and the `EMAIL_PASSWORD` provider
+is benched in favour of reactivating `EMAIL_OTP`. This is real evidence,
+not a restated belief — the specific `EMAIL_PASSWORD`-triggered crash path
+this investigation found is confirmed moot for the current provider set.
+The structural cause remains exactly as unverified/unfixed as before: no
+evidence in any source material ingested so far shows a test asserting
+`PROVIDER_PRECEDENCE` is total over the current provider enumeration, so
+the same class of crash remains a live risk for the next new provider
+added (Apple, per R-030, or any future reactivation of `EMAIL_PASSWORD`).
+See also the two OTP-verification account-binding bugs found the same day
+in this same area of the code — [INV-012](INV-012-otp-verification-account-binding-bugs.md)
+— a different bug class (missing binding checks, not a stale precedence
+map), but evidence that this auth-provider code saw concentrated,
+security-sensitive change on 2026-08-17 and benefits from continued
+scrutiny.
+
+Evidence: `08-evidence/documents/orchestration/remove-password-auth-handoff.md`
+
 ## Related records
 
 - ADR-008 — phone-anchored multi-method identity (defines the provider set and precedence)

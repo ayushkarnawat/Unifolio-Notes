@@ -149,3 +149,41 @@ item, not silently dropped — see [R-055](../07-risks-and-debt.md).
 ### Addendum evidence
 
 - `08-evidence/documents/engineering-loop/session.md`, "'This Month' SIP tab feature, Tasks 6-8 review gate closed (2026-08-19)" section
+
+## Addendum — 2026-09-23 (from batch 4c orchestration ingestion): backend Tasks 1-5 design detail
+
+The prior addendum above named the backend Tasks 1-5 only in passing. The
+handoff doc that drove that implementation (`active-sips-backend-handoff.md`)
+records the specific design reasoning behind `compute_sips_for_month`'s
+two-anchor (`first_txn`/`latest_txn`) reconciliation, which this ADR's own
+"Options considered" section did not capture at the time:
+
+A single, ambiguous "anchor" transaction approach was tried and rejected
+during spec review, before implementation — it incorrectly omitted
+genuinely-skipped past months once a later real transaction became the new
+"most recent" anchor (i.e. projecting forward from only the latest
+transaction lost visibility into months that were actually missed earlier
+in the plan's history). The adopted design splits this into two anchors —
+the plan's very first transaction and its latest transaction — used
+together to reconcile which months have an actual contribution versus
+which are only projected. A per-folio transaction query (matching the
+*original*, pre-redesign `compute_active_sips`) was also considered and
+rejected for load-time reasons, in favour of a batched
+`_folio_transactions_by_id` helper reused across both
+`compute_active_sips` and the new `compute_sips_for_month`, specifically to
+keep the query count constant regardless of folio count (guarded by Task
+4's regression test).
+
+Status confirmed: `active-sips-backend-handoff.md`'s own Status field is
+DONE (Tasks 1-5, parent plan `2026-08-18-active-sips-cadence-redesign.md`).
+This is consistent with, and adds design detail behind, the "backend Tasks
+1-5" reference in the 2026-09-22 addendum above — no contradiction found.
+A companion `active-sips-frontend-handoff.md` (Tasks 6-8) was also checked
+against this ADR's 2026-09-22 addendum and found to restate the same
+three-round review saga already recorded there at the same level of
+detail — logged as a duplicate, not re-drafted.
+
+### Addendum evidence
+
+- `08-evidence/documents/orchestration/active-sips-backend-handoff.md`
+- `08-evidence/documents/orchestration/active-sips-frontend-handoff.md` (checked, duplicate of existing content)

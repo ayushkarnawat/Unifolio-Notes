@@ -146,3 +146,80 @@ migrations sharing one revision number.
 
 Evidence: `08-evidence/documents/orchestration/staging-code-blockers-handoff.md`,
 `08-evidence/documents/orchestration/enum-drift-migration-handoff.md`
+
+## Addendum — 2026-09-23 (from batch 4c orchestration ingestion): F8's review detail and the two-parallel-backends git archaeology
+
+**F8 went through three review rounds, not two.** The entry above
+undercounted this. The source handoff
+(`f8-nav-unavailable-degraded-row-handoff.md`, Status DONE, 2026-09-03)
+records: round 1 (FAIL, 2 P1s — "Total Invested" wrongly excluded a
+degraded holding's known FIFO principal from the total, and
+`nav_unavailable_count` was computed but never actually surfaced in the
+UI; both fixed in `DashboardView.tsx`/`MobileDashboardView.tsx`); round 2
+(FAIL, 1 P1 — `gainPercentage` divided the valued-only profit by *all*
+holdings' invested amount including degraded ones, mixing two incompatible
+populations; fixed by introducing a separate `valuedInvestedVal`); round 2
+re-review (PASS, zero findings). That closing re-review was performed by
+the orchestrator directly rather than dispatched to the usual reviewer,
+because Codex had hit its own usage limit mid-dispatch — an explicit,
+one-time deviation from the default "Codex reviews, orchestrator
+implements" split, done on explicit user instruction for that specific
+occasion, not a standing process change.
+
+A related, explicitly out-of-scope sibling bug was flagged rather than
+silently fixed or silently ignored: `distributor_comparison.py` has the
+same no-NAV `continue`-drops-the-row defect that F8 fixed elsewhere, left
+untouched as a named follow-up.
+
+**The two-parallel-import-backends gap's git archaeology**, establishing
+exactly how and when the split arose (from
+`two-parallel-import-backends-architectural-gap.md`, confirmed via
+`git log --diff-filter=A` per file):
+
+| Commit | Date | What it added |
+|---|---|---|
+| `5c81231` / `1e823d1` | 2026-08-04 | `service.py` / `app/api/imports.py` — the production parse-preview + confirm path |
+| `038342a` | 2026-08-05 | `ImportFlow.tsx` wired to `/imports/*` (the live, exercised frontend) |
+| `4d60c8e` | 2026-08-10 | `lifecycle_service.py` + `cas_imports.py` + `attribution.py` (the newer, more capable backend rewrite) |
+| `e7db4c1` | 2026-08-10, same day | `ImportLifecycleView.tsx` (its intended frontend) |
+
+The cutover from `ImportFlow.tsx`/`/imports/*` to
+`ImportLifecycleView.tsx`/`/cas-imports/*` was started but never
+completed — `ImportFlow.tsx` was never repointed, and
+`ImportLifecycleView.tsx` was never mounted into any route or parent
+component (referenced only by its own test file). The two backends then
+drifted apart, undetected, for roughly 3.5 weeks (2026-08-10 to
+2026-09-03) — `/imports/*` because it is what real users and every
+manual/localhost test actually exercise, `/cas-imports/*` because nothing
+called it, so it could not fail visibly. It took the non-PAN dedup task's
+own mandatory adversarial-review gate — one that checked the actual
+production call chain rather than trusting the task's stated scope — to
+surface it on 2026-09-03.
+
+**Why this wasn't caught earlier**, per the source material's own stated
+process lesson: no integration test exercises the actual route-to-frontend
+wiring (existing tests hit either backend or either frontend directly,
+never end-to-end through "which component does the app actually render");
+and the original non-PAN dedup handoff doc (written by the orchestrator)
+named `lifecycle_service.py` as the target without first confirming it was
+the production path — an assumption stated as fact rather than verified.
+Named explicitly as a process gap in how handoff docs get written, not
+just a one-off mistake: a handoff doc that names a specific file as "the"
+implementation target should state how that was confirmed (a grep for the
+frontend call site, or a route/`main.py` mount check).
+
+**Resolution, already summarized above, restated for cross-reference**:
+user decision 2026-09-03 was option (a) — wire the dedup/confirmation-gate
+logic into `service.py`/`/imports/*` (the live production path), and also
+route `lifecycle_service.py`'s two call sites through the same shared
+`enforce_attribution_confirmation` helper (Ponytail's "fix once, where all
+callers route through" doctrine, cited by that name in the source
+material) rather than leaving the same invariant violated twice. See the
+dated update appended to [R-059](../07-risks-and-debt.md) for this
+addendum's corresponding risk-entry status change.
+
+### Addendum evidence
+
+- `08-evidence/documents/orchestration/f8-nav-unavailable-degraded-row-handoff.md`
+- `08-evidence/documents/orchestration/two-parallel-import-backends-architectural-gap.md`
+- `08-evidence/documents/orchestration/non-pan-duplicate-person-detection-handoff.md`

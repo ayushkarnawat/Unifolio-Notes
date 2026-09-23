@@ -1,0 +1,60 @@
+{
+  "dataset_id": "DATA-001-GOLDEN-2026-08-17",
+  "privacy": "All transactions and identifiers are synthetic; scheme data is public.",
+  "valuation_date": "2026-08-17",
+  "nav_actual_date": "2026-08-14",
+  "schemes": [
+    {
+      "mask_id": "FUND-A",
+      "amfi_code": "118989",
+      "public_scheme": "HDFC Mid Cap Fund - Direct Plan - Growth Option",
+      "purchase_date": "2022-07-09",
+      "synthetic_purchase_amount_inr": "100000.00",
+      "synthetic_units": "1000.000",
+      "public_nav_on_2026_08_14": "236.3720",
+      "terminal_value_inr": "236372.0000",
+      "independent_ter_percent": "0.75",
+      "ter_as_of": "2026-06-30",
+      "ter_source": "https://economictimes.indiatimes.com/hdfc-mid-cap-fund-direct-plan/mffactsheet/schemeid-16114.cms"
+    },
+    {
+      "mask_id": "FUND-B",
+      "amfi_code": "120503",
+      "public_scheme": "Axis ELSS Tax Saver Fund - Direct Plan - Growth Option",
+      "purchase_date": "2022-07-09",
+      "synthetic_purchase_amount_inr": "100000.00",
+      "synthetic_units": "1000.000",
+      "public_nav_on_2026_08_14": "112.4854",
+      "terminal_value_inr": "112485.4000",
+      "independent_ter_percent": "1.05",
+      "ter_as_of": "2026-07-23",
+      "ter_source": "https://www.axismf.com/mutual-funds/equity-funds/axis-elss-tax-saver-fund/ts-dg/direct"
+    },
+    {
+      "mask_id": "FUND-C",
+      "amfi_code": "120716",
+      "public_scheme": "UTI Nifty 50 Index Fund - Growth Option - Direct",
+      "purchase_date": "2022-07-09",
+      "synthetic_purchase_amount_inr": "100000.00",
+      "synthetic_units": "1000.000",
+      "public_nav_on_2026_08_14": "171.5836",
+      "terminal_value_inr": "171583.6000",
+      "independent_ter_percent": "0.25",
+      "ter_as_of": "2026-07",
+      "ter_source": "https://www.reddit.com/r/MutualfundsIndia/comments/1v8s1bv/nifty_50_index_fund/"
+    }
+  ],
+  "expected": {
+    "total_outflow_inr": "300000.00",
+    "terminal_value_inr": "520441.0000",
+    "holding_days": 1500,
+    "xirr_decimal_fraction": "0.1434510044724403315809975208",
+    "xirr_percent": "14.34510044724403315809975208",
+    "weighted_ter_percent_unrounded": "0.6499960033894331922350468161",
+    "weighted_ter_percent_api_precision": "0.65"
+  },
+  "tolerances": {
+    "xirr_percentage_points": "0.01",
+    "weighted_ter_percentage_points": "0.01"
+  }
+}
