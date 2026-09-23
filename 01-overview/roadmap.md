@@ -51,3 +51,18 @@ account that didn't exist yet.
 still a placeholder (R-037). Phone-OTP's silent-account-creation gap for
 unrecognized numbers (R-056) and the SIP tab switcher's low-severity ARIA gap
 (R-055) are deliberately deferred, not roadmap items.
+
+**Built since, confirmed 2026-09-23 (batch 4a).** Terraform Phases 4
+(S3+CloudFront) and 5 (ACM/DNS/HTTPS) are now confirmed applied and live —
+`staging.unifolio.in` and `staging-api.unifolio.in` both resolve over HTTPS
+as of 2026-09-10. ADR-006's EventBridge-scheduler piece was authored the
+same day (reviewed PASS). This batch's material is itself a set of
+handoff/implementation-prompt documents derived from
+`AWS Readiness/aws-golive-readiness-report.md` — the same document R-054
+and this roadmap's batch 5 both flag as not yet ingested directly; that
+gap stays open even though this batch corroborates several of its claims.
+A production-hardening plan rescopes Phase 7 around a small 5→30-user beta
+rather than the original ~1,000-user target, deferring several items
+(second ECS task, real OTP delivery, NAT Gateway upgrade, structured
+logging, Terraform-drift tooling) with named revisit triggers rather than
+dropping them.

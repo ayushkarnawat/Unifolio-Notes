@@ -163,3 +163,54 @@ being built.
 ### Addendum evidence
 
 - `08-evidence/documents/engineering-loop/session.md`, "Analytics PDF export: all 10 plan tasks done, reviewed clean, merged to feat/enhanced-ui (2026-08-20/21)" section
+
+## Addendum — 2026-09-23: the mandatory whole-branch review's round-1 findings and rulings, in detail
+
+Supplementary provenance behind the 2026-09-22 addendum above, not a
+correction to it. The mandatory final whole-branch review (git range
+`321b6ed..4ce4561`, 10 commits) was dispatched to Codex rather than a
+Claude subagent, because the session running it was at ~93% of its weekly
+Claude usage limit — this repo's model-orchestration convention treats
+Codex as the default worker for a bounded, well-specified review task like
+this one, not just for implementation. Review round 1 (2026-08-21)
+returned "Ready to merge? No" with exactly 3 Important findings, adjudicated
+as follows:
+
+1. **Confirmed real, fixed** — `PrintAnalyticsView.tsx`'s success and error
+   fetch paths both set the same `data-print-ready="true"` marker, so a
+   payload-fetch failure rendered a "successful" 200 PDF of an error page
+   instead of the design spec's required 500.
+2. **Confirmed real, fixed** — the same root cause meant the export token
+   was only ever cleaned up by the frontend's own payload fetch; if the
+   browser never reached that fetch (nav failure, timeout, pre-fetch render
+   crash), the token sat unswept past its 120-second TTL, contrary to the
+   spec's "cleaned up regardless of success or failure."
+3. **Ruled NOT a defect** — `FundScoreCard`'s `parseScore` (`parseFloat`/
+   `toFixed`) was flagged against the plan's Decimal-safety constraint
+   ("byte-for-byte, never parsed to float"). Ruling: that constraint targets
+   *accumulation and transport*, not a single non-accumulating final-value
+   conversion for display rounding — an exemption `frontend/src/lib/decimal.ts`'s
+   own docstring already documents and that predates this plan.
+   `FundScoreCard` itself pre-existed this branch (Task 4 only extracted it
+   from `FundScoreDetailModal`, logic unchanged) and the live dashboard
+   already rendered it this way. Not re-raised in re-review.
+
+Findings 1 and 2 were fixed in a single dispatched round: splitting the
+print-ready marker into distinct success/error markers, making the PDF
+renderer raise instead of returning a PDF of the error page, and having
+the export route explicitly evict the token via `consume_export_payload`
+(idempotent) before returning a generic 500. Committed as `d59542e` after
+the orchestrator independently confirmed both full suites clean outside
+Codex's own sandbox (which had hit an unrelated AnyIO/TestClient hang on
+the full backend suite — judged an environment flake, not a regression):
+backend 457 passed/3 skipped, frontend 233 passed/0 failed across 59 files.
+
+This addendum does not narrate the subsequent scoped re-review or the
+`86c60c5` cancellation-cleanup fix named in the same source handoff's
+status line — those aren't detailed in the ingested source material for
+this addendum and remain covered only by the 2026-09-22 addendum's
+`session.md`-sourced summary above.
+
+### Addendum evidence
+
+- `08-evidence/documents/orchestration/analytics-pdf-export-final-review-handoff.md`

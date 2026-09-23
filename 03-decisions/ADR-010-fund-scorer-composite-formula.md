@@ -138,3 +138,51 @@ requirement that was designed for, not a verified outcome.
 - `08-evidence/documents/plans/2026-08-10-phase-4-analytics-backend-design.md` (§6 Scorer)
 - `08-evidence/documents/plans/2026-08-13-phase-4-analytics-backend-part5-scorer.md`
 - Contradicted document: `05-docs/explanation/fund-scoring-methodology.md`
+
+## Addendum — 2026-09-23: per-task execution record for the four building blocks
+
+The [2026-08-14 reconciliation journey stage](../02-journey/2026-08-14-cas-import-lifecycle-and-branch-reconciliation.md)
+already confirms this design was built and independently reviewed, with 3
+real issues found and fixed (redundant per-fund category re-scoring, a
+`Feb 29` date-arithmetic crash, and a race in the daily score cache's
+check-then-insert pattern), landing the backend suite at 357 passed/2
+skipped after that stage's full branch merge. This addendum adds the
+per-task provenance behind that summary, from four handoff documents not
+previously ingested:
+
+- **Task 1 — `risk_metrics.py` shared time-series helpers.** Commit
+  `7058b0e`. Baseline 314/2 → 330/2. The controller (not the implementing
+  agent) fixed a genuine pre-existing test bug in `category_medians`'
+  even-length-median case.
+- **Task 2 — `scorer.py` composite score.** Commit `aa8288f`. 330/2 → 336/2,
+  6/6 new tests passed first run. Its own task-review flagged, but
+  explicitly did not fix, the `date.replace(year=year - N)` Feb-29
+  `ValueError` (pre-existing in `risk_metrics.py` and already-shipped
+  `category_ranking.py`, not introduced by this task) — "recorded in the
+  SDD ledger for the final whole-branch review to weigh." The 2026-08-14
+  journey stage's "now fixed at the root with a shared helper" is that
+  final whole-branch review's resolution of this exact parked finding, not
+  a separate occurrence.
+- **Task 3 — portfolio-level roll-up.** Commit `6129e96`. 336/2 → 338/2.
+- **Task 4 — three `GET` routes on `backend/app/api/analytics.py`.**
+  Commit `dc4df5c`. 338/2 → 341/2. The controller fixed one genuine bug in
+  the plan's own test code (a test that never overrode `get_db`, so it hit
+  the real un-migrated DB instead of the fake one).
+
+All four tasks were dispatched to Codex with verification deferred to the
+controller (sandbox environments across all four had no reachable `.venv`
+and no network access), a pattern consistent with
+[ADR-011](ADR-011-model-orchestration-and-delegated-implementation.md).
+The 341/2 figure is this ADR's own building blocks in isolation; the
+journey stage's 357/2 reflects the same branch after merging in two
+unrelated concurrent streams (the CAS import lifecycle redesign and a
+UI/UX foundation) — not a discrepancy.
+
+No new decision made here; this addendum is provenance only, confirming
+Tasks 1-4 as designed above were executed as designed, with zero
+unreviewed deviation.
+
+Evidence: `08-evidence/documents/orchestration/phase4-scorer-risk-metrics-handoff.md`,
+`08-evidence/documents/orchestration/phase4-scorer-composite-score-handoff.md`,
+`08-evidence/documents/orchestration/phase4-scorer-portfolio-rollup-handoff.md`,
+`08-evidence/documents/orchestration/phase4-scorer-api-routes-handoff.md`.

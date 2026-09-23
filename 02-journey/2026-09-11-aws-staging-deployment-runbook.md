@@ -105,3 +105,31 @@ review pass was ever completed — treat it as still outstanding.
 ### Addendum evidence
 
 - `08-evidence/documents/engineering-loop/session.md`, 2026-09-11 section (the entry immediately preceding the runbook's own drafting)
+
+## Addendum — 2026-09-23: the Terraform-state discrepancy above is now dated, not just discovered
+
+Later-ingested delegation material pins a concrete date for when Phase 4
+(S3+CloudFront) and Phase 5 (ACM/DNS/HTTPS) were, in fact, already applied
+and live: a scheduler-Terraform dispatch dated 2026-09-10 — the day before
+this runbook session — states as a hard precondition that "Phases 1-5
+[are] all applied and live (confirmed)" and that
+`staging.unifolio.in` / `staging-api.unifolio.in` both already resolved
+over HTTPS at that point. This is strong corroboration that the "stray
+`tfplan-step7` file... predating this session" finding above reflects
+infrastructure that was genuinely already applied by 2026-09-10, not a
+same-day (2026-09-11) drift — i.e. the runbook's pre-execution draft text
+("authored, reviewed, not applied") was simply out of date by at least a
+day, not the Terraform state itself drifting unexpectedly within this
+session. No document in either batch states the exact `terraform apply`
+command or session that performed the Phase 4/5 apply, so the precise
+mechanism stays unconfirmed — only the "already live by 2026-09-10" fact
+is corroborated. See the dated update on
+[R-052](../07-risks-and-debt.md) and on
+[`06-architecture/deployment.md`](../06-architecture/deployment.md), and
+the [2026-09-10](2026-09-10-phase4-5-confirmed-live-scheduler-authored-and-a-beta-scoped-hardening-plan.md)
+entry.
+
+### Addendum evidence
+
+- `08-evidence/documents/orchestration/adr006-scheduler-terraform-handoff.md`,
+  `adr006-scheduler-terraform-implementation-prompt.md`

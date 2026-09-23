@@ -40,9 +40,13 @@ readiness notes, and the scattered personal notes.
   Route 53, and Terraform Phases 1-3 actually applied to a live network,
   database, and container service — this vault's infrastructure
   description is no longer describing only authored, unapplied Terraform.
-- A real AWS IAM access key was briefly exposed in plaintext and rotated
-  before misuse; handled, root-caused, and closed the same session
-  (INV-010). No literal credential value appears anywhere in this vault.
+- A real AWS IAM access key was briefly exposed in plaintext during AWS
+  setup work; a push-protection catch stopped it from ever reaching shared
+  history (INV-010). **Neither that key nor a separately-found real RDS
+  staging database password has actually been rotated yet** — both remain
+  live, staging-environment credentials, and must be rotated before this
+  product moves to production (R-057). No literal credential value appears
+  anywhere in this vault.
 - A second, independent branch — a CAS import lifecycle rebuild (ADR-018),
   a new UI foundation, and the fund Scorer's backend — was found and merged
   the same day as the already-known 2026-08-14 multi-method-auth work. It

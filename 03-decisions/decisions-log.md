@@ -546,6 +546,47 @@ three-subdomain shape (marketing apex, `app.`, `staging.`) fixed for all
 infrastructure built afterward. See the
 [2026-09-07 journey entry](../02-journey/2026-09-07-aws-account-created-and-domain-cutover.md).
 
+## 2026-09-08 — ECS task and bastion security-group egress overridden to unrestricted
+
+**Why:** the original Terraform design scoped ECS task egress to 443-only
+and bastion egress to 5432-only; the cloud engineer overrode both to
+unrestricted (`0.0.0.0/0`, all ports) egress on 2026-09-08. The ALB and
+RDS security groups were unaffected and keep their original scoped rules.
+See the dated update on
+[`06-architecture/deployment.md`](../06-architecture/deployment.md).
+
+## 2026-09-08 — One customer-managed KMS key shared by RDS and Secrets Manager, delegated via IAM not a hardcoded key policy
+
+**Why:** a single CMK (not the default `aws/rds` key) encrypts both RDS
+storage and Secrets Manager for staging — splitting into two keys was
+judged unnecessary ceremony at this stage. The key policy grants the AWS
+account root full `kms:*` rather than naming the not-yet-created ECS task
+execution role directly, avoiding a circular dependency between the
+Phase 1 KMS resource and the Phase 3 IAM role; specific access is
+delegated afterward via an ordinary IAM policy on that role. See the
+dated update on
+[`06-architecture/deployment.md`](../06-architecture/deployment.md).
+
+## 2026-09-08 — Database password never enters Terraform state; ECS entrypoint fetches it from Secrets Manager at container start
+
+**Why:** RDS's `manage_master_user_password` keeps the master password
+entirely AWS-owned. Composing the app's single `DATABASE_URL` value in
+Terraform (the originally simpler option) would have put that plaintext
+password into Terraform state and gone stale on any future rotation. A
+new `backend/docker-entrypoint.sh` script fetches the password from the
+RDS-managed secret via ECS's native `secrets` block at container-start
+time instead, URL-encodes it, and assembles `DATABASE_URL` before
+`exec`ing uvicorn. See the dated update on
+[`06-architecture/deployment.md`](../06-architecture/deployment.md).
+
+## 2026-09-08 — Backend API gets its own subdomain, not path-based CloudFront routing
+
+**Why:** `staging-api.unifolio.in`, routed directly to the ALB via a
+Route 53 alias record, was chosen over routing API paths through the
+frontend's CloudFront distribution — resolving the domain-naming question
+the [2026-09-07 entry](../02-journey/2026-09-07-aws-account-created-and-domain-cutover.md)
+had left open. Applied as part of Phase 5.
+
 ## 2026-09-10 — AMFI's `aaum-quarterly` job picked the wrong period: `max()` should have been `min()`
 
 AMFI's period/year `id` counts down from the most recent period, not up, so the
@@ -553,6 +594,25 @@ original code's `max()` call to find "the latest period" usually picked the olde
 year instead. **Why:** root-caused the same day the job first ran on staging and fixed
 by switching to `min()` (commit `037aa4c`). See
 [INV-008](../04-investigations/INV-008-amfi-aaum-period-selection-bug.md).
+
+## 2026-09-10 — `main` is the trunk deploying to staging; `production` exists but stays inert
+
+**Why:** `main` auto-deploys to `staging.unifolio.in`; a `production`
+branch was created from `main` (a zero-conflict fast-forward) and pushed,
+but no CI/CD workflow targets it and no production AWS infrastructure
+exists yet — a real production release stays an explicit, gated action,
+not an automatic side effect of merging to `main`. See the
+[2026-09-10 journey entry](../02-journey/2026-09-10-phase4-5-confirmed-live-scheduler-authored-and-a-beta-scoped-hardening-plan.md).
+
+## 2026-09-10 — Phase 7 hardening rescoped around a 5→30-user beta, not the original ~1,000-user target
+
+**Why:** several items the original readiness report flagged as
+elevated-priority (a second ECS task, a real SMS/email OTP provider, the
+fck-nat→NAT-Gateway upgrade, structured logging/error tracking,
+Terraform-drift reconciliation) were re-examined against a much smaller
+first beta cohort and explicitly deferred, each with a stated condition
+for revisiting, not silently dropped. See the
+[2026-09-10 journey entry](../02-journey/2026-09-10-phase4-5-confirmed-live-scheduler-authored-and-a-beta-scoped-hardening-plan.md).
 
 ## 2026-09-11 — Google Sign-In and real OTP delivery excluded from the staging beta pass
 

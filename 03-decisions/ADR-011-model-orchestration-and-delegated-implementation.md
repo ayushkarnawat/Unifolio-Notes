@@ -128,3 +128,22 @@ implementation dispatch.
 - External-agent counter-examples:
   `08-evidence/documents/specs/2026-08-07-frontend-redesign-brief-for-coding-agent.md`,
   `08-evidence/documents/specs/2026-08-14-analytics-frontend-design.md`
+
+## Addendum — 2026-09-23: the pattern extended to infrastructure-as-code, not just application code
+
+Later-ingested material shows this handoff/implementation-prompt pattern
+applied across seven infrastructure and hardening dispatches in
+2026-09-08 through 2026-09-10 (Terraform Phases 1-5, both ADR-006
+scheduling pieces, staging code blockers, and the enum-drift migration),
+each individually reviewed PASS with zero findings before being marked
+DONE, and each carrying an explicit, consistently-applied "authoring
+only, never `terraform apply`/`terraform destroy`" boundary — a
+Terraform-specific instance of the same human-holds-the-credentials
+principle this ADR already establishes for AWS access generally. No
+findings from this material contradict the ADR's existing design; this is
+corroborating evidence of the pattern in sustained use, not a revision.
+See the addenda on [ADR-006](ADR-006-background-job-scheduling.md) and the
+dated update on
+[`06-architecture/deployment.md`](../06-architecture/deployment.md).
+
+Evidence: `08-evidence/documents/orchestration/` (all 17 files in this batch)

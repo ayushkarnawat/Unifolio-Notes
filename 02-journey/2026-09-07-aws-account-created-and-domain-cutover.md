@@ -37,7 +37,11 @@ site with Login/Sign Up calls to action; `app.unifolio.in` is the
 production web app; `staging.unifolio.in` is the staging web app. Backend
 API domain naming (a dedicated subdomain vs. path-based CloudFront routing)
 was left open, needed before HTTPS/CDN work but not before the first
-Terraform apply.
+Terraform apply. **Resolved 2026-09-08** (see the decisions-log entry of
+that date): a dedicated `staging-api.unifolio.in` subdomain, routed
+directly to the ALB, not path-based CloudFront routing — applied as part
+of Phase 5. See the addendum on
+[2026-09-10](2026-09-10-phase4-5-confirmed-live-scheduler-authored-and-a-beta-scoped-hardening-plan.md).
 
 A networking decision was also made ahead of the first Terraform apply:
 staging uses a self-hosted **fck-nat** EC2 instance rather than a managed

@@ -114,3 +114,57 @@ is a stale-data label in the UI, never an error state — see
 - Research cited in the source, not independently re-verified during this ingest: AWS
   Serverless Land EventBridge-Scheduler-to-ECS reference pattern; AWS re:Post threads on
   Fargate capacity transients.
+
+## Addendum — 2026-09-23 (piece 1, job-scripts execution): DONE 2026-09-03
+
+This ADR's job list splits into two genuinely different pieces of work
+(user-confirmed 2026-09-02): application-code job entrypoints, and the
+actual scheduling infrastructure. Piece 1 shipped first, deliberately
+decoupled from the AWS account not existing yet at the time.
+
+Four standalone job-entrypoint scripts were built under
+`backend/scripts/jobs/` — `refresh_nav_daily.py`, `refresh_ter_monthly.py`,
+`refresh_aaum_quarterly.py`, `refresh_benchmark_daily.py` — each a thin
+wrapper around an already-existing, already-tested fetch/refresh function;
+none of the four wrapped functions were modified. Two design decisions
+worth recording: the NAV job's scheme universe is deliberately scoped to
+schemes actually held by at least one folio, not the full AMFI reference
+catalog (`warm_nav_history` fetches full history per call, so sweeping
+every known scheme daily would be a wasteful full-history fetch for
+schemes nobody holds — unlike TER/AAUM, which upsert cheaply across the
+whole reference table). The `refresh_aaum_quarterly.py` job fixes a real
+gap this ADR's list implied: `refresh_aaum_data` had zero production
+callers anywhere in the codebase before this. The benchmark job's lookback
+window, previously undecided, was resolved to a fixed 10 calendar years
+back from today (leap-year-safe), not a naive `days=3650`. A shared
+`app/jobs/` base-class framework across the four scripts was explicitly
+rejected as premature — piece 2 (below) wasn't yet built, so the shape
+EventBridge would eventually invoke these under wasn't known yet.
+Independently rerun full backend suite: 600 passed/6 skipped/0 failed.
+Mandatory adversarial-review gate: PASS, zero findings.
+
+Evidence: `08-evidence/documents/orchestration/adr006-background-jobs-handoff.md`
+
+## Addendum — 2026-09-23 (piece 2, scheduler Terraform): authored 2026-09-10
+
+With Phases 1-5 of the staging AWS infrastructure confirmed applied and
+live (see the dated update on
+[`06-architecture/deployment.md`](../06-architecture/deployment.md)), the
+remaining EventBridge Scheduler + ECS Fargate Terraform for the four job
+scripts above was authored: a new `infra/modules/scheduler` module, one
+lightweight ECS task definition per job (reusing the existing backend ECS
+task execution role rather than a new one), four `aws_scheduler_schedule`
+resources on `Asia/Kolkata`-timezone cron expressions, and a scheduler IAM
+role scoped to exactly those four task definitions. Two prerequisite
+container fixes were required and found by reading the existing
+Dockerfile/entrypoint before writing the scheduling spec: the Dockerfile
+did not copy `backend/scripts/` into the image at all, and the container
+entrypoint unconditionally ran the web server regardless of what command
+ECS passed it. Reviewed PASS, zero findings, 2026-09-10; this batch's
+source material authors the Terraform but does not confirm it was
+applied — treat "applied and running on schedule" as unconfirmed, not
+done, per this vault's "authoring only" boundary convention for this
+delegation pattern (ADR-011).
+
+Evidence: `08-evidence/documents/orchestration/adr006-scheduler-terraform-handoff.md`,
+`adr006-scheduler-terraform-implementation-prompt.md`

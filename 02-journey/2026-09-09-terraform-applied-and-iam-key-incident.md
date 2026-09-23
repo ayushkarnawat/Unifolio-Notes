@@ -98,3 +98,21 @@ shared or public location.
   (this apply is the infrastructure R-052's own gap concerns)
 - Evidence: `08-evidence/documents/engineering-loop/session.md` (2026-09-09
   section), `08-evidence/documents/engineering-loop/CLAUDE.md`
+
+## Addendum — 2026-09-23 (from batch 4a orchestration ingestion)
+
+The Phases 1-3 Terraform applied in this session was authored the day
+before (2026-09-08) via the Claude-orchestrates/Codex-implements pattern
+(ADR-011), each phase individually reviewed PASS with zero findings before
+being handed off: networking/KMS (Phase 1), RDS (Phase 2), then ECS
+Fargate/ALB/ECR (Phase 3). Richer architectural detail than is repeated
+here — the KMS customer-managed-key/IAM-delegation pattern, the
+egress-all security-group override, and the container-side
+Secrets-Manager-fetch pattern for the database password — is recorded in
+the dated update on
+[`06-architecture/deployment.md`](../06-architecture/deployment.md) and as
+one-line decisions in
+[`decisions-log.md`](../03-decisions/decisions-log.md) under 2026-09-08,
+rather than restated in this narrative entry.
+Evidence: `08-evidence/documents/orchestration/aws-phase1-terraform-foundation-handoff.md`,
+`aws-phase2-rds-foundation-handoff.md`, `aws-phase3-backend-deployment-handoff.md`

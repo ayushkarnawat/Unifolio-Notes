@@ -88,3 +88,78 @@ batch's source material — treat as unconfirmed, not as done.
   [ADR-006](../03-decisions/ADR-006-background-job-scheduling.md),
   [INV-010](../04-investigations/INV-010-aws-iam-key-pasted-in-chat-and-rotated.md),
   and [R-052](../07-risks-and-debt.md)
+
+## Update — 2026-09-23: Phases 4-5 confirmed applied and live; architecture detail filled in
+
+The previous update above left Phase 4 (S3+CloudFront) and Phase 5
+(ACM/DNS/HTTPS) as "unconfirmed" by that batch's material. Later-ingested
+delegation material resolves this: a scheduler-Terraform dispatch dated
+2026-09-10 states as a hard precondition that Phases 1-5 are "all applied
+and live (confirmed)," and its implementation prompt confirms
+`staging.unifolio.in` and `staging-api.unifolio.in` both resolve over
+HTTPS. No document pins the exact apply date/command — only that it was
+true by 2026-09-10 — so this is treated as confirmed-live-by-that-date,
+not a fully reconstructed apply history. See the addenda on the
+[2026-09-09](../02-journey/2026-09-09-terraform-applied-and-iam-key-incident.md)
+and
+[2026-09-11](../02-journey/2026-09-11-aws-staging-deployment-runbook.md)
+journey entries and the dated update on [R-052](../07-risks-and-debt.md).
+
+**Architecture detail authored 2026-09-08 through 2026-09-10, not previously recorded here:**
+
+- **KMS.** A single customer-managed KMS key (not the default `aws/rds`
+  key) encrypts both RDS storage and Secrets Manager, sharing one key for
+  staging rather than splitting into two. Its key policy grants the AWS
+  account root full `kms:*`, deliberately not a specific IAM role ARN —
+  specific access (the ECS task execution role's `kms:Decrypt`/
+  `kms:DescribeKey`) is delegated afterward via an ordinary IAM policy on
+  that role, once it exists, avoiding a circular dependency between a
+  Phase 1 resource and a Phase 3 role.
+- **Database credentials never touch Terraform state.** RDS's
+  `manage_master_user_password = true` generates and owns the master
+  password entirely inside AWS Secrets Manager. The application needs one
+  `DATABASE_URL` connection string, which created a real tension: composing
+  that string in Terraform would put the plaintext password into state
+  after all (and go stale on rotation). The chosen alternative: a new
+  `backend/docker-entrypoint.sh` script fetches the password directly from
+  the RDS-managed secret via ECS's native `secrets` block (`valueFrom`
+  pointing at the secret ARN's `:password::` JSON-key selector) at
+  container-start time, URL-encodes it (RDS-generated passwords can
+  contain `:`, `#`, `%`, which would otherwise corrupt the connection
+  string), assembles `DATABASE_URL`, and `exec`s uvicorn. Terraform only
+  ever handles the secret's ARN, never its value.
+- **Egress-all override on the ECS task and bastion security groups.**
+  The original design scoped ECS task egress to 443-only and bastion
+  egress to 5432-only; both were overridden 2026-09-08 to unrestricted
+  (`0.0.0.0/0`, all ports) egress. The ALB and RDS security groups were
+  not affected and keep their original scoped rules.
+- **Stop-then-start deploys, no autoscaling — enforced in Terraform, not
+  just policy.** `deployment_maximum_percent = 100`,
+  `deployment_minimum_healthy_percent = 0` on the ECS service, and no
+  `aws_appautoscaling_target`/`policy` resource exists at all — both are
+  the direct Terraform implementation of the single-task/no-concurrent-
+  tasks constraint (the app's in-process caches produce data-correctness
+  bugs under 2+ concurrently-running tasks; see R-058).
+- **CloudFront uses Origin Access Control (OAC), not the legacy OAI**, in
+  front of a private S3 bucket, with both HTTP 403 and 404 responses
+  mapped to `/index.html` — client-side-routed SPAs otherwise show a raw
+  CloudFront error page on a deep-link refresh or an unknown path, and a
+  private OAC-fronted bucket returns 403 (not 404) for a missing key,
+  so both status codes need the same custom-error-response mapping.
+- **Two ACM certificates, two regions, both required.** CloudFront only
+  accepts a certificate issued in `us-east-1` regardless of the stack's
+  primary region; the ALB's HTTPS listener needs one issued in
+  `ap-south-1` (the stack's primary region). An HTTP→HTTPS redirect
+  listener was added on the ALB alongside the HTTPS one.
+- **Backend API domain resolved 2026-09-08**: a dedicated
+  `staging-api.unifolio.in` subdomain routed directly to the ALB via a
+  Route 53 alias record, not path-based CloudFront routing — the option
+  this vault's 2026-09-07 entry had left open.
+
+### Update evidence
+
+- `08-evidence/documents/orchestration/aws-phase1-terraform-foundation-handoff.md`,
+  `aws-phase2-rds-foundation-handoff.md`, `aws-phase3-backend-deployment-handoff.md`,
+  `aws-phase4-frontend-deployment-handoff.md`, `aws-phase5-networking-domains-handoff.md`,
+  `aws-phase5-networking-domains-implementation-prompt.md`,
+  `adr006-scheduler-terraform-handoff.md`

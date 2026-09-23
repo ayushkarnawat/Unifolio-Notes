@@ -272,6 +272,11 @@ design before the external agent builds against a premise that is false.
 Either way this should be settled **before** the implementation handoff, not
 discovered during it.
 
+**Update, 2026-09-23 — resolved.** The analytics frontend was built
+2026-08-14 across two phases; source material for both confirms Bklit UI
+was never installed or adopted. See the 2026-09-23 addendum on
+[02-journey/2026-08-14-multi-method-auth-and-the-analytics-frontend.md](../02-journey/2026-08-14-multi-method-auth-and-the-analytics-frontend.md).
+
 ### R-020 — "AUM-weighted" is used with two different meanings in PRD-04 (Open, low)
 
 Flagged during the 2026-08-10 analytics research rather than silently
@@ -634,6 +639,16 @@ rewrite) with an external-agent worker category, and promote the 2026-08-07
 brief's structure — quality bar, scope split, self-attribution — into the
 workflow reference as the required shape for an external handoff.
 
+**Update, 2026-09-23 — corroborated, still open.** The analytics frontend's
+actual build (2026-08-14, two phases) is a second occurrence of exactly
+this gap, not a new risk: Claude Code again acted as tester/reviewer, and
+caught real defects — including two instances of the external agent
+self-reporting "tsc clean, all tests passing" when Claude Code's
+independent re-verification found both claims false. No amendment to
+ADR-011 has been found in any source material ingested so far. See the
+2026-09-23 addendum on
+[02-journey/2026-08-14-multi-method-auth-and-the-analytics-frontend.md](../02-journey/2026-08-14-multi-method-auth-and-the-analytics-frontend.md).
+
 ### R-030 — Apple Sign-In is deferred, and a disabled button ships in its place (Open, low)
 
 Designed and researched on 2026-08-14, then deferred over a $99/year Apple
@@ -920,6 +935,23 @@ migration folder.
 
 *Sources: this batch's plans; `decisions-log.md` 2026-08-17 and 2026-09-02*
 
+**Update — 2026-09-23 (Resolved):** Migration `0009` is accounted for.
+Later-ingested material (dated 2026-08-21) shows it is
+`0004_scheme_ter_nullable_value.py`, renumbered to `0009` during a fix for
+a branch-merge migration-head collision — not a missing or undocumented
+migration, a renumbered one. See the
+[2026-08-21 journey entry](../02-journey/2026-08-21-post-merge-migration-head-collision-and-windows-playwright-crash.md).
+Separately, this batch's material also confirms the real migration `0010`
+is an enum-widening change (`importstatus`/`transactiontype`, dated
+2026-09-02) — distinct from this entry's own earlier reference to "this
+batch adds `0010` (demat accounts and equity holdings)," which was only
+ever a number named in an unexecuted design plan (R-051), never a real,
+merged migration. No two real migrations share the `0010` number; the
+apparent collision was between one real migration and one never-executed
+plan's naming choice.
+Evidence: `08-evidence/documents/orchestration/post-merge-environment-and-migration-fixes.md`,
+`08-evidence/documents/orchestration/enum-drift-migration-handoff.md`
+
 ### R-051 — Six of the eight implementation plans in this batch were not fully executed (Open, high)
 
 Of the plans covering 2026-08-17 to 2026-08-31: two are fully ticked (the
@@ -998,6 +1030,22 @@ repo's Terraform state and CI configuration.
 
 *Source: `08-evidence/documents/plans/2026-09-11-aws-staging-prerequisites.md`*
 
+**Update — 2026-09-23 (narrowed, still Open):** Later-ingested material
+pins a concrete date for when Phases 4-5 were already applied and live: a
+scheduler-Terraform dispatch dated 2026-09-10 — the day before the runbook
+session — states as a precondition that "Phases 1-5 [are] all applied and
+live (confirmed)," with `staging.unifolio.in` /`staging-api.unifolio.in`
+both already resolving over HTTPS. This is strong corroboration that the
+apply happened by 2026-09-10, not that the runbook session's own actions
+on 2026-09-11 caused unexpected drift — the underlying risk (a status note
+going stale faster than infrastructure reality, with no automated check
+catching it) is not resolved by this finding and stays Open; only the
+"what actually happened, and by when" question for this specific instance
+is narrowed. No document in either batch states the exact `terraform
+apply` command or session that performed the Phase 4/5 apply.
+Evidence: `08-evidence/documents/orchestration/adr006-scheduler-terraform-handoff.md`,
+`adr006-scheduler-terraform-implementation-prompt.md`
+
 ### R-053 — Fund Score card redesign is approved and fully planned, but has no execution evidence in this batch (Open, low)
 
 A plain-English verdict card and a display-only tier-badge fix were designed
@@ -1044,6 +1092,17 @@ against its actual text.
 
 *Source: `08-evidence/documents/plans/2026-09-11-aws-staging-prerequisites.md`
 (second-hand reference only — source document itself not yet in the vault)*
+
+**Update — 2026-09-23 (corroborated, still Open):** A 2026-09-10
+production-hardening plan, itself derived from the same readiness report's
+§22 Phase 7 section, confirms the in-process-cache/single-task-only
+constraint as a real, named item and re-examines it against a small beta
+cohort (deferred until a concrete need for a second task arises — see the
+update on [R-058](#r-058)). This corroborates the claim this risk flagged
+as second-hand, but the readiness report document itself is still not
+directly in this vault — only derivative handoff/prompt/plan documents
+that reference it. Stays Open until the source report itself is ingested.
+Evidence: `08-evidence/documents/orchestration/phase7-production-hardening-plan.md`
 
 ### R-055 — SIP tab switcher: an inactive tab's `aria-controls` points at an unmounted panel id (Open, low — accepted documented limitation)
 
@@ -1182,6 +1241,21 @@ the same symptom.
 *Source: `04-investigations/INV-009-amfi-ter-readtimeout-event-loop-starvation.md`,
 "Residual risk — explicitly not closed" section; `08-evidence/documents/engineering-loop/session.md`.*
 
+**Update — 2026-09-23:** The single-task constraint this risk lives
+alongside is now enforced structurally, not just by convention: the
+staging ECS Terraform (authored 2026-09-08) sets
+`deployment_maximum_percent = 100`, `deployment_minimum_healthy_percent = 0`
+(a deliberate stop-then-start deploy, never two tasks briefly concurrent)
+and deliberately contains no `aws_appautoscaling_target`/`policy`
+resource at all. A 2026-09-10 beta-hardening plan explicitly re-examined
+and re-deferred this constraint for a small (5→30-user) first beta, named
+"a concrete need for a second task" as the revisit trigger — not a fixed
+date. This does not change R-058's underlying architectural risk; it
+confirms the risk is currently being managed by staying single-task
+rather than by fixing the blocking-call vulnerability itself.
+Evidence: `08-evidence/documents/orchestration/aws-phase3-backend-deployment-handoff.md`,
+`08-evidence/documents/orchestration/phase7-production-hardening-plan.md`
+
 ### R-059 — Two parallel CAS-import backend code paths independently drifted to need the identical duplicate-detection fix wired in twice (Open, medium — architectural, surfaced not fixed)
 
 While wiring the 2026-09-02/03 non-PAN duplicate-person-detection design
@@ -1215,6 +1289,30 @@ live.
 *Source: `02-journey/2026-09-02-compliance-audit-group-1-and-non-pan-duplicate-detection.md`,
 "What actually happened" (non-PAN duplicate-person detection) and
 "Result" sections.*
+
+### R-060 — No per-key single-flight coordination on cache-miss recompute (Open, low — accepted limitation)
+
+During the 2026-08-13→18 dashboard NAV/holdings cache-hardening rounds, a
+gap was found and deliberately left unfixed: when two requests for the
+same uncached key arrive close together, both can miss the cache and both
+trigger the same expensive recompute, rather than the second waiting on
+the first's in-flight result. The product owner reviewed this in round 4
+and explicitly decided not to dispatch a fix — accepted as a documented
+limitation, not scoped for machinery like a single-flight lock or request
+coalescing at this time.
+
+**Why this matters:** under real concurrent load (e.g. two open tabs, a
+page reload racing a background poll), the same expensive computation can
+run twice for no benefit. Currently accepted because the underlying
+computations are bounded and the duplication is wasted work, not incorrect
+output — distinguishing it from the three races that *were* fixed in the
+same stage, which risked wrong or stale published values.
+
+**What would need to change to revisit:** a demonstrated load or cost
+problem from duplicate recomputes, not a schedule.
+
+*Source: `08-evidence/documents/orchestration/dashboard-nav-perf-handoff.md`
+(round 4); `02-journey/2026-08-13-dashboard-nav-and-holdings-cache-race-hardening.md`.*
 
 ## Deferred by decision (not debt, tracked so it is not lost)
 
@@ -1273,3 +1371,9 @@ live.
 - **Mobile demat import** — out of scope for Phase 2's first cut by decision,
   on the platform that is currently the more complete one (2026-08-26). See
   R-045.
+- **Full TRI (Total Return Index) benchmark sourcing** — the Analytics
+  correction plan's P0.3 item shipped a labeling-only fix (a
+  " (Price Return)" suffix on the benchmark label) instead of sourcing true
+  TRI data, with a written 5-step future-implementation guide and explicit
+  revisit triggers rather than an open-ended TODO (2026-08-19). See
+  [02-journey/2026-08-19-analytics-correction-plan-status-and-tri-benchmark-disposition.md](../02-journey/2026-08-19-analytics-correction-plan-status-and-tri-benchmark-disposition.md).

@@ -157,3 +157,13 @@ stage and its own evidence.
 - Design: `08-evidence/documents/specs/2026-09-02-analytics-precompute-architecture-design.md`
 - Plan: `08-evidence/documents/plans/2026-09-02-analytics-precompute-architecture.md`
 - Build/merge confirmation: `08-evidence/documents/plans/2026-09-10-feat-enhanced-ui-to-staging-push-plan.md`
+
+## Addendum — 2026-09-23: pre-merge review gate found and fixed a Critical concurrency regression
+
+The "Validation" section above confirms the build merged clean; it does not
+capture that the mandatory pre-merge adversarial-review gate took 4 rounds,
+including a Critical regression (a worker double-claim bug that silently
+skipped every event-triggered recompute) introduced by the round-1 fix
+itself and caught by the round-2 scoped re-review before merge. Full detail:
+[02-journey/2026-09-02-analytics-precompute-architecture.md](../02-journey/2026-09-02-analytics-precompute-architecture.md)'s
+2026-09-23 addendum. Evidence: `08-evidence/documents/orchestration/analytics-precompute-implementation-handoff.md`.

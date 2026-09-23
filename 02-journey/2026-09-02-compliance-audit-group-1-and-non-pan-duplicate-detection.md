@@ -99,3 +99,50 @@ backends needing the same fix twice) surfaced and flagged, not fixed.
   handoff)
 - Evidence: `08-evidence/documents/engineering-loop/session.md` (2026-09-02
   section and the "Still open" carry-forward list), `08-evidence/documents/engineering-loop/CLAUDE.md`
+
+## Addendum — 2026-09-23 (from batch 4a orchestration ingestion)
+
+Two more same-day (2026-09-02), same-audit-cycle items are evidenced by
+later-ingested delegation material, both completed the same day as the
+items above and not previously recorded in this vault:
+
+**Six staging-code blockers fixed** (scoped from
+`AWS Readiness/aws-golive-launch-blockers.md`, status COMPLETE 2026-09-02):
+CORS origins moved from a hardcoded localhost list to an `ALLOWED_ORIGINS`
+env var (falling back to the old localhost list when unset, so local dev
+is unaffected); the container's uvicorn entrypoint set to bind `0.0.0.0`
+(the local-dev launcher `run_server.py`, including its Windows-only
+Playwright/`ProactorEventLoop` handling, was deliberately left untouched
+— container boot bypasses it entirely); `POST /imports/parse` gained the
+same file-size-cap-plus-PDF-magic-byte validation its sibling
+`POST /cas-imports` route already had; the OTP stub-mode guard was changed
+from inferring safety off the DB dialect (SQLite vs. Postgres) to an
+explicit `ENVIRONMENT` flag, so staging (Postgres, `environment="staging"`)
+can run stub-mode OTP without tripping a guard meant for production — a
+deliberate, already-approved decision, not relitigated here; a Dockerfile
+was written for the first time (`playwright install --with-deps chromium`
+included, since `app/main.py`'s lifespan handler launches Chromium
+unconditionally on boot); and backend dependencies were pinned to a
+lockfile with the dead `passlib` dependency removed. All five/six changes
+together unblocked building and deploying the backend container at all —
+none had existed before this date. Full 578-test backend suite stayed
+green.
+
+**Migration `0010` — two Postgres ENUM types widened to match drifted
+Python model enums** (status DONE, verified against local Docker Postgres
+16, 2026-09-02): `importstatus` was missing 11 of 14 values the live
+`ImportStatus` Python enum already had, and `transactiontype` was missing
+1 of 12 (`opening_balance`) — both widened additively
+(`ALTER TYPE ... ADD VALUE`, no data migration, since nothing could yet
+have written the missing values). This is the same migration chain later
+found to have a numbering gap; see the dated resolution note appended to
+[R-050](../07-risks-and-debt.md) and the
+[2026-08-21 entry](2026-08-21-post-merge-migration-head-collision-and-windows-playwright-crash.md)
+covering how migration `0009` was renumbered — migration `0010` (this
+item) is the enum-widening change, distinct from the demat-import plans'
+own unbuilt, never-executed "migration 0010" naming (see R-051), which is
+a coincidental collision in a planning document, not evidence of two real
+migrations sharing one revision number.
+
+Evidence: `08-evidence/documents/orchestration/staging-code-blockers-handoff.md`,
+`08-evidence/documents/orchestration/enum-drift-migration-handoff.md`
