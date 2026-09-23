@@ -137,3 +137,26 @@ premise is contradicted by the same day's branch check.
   `08-evidence/documents/plans/2026-08-14-multi-method-auth-frontend-plan.md`,
   `08-evidence/documents/specs/2026-08-14-multi-method-auth-frontend-design.md`,
   `08-evidence/documents/specs/2026-08-14-analytics-frontend-design.md`
+
+## Addendum — 2026-09-22: both plans were fully executed, 2026-08-14 through 2026-08-17
+
+This stage's title line ("Complete (design and plans); execution partly
+deferred") described the state as of batch 2b's source material. Later-
+ingested source material confirms both the backend plan (11 tasks,
+commits `39db87d` through `2784b61`, 441 backend tests passing) and the
+frontend plan (10 tasks, final review clean, 219 frontend tests passing)
+were executed in full, 2026-08-14 through 2026-08-17 — see the addendum on
+[ADR-008](../03-decisions/ADR-008-phone-anchored-multi-method-identity.md)
+for the detailed evidence. What remains outstanding is unchanged: real
+Google sign-in against a published consent screen and real email delivery
+are still not evidenced anywhere in this batch either.
+
+Separately, a second body of work landed the same day on a branch that had
+drifted apart from this one since 2026-08-13 — the fund Scorer's backend
+completion, the CAS import lifecycle redesign, and a UI/UX foundation pass
+— found and merged during a branch-reconciliation session. See
+[2026-08-14 — CAS import lifecycle and branch reconciliation](2026-08-14-cas-import-lifecycle-and-branch-reconciliation.md).
+
+### Addendum evidence
+
+- `08-evidence/documents/engineering-loop/backend.md`, `08-evidence/documents/engineering-loop/log.md`

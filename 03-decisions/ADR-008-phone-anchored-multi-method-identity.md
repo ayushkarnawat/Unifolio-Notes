@@ -197,3 +197,42 @@ Nothing in this ADR's decision or consequences is superseded.
 - `08-evidence/documents/specs/2026-08-17-email-password-signup-design.md`
 - `08-evidence/documents/plans/2026-08-17-email-password-signup-backend.md`
 - `08-evidence/documents/plans/2026-08-17-email-password-signup-frontend.md`
+
+## Addendum — 2026-09-22: both the backend and frontend plans were fully executed, 2026-08-14 through 2026-08-17
+
+This ADR's own "Validation" section, as originally written, described
+validation requirements as still outstanding without confirming they had
+been met. Later-ingested source material confirms both implementation
+plans **were** executed in full, not left as unbuilt intent:
+
+- **Backend**: 11 tasks executed via subagent-driven development, commits
+  `39db87d` through a fix-wave ending at `2784b61`. The mandatory
+  whole-branch review found 2 Critical and 4 Important findings, all
+  fixed. Final backend suite: 441 passed, 2 skipped.
+- **Frontend**: 10 tasks executed, 1 Critical and 6 Important review
+  findings fixed, including a live-browser-testing-driven revert of a
+  "missing Google client ID" banner. Final frontend suite: 219 passed.
+- **Migration `0004`** (the multi-method-auth schema) landed with a
+  missing-backfill gap found and closed in the same session via migration
+  `0005_backfill_phone_otp_identities.py`. A local-dev gotcha was also
+  confirmed and fixed the same window: a pre-existing SQLite dev database
+  pinned at an old revision caused a real `/auth/otp/request` failure
+  until `alembic upgrade head` was run. End-to-end, it was confirmed that
+  a genuine pre-2026-08-14 user could still log in via phone after the
+  backfill — direct evidence the backfill was correct against real,
+  non-synthetic data, not just a passing test.
+
+**What this addendum does not change**: this ADR's original point that
+real Google sign-in against a published consent screen and real email
+delivery remained unvalidated is **not contradicted** — no source material
+in this batch shows either of those specifically has since happened. Only
+the "was the plan executed" framing is updated; the plan being executed
+and the two named external integrations still being unvalidated are both
+true at once.
+
+### Addendum evidence
+
+- `08-evidence/documents/engineering-loop/backend.md`
+- `08-evidence/documents/engineering-loop/database.md`
+- `08-evidence/documents/engineering-loop/log.md`
+- `08-evidence/documents/engineering-loop/decisions.md`

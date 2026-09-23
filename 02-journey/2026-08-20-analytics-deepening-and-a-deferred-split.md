@@ -132,3 +132,32 @@ settled rather than planned.
 - Evidence: `08-evidence/documents/plans/2026-08-20-distributor-comparison-portfolio-level.md`
 - Evidence: `08-evidence/documents/specs/2026-08-20-index-fund-mega-category-split-deferred.md`
 - Evidence: `08-evidence/documents/specs/2026-08-27-analytics-loading-state-mockups.html`
+
+## Addendum — 2026-09-22: both plans were executed, 2026-08-20/21
+
+This stage's "Result" as originally recorded ("no implementation plan in
+this stretch executed") described the state as of batch 2b's source
+material. Later-ingested source material confirms both plans were built:
+
+- **Analytics PDF export (ADR-013)**: all 10 tasks implemented, task-
+  reviewed, and merged as `ed149bf`. Manual verification found and fixed
+  two real bugs (a Strict-Mode double-fetch against the single-use export
+  token; a click-state-gated comparison tab invisible to a static PDF
+  render). The mandatory whole-branch review found and fixed two further
+  findings. Full detail on the addendum appended to
+  [ADR-013](../03-decisions/ADR-013-analytics-pdf-export-architecture.md).
+- **Portfolio-level distributor comparison**: rewritten around a batched
+  query replacing the prior N+1 pattern, with new member-scoped and
+  aggregate routes and rebuilt desktop/mobile presentations. 10
+  implementation tasks, each through the mandatory review gate; every task
+  closed on its first review pass except one inline `tsc` fix.
+
+**R-040 is also updated by this addendum**: the `compute_holdings` N+1 this
+stage names as "deliberately left in place" was discovered as a side
+effect of the distributor-comparison rewrite above and was subsequently
+fixed on 2026-09-02 — see the resolution note appended to
+[R-040](../07-risks-and-debt.md).
+
+### Addendum evidence
+
+- `08-evidence/documents/engineering-loop/session.md`, "Analytics PDF export: all 10 plan tasks done..." and "Distributor comparison rewritten portfolio-wide..." sections

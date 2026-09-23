@@ -397,6 +397,26 @@ assumes; the document is the cheaper thing to change. Recorded as a
 recommendation only — the document lives in the code repo and has not been
 changed. See R-035.
 
+## 2026-08-19 — The auth left panel's chaos-loop-to-grid design, the auth validation engine, and the hand-drawn illustrations were executed, not only designed
+
+Batch 2b's source material established that this panel had gone through
+several concepts and that two 2026-08-19 redesign specs ("fragments-align-
+and-sharpen" and an editorial "Direction B" treatment) carried no execution
+record. Later-ingested source material corroborates a distinct, earlier
+point in the same panel's history — the chaos-loop-to-grid graphic itself
+(commit `75a1925`, already noted as "what actually shipped" by the v2.0
+spec) — as a directly evidenced build event, with exact hover-tooltip
+values (`+14.8%`, `+28.4%`, `+41.2%`, `+56.8%`) and a `hasAnimatedInSession`
+guard. The same session also built a comprehensive email/phone validation
+engine (typo suggestions, Indian mobile number normalization) and
+integrated the hand-drawn hero illustrations into onboarding. **Why:**
+recorded because it corroborates and adds detail to the existing journey
+stage without resolving its open question — whether the *later*
+fragments-align-and-sharpen/editorial-Direction-B concepts ever shipped is
+still unconfirmed by any document in this batch. See the addendum on
+[2026-08-18's journey entry](../02-journey/2026-08-18-visual-motion-redesign-and-the-auth-panel.md)
+and [R-033](../07-risks-and-debt.md).
+
 ## 2026-08-20 — Distributor comparison moves to portfolio level and the old route is deleted, not deprecated
 
 The fund-scoped distributor-comparison endpoint and its row schema are removed
@@ -504,6 +524,28 @@ flagged the precompute mechanism an earlier design assumed as undesigned; this d
 designed and (per later evidence) built it. See
 [ADR-015](ADR-015-analytics-precompute-architecture.md).
 
+## 2026-09-02 — Non-PAN duplicate-person detection: same-user/cross-user distinction chosen over PAN matching
+
+The previous session's idea of matching people across household records by
+PAN was explicitly rejected, since the product does not store PAN today,
+and replaced by a design using only data already collected (name, phone,
+email overlap patterns), distinguishing same-user duplicates from
+cross-user ones. **Why:** avoids reopening the no-PAN-persistence
+non-negotiable to solve a duplicate-detection problem that doesn't require
+it. Does not resolve or replace R-043's separate, still-open question
+about whether PAN will ever be collected for other reasons. See the
+[2026-09-02 journey entry](../02-journey/2026-09-02-compliance-audit-group-1-and-non-pan-duplicate-detection.md).
+
+## 2026-09-07 — Staging networking uses fck-nat (self-hosted EC2), not a managed NAT Gateway
+
+**Why:** avoids the cost-approval step a managed NAT Gateway would trigger
+for staging traffic, at the cost of operating a self-hosted NAT instance
+instead of a fully managed one. Recorded alongside the same session's AWS
+account creation and `unifolio.in` → Route 53 domain cutover, and the
+three-subdomain shape (marketing apex, `app.`, `staging.`) fixed for all
+infrastructure built afterward. See the
+[2026-09-07 journey entry](../02-journey/2026-09-07-aws-account-created-and-domain-cutover.md).
+
 ## 2026-09-10 — AMFI's `aaum-quarterly` job picked the wrong period: `max()` should have been `min()`
 
 AMFI's period/year `id` counts down from the most recent period, not up, so the
@@ -518,6 +560,17 @@ Staging targets beta/friends-and-family users; the Google OAuth button stays hid
 client-side and OTP delivery stays in stub mode for this pass. **Why:** deliberate
 scope decision, not a gap to close before beta opens — both are real gaps for a public
 launch, tracked as Phase 7 hardening.
+
+## 2026-09-11 — Phone-OTP login silently creating a new account for an unrecognized number: fix explicitly deferred
+
+Found manually smoke-testing staging: logging in with a phone number with
+no matching account completes the OTP flow and creates a new account,
+instead of erroring the way the email channel already does for the same
+situation. Root-caused to `verify_otp_route`'s no-`pending_token` branch
+falling through to an unconditional insert. **Why:** deferred rather than
+fixed by product-owner decision the same day — recorded as a decision with
+a reason, not an oversight, per this file's own convention. See
+[R-056](../07-risks-and-debt.md).
 
 ## 2026-09-11 — Fund Score card rebuilt around a plain-English verdict; tier badge flipped for display only
 
@@ -584,3 +637,22 @@ documentation is still being prepared by a colleague and does not yet
 exist, so R-043's open questions about mechanism and purpose are
 narrowed, not closed. See [ADR-007](ADR-007-pan-storage-and-encryption.md)
 and [R-043](../07-risks-and-debt.md).
+
+## 2026-09-23 — Two live staging credentials confirmed unrotated; INV-010 reopened, R-057 recorded as a pre-production gate
+
+While ingesting batch 3's raw engineering-loop source material, a real
+plaintext RDS master password and a real AWS IAM access key were found in
+the source text. [INV-010](INV-010-aws-iam-key-pasted-in-chat-and-rotated.md)'s
+own source material had described the IAM key as already rotated. The
+vault owner stated directly, live, that this is not accurate: neither
+credential has actually been rotated — both are real staging-environment
+credentials, deliberately left unrotated until the project moves from
+staging to production, at which point both must be rotated.
+
+INV-010's status is reopened via a dated addendum (original text
+preserved, not rewritten), and a new dedicated risk entry,
+[R-057](../07-risks-and-debt.md), records this as a high-severity,
+explicit pre-production gate. Neither literal credential value is
+reproduced anywhere in this vault; the raw inbox evidence copy containing
+the RDS password was redacted in place before this batch was committed,
+so that the literal value never enters this repository's git history.

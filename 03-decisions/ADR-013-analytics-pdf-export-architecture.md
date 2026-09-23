@@ -128,3 +128,38 @@ the API runs with more than one worker.
 
 - Design: `08-evidence/documents/specs/2026-08-20-analytics-pdf-export-design.md`
 - Plan: `08-evidence/documents/plans/2026-08-20-analytics-pdf-export.md`
+
+## Addendum — 2026-09-22: fully executed, reviewed, and merged, 2026-08-20/21
+
+This ADR's own "Validation" section, as originally written, stated the
+implementation plan was entirely unticked. Later-ingested source material
+confirms all 10 plan tasks were executed via subagent-driven development,
+task-reviewed, and committed. Manual end-to-end verification (Task 10)
+found and fixed two real bugs: a print-view fetch effect double-firing
+under React 18 Strict Mode, always failing its second call against the
+single-use export token; and a per-fund comparison tab/pagination gated
+behind client-side click state, invisible to a static PDF render (fixed
+with an opt-in `printMode` prop, addressing the exact tension the
+"Consequences" section above did not yet have concrete evidence against).
+The mandatory whole-branch review found and fixed two further findings
+against the spec's own "evict the token regardless of success or failure"
+line, plus one further gap where the fix's own exception handling didn't
+catch `asyncio.CancelledError`. Merged into `feat/enhanced-ui` as commit
+`ed149bf`, both full suites confirmed passing on the merged tree.
+
+A separate, pre-existing backend bug was found during this work and
+explicitly ruled out of scope, not fixed here: `category_ranking.py`'s
+CAGR calculation raises a division error for an aggregate multi-category
+portfolio when a category's NAV history is shorter than the CAGR lookback
+window — confirmed to identically affect the live dashboard's own scoring
+calls, not introduced by or specific to PDF export. Not yet tracked as its
+own numbered risk in this vault; flagged here as a known open follow-up.
+
+The R-039 in-process token-store limitation named in this ADR's original
+"Consequences" section is **not resolved** by this addendum — no source
+material in this batch shows a persistent, multi-worker-safe token store
+being built.
+
+### Addendum evidence
+
+- `08-evidence/documents/engineering-loop/session.md`, "Analytics PDF export: all 10 plan tasks done, reviewed clean, merged to feat/enhanced-ui (2026-08-20/21)" section

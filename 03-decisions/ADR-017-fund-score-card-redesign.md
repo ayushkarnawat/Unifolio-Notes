@@ -127,3 +127,23 @@ confirmed. See [R-053](../07-risks-and-debt.md).
 
 - Design: `08-evidence/documents/specs/2026-09-11-fund-score-card-redesign-design.md`
 - Plan: `08-evidence/documents/plans/2026-09-11-fund-score-card-redesign.md`
+
+## Addendum — 2026-09-22: fully executed, 2026-09-12
+
+Later-ingested source material confirms this plan's full 9-task
+implementation was executed via subagent-driven development, cleared its
+full test suites, and closed the mandatory whole-branch adversarial-review
+gate with no unresolved findings. The `displayTier = 6 - risk_adjusted_tier`
+flip, the rebuilt `FundScoreCard.tsx`, and the new `fundScoreVerdicts.ts`
+module all landed as designed. The transitional gap named above (existing
+cached score rows not showing the new evidence numbers until manually
+recomputed) is not evidenced as resolved in this batch — treat it as still
+open until a manual recompute is confirmed. Recorded here as Accepted on
+the execution axis via this addendum, without altering the original
+"Proposed" status line above, per this vault's append-only convention for
+past ADR text. See the resolution note appended to
+[R-053](../07-risks-and-debt.md).
+
+### Addendum evidence
+
+- `08-evidence/documents/engineering-loop/session.md`, 2026-09-12 section (Fund Score card redesign)

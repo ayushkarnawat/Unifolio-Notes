@@ -87,6 +87,16 @@ behaviour and annotate PRD-01 and App-Flow v1.2 as superseded *in the import sec
 only* — they carry material (Direct/Regular classification, ARN capture, the full screen
 inventory) that the newer pair does not.
 
+**Update, 2026-09-22.** The 11-state lifecycle this risk names as "newer,
+implementation-ready" has since been built and merged — see
+[ADR-018](03-decisions/ADR-018-cas-import-lifecycle-redesign.md). This
+confirms which generation is live, narrowing this risk's uncertainty, but
+does **not** close it: nothing in the newly-ingested source material shows
+PRD-01/App-Flow v1.2 were ever annotated as superseded, and the
+implementation itself has not had the independent review pass this vault's
+other features get before being called fully done (also tracked in
+ADR-018). Status left Open.
+
 ### R-005 — `family-members` vs `household-members` (Open, low but spreading)
 
 `Updated-CAS-App-Flow.md`'s endpoints use `/family-members/{id}/…`. The TDD's API surface
@@ -778,6 +788,18 @@ query-count regression guard; the same guard technique would apply here.
 
 *Source: `08-evidence/documents/specs/2026-08-20-distributor-comparison-portfolio-level-design.md`*
 
+**Resolved, 2026-09-02 (per newly-ingested source material, recorded
+2026-09-22).** `compute_holdings`'s per-folio `Transaction` N+1 query was
+replaced with one batched query across all folios, grouped by folio in
+application code to preserve the per-folio chronological order the FIFO
+lot processor requires. 42 targeted tests plus the full backend suite pass
+unchanged. See
+[2026-09-02 — compliance audit Group 1](02-journey/2026-09-02-compliance-audit-group-1-and-non-pan-duplicate-detection.md).
+Status changed to Resolved; entry left in place per this file's append-only
+convention.
+
+*Resolution source: `08-evidence/documents/engineering-loop/session.md`, "Still open" list item 6 / compliance audit F7*
+
 ### R-041 — Exact-string category matching may make legacy-header schemes invisible to comparison (Open, medium)
 
 `get_category_universe` matches categories by exact string. A scheme filed
@@ -930,6 +952,28 @@ not yet corroborated by source material. Corroborate against
 subsequent batches as they are ingested, and ultimately against the
 current state of the Unifolio code repo.
 
+**Update, 2026-09-22 (batch 3, root engineering-loop source material).**
+Three of the six now have direct, dated, evidence-backed corroboration —
+not just the vault owner's word:
+
+- **SIP cadence redesign** — built 2026-08-19, 3 review rounds, 218/218
+  frontend tests passing. See the addendum on
+  [ADR-012](03-decisions/ADR-012-active-sip-cadence-projection.md).
+- **Analytics PDF export** — built 2026-08-20/21, merged `ed149bf`, both
+  full suites passing. See the addendum on
+  [ADR-013](03-decisions/ADR-013-analytics-pdf-export-architecture.md).
+- **Portfolio-level distributor comparison** — built 2026-08-21, 10 tasks
+  through the mandatory review gate. See the addendum appended to
+  [2026-08-20 — Analytics deepening](02-journey/2026-08-20-analytics-deepening-and-a-deferred-split.md).
+
+The remaining three (the auth left-panel verification task, both Phase 2
+demat plans) still have **no** corroborating evidence in this batch's
+source material — the 2026-09-19 forward pointer for those three remains
+unverified. This risk is left Open; three of its six original items are
+now resolved, three are not.
+
+*Corroboration source: `08-evidence/documents/engineering-loop/session.md`*
+
 ### R-052 — Terraform state can silently drift ahead of `session.md`'s documented status (Open, medium)
 
 Preparing the 2026-09-11 staging runbook, the draft stated Phase 4
@@ -968,6 +1012,17 @@ untouched), not a blocker for anything else in the vault.
 **To verify:** cross-check against the current state of the Unifolio code
 repo, or against a later batch's source material.
 
+**Resolved, 2026-09-12 (per newly-ingested source material, recorded
+2026-09-22).** All 9 implementation tasks executed, both full suites
+passing, mandatory whole-branch review closed with no unresolved findings.
+See the addendum on
+[ADR-017](03-decisions/ADR-017-fund-score-card-redesign.md). The
+precompute-cache backfill for already-cached rows remains unconfirmed —
+not itself a reason to leave this entry open, since it was already an
+explicitly deferred, separate step in the original plan.
+
+*Resolution source: `08-evidence/documents/engineering-loop/session.md`, 2026-09-12 section*
+
 *Sources: `08-evidence/documents/specs/2026-09-11-fund-score-card-redesign-design.md`;
 `08-evidence/documents/plans/2026-09-11-fund-score-card-redesign.md`*
 
@@ -989,6 +1044,177 @@ against its actual text.
 
 *Source: `08-evidence/documents/plans/2026-09-11-aws-staging-prerequisites.md`
 (second-hand reference only — source document itself not yet in the vault)*
+
+### R-055 — SIP tab switcher: an inactive tab's `aria-controls` points at an unmounted panel id (Open, low — accepted documented limitation)
+
+Found during the active-SIP cadence redesign's mandatory adversarial-review
+gate (round 2 of 3, 2026-08-19). The inactive tab's `aria-controls`
+attribute references a `tabpanel` id that is not currently mounted in the
+DOM — a real ARIA IDREF gap. It was explicitly accepted rather than fixed
+in a third review round, on the reasoning that screen readers still get
+the correct tab/panel pairing via `aria-selected`/`aria-labelledby`, so the
+practical accessibility impact is judged low. Recorded here, per this
+batch's own text, so the accepted gap "is tracked as its own low-severity
+item, not silently dropped."
+
+**To verify:** confirm against the current frontend code whether the two
+tabpanel ids are ever reconciled (e.g. if the SIP tab switcher is later
+generalized to a shared tab component).
+
+*Source: `08-evidence/documents/engineering-loop/session.md`, "'This
+Month' SIP tab feature, Tasks 6-8 review gate closed (2026-08-19)"
+section. See also the addendum on
+[ADR-012](03-decisions/ADR-012-active-sip-cadence-projection.md) and the
+addendum on
+[2026-08-18's journey entry](02-journey/2026-08-18-active-sip-cadence-redesign.md).*
+
+### R-056 — Phone-OTP login silently creates a new account for an unrecognized phone number, instead of erroring like email does (Open, medium — explicitly deferred by product-owner decision)
+
+Found by the user 2026-09-11 manually smoke-testing staging: logging in
+with a phone number that has no matching account still completes the
+OTP-send/verify flow and creates a brand-new account, rather than telling
+the user no account exists and directing them to sign up. Root-caused
+against the code: `backend/app/api/auth.py`'s `verify_otp_route`
+(phone-OTP channel), in the branch handling a verify call with no
+`pending_token` — `find_or_backfill_phone_identity` returning `None` falls
+straight through to an unconditional new-`User` INSERT. The equivalent
+email-OTP branch already does the right thing, raising a 401 ("No account
+found for that email — sign up instead.") instead of creating an account;
+the two channels' identical-shaped branches have simply diverged.
+Confirmed as a clean single-sided gap: the frontend only ever renders
+"Continue with Phone" in login mode, so the unfixed branch cannot be
+reached from a genuine phone-signup flow, because that flow does not
+exist.
+
+**Explicitly deferred, not fixed, by product-owner decision, 2026-09-11** —
+recorded here rather than as a bug awaiting a fix, per the vault's
+convention for decisions with reasons. A related, not-yet-designed
+refinement is also on record: even the email channel's equivalent check
+happens at OTP-verify time, not request time, which does not fully match
+the user's stated ideal UX; moving it to request time was identified as
+carrying a mild account-enumeration tradeoff (an unauthenticated
+"does this identifier have an account" probe), and is explicitly not
+scoped into this fix.
+
+**To verify:** cross-check against the current state of the Unifolio code
+repo, or against a later batch's source material, for whether this has
+since been fixed.
+
+*Source: `08-evidence/documents/engineering-loop/session.md`, "Still open"
+list item 9; corroborated by the evidence-copy
+`08-evidence/documents/engineering-loop/CLAUDE.md`'s "Still open" summary.*
+
+### R-057 — Two real staging credentials (an RDS database password and an AWS IAM access key) are confirmed live and have not been rotated (Open, high — must be rotated before production)
+
+Batch 3's raw source material contains two real, plaintext credential
+values: an RDS Postgres master password (encountered while debugging a
+shell-quoting bug during a `psql`-tunnel migration run — see
+[INV-009](04-investigations/INV-009-amfi-ter-readtimeout-event-loop-starvation.md)'s
+sibling material and the redacted raw-evidence copy), and an AWS IAM
+access key pasted into a chat session during Terraform staging work (see
+[INV-010](04-investigations/INV-010-aws-iam-key-pasted-in-chat-and-rotated.md)).
+INV-010's own source material described the IAM key as already rotated;
+**the vault owner has since confirmed, live, on 2026-09-23, that this is
+incorrect — neither credential has actually been rotated.** Both are
+real, currently-live staging-environment credentials, deliberately left
+unrotated until the project moves from staging to production.
+
+Neither literal credential value is reproduced anywhere in this vault.
+The raw inbox evidence copy containing the RDS password
+(`00-inbox/raw/processed/2026-09-22-batch3-engineering-loop/session.md`)
+was redacted in place before this batch was committed, specifically so
+that the literal value never enters this repository's git history. The
+AWS IAM key's literal value is also known to exist in plaintext in a
+not-yet-ingested file (`Notes for Unifolio/Move to Cloud.md`, future
+batch material) — that file must receive the same redaction treatment
+before it is ever committed to this vault.
+
+**Must fix before production:** both the RDS master password and the AWS
+IAM access key must be rotated when the project moves from staging to
+production. Recorded here as a high-severity, explicit pre-production
+gate, not an ordinary backlog item, precisely because it is a live,
+unrotated credential rather than a historical incident.
+
+**To verify:** confirm both credentials have been rotated at the point
+production go-live is planned; do not treat this as resolved until that
+rotation is independently confirmed.
+
+*Source: vault owner, live conversation, 2026-09-23; raw evidence
+`00-inbox/raw/processed/2026-09-22-batch3-engineering-loop/session.md`
+(redacted before commit).*
+
+### R-058 — Blocking synchronous database calls inside async request handlers can still freeze every concurrent user in production, not just the slow request (Open, medium — architectural, deliberately deferred)
+
+INV-009 root-caused a real production symptom (AMFI TER `ReadTimeout`s) to
+a blocking `db.commit()` inside an async handler stalling the single
+worker's entire event loop for 60-120 seconds at a time, freezing
+unrelated concurrent requests along with the slow one. A targeted fix
+(`commit_off_loop`, commit `bb5225f`, 2026-08-27) routes the specific
+commits that were observed to be slow through a background thread, and a
+stopgap timeout increase was also applied.
+
+**Why this is not closed:** the *trigger* observed (60-120 second SQLite
+commits on a WSL filesystem mount) is specific to the current development
+environment and is expected to mostly disappear once the app runs on
+Postgres. The underlying *vulnerability* is architectural and will still
+exist in production: any blocking synchronous database call inside an
+async handler stalls every concurrent user sharing that event loop, not
+just the request that triggered it. A lock wait, a large batch commit,
+connection-pool exhaustion, or a large CAS re-import under real
+concurrent production traffic could all still freeze every logged-in
+user's request simultaneously — the fix so far only covers the specific
+commits that were already known to be slow.
+
+**What needs to be fixed (three options identified, deliberately not yet
+chosen, to avoid bundling a large cross-cutting database-layer refactor
+into unrelated debugging work):**
+1. Wrap only the other known heavy batch commits in a background thread
+   (targeted, incremental, but leaves any future blocking call unguarded).
+2. Wrap every synchronous database call inside an async handler (blanket
+   coverage, but needs auditing for cross-thread session-object use).
+3. Migrate to SQLAlchemy's native async engine (the correct long-term
+   fix; a dedicated project of its own, not a quick patch).
+
+Revisit deliberately, ideally paired with the Postgres migration, rather
+than patching reactively the next time a different blocking call causes
+the same symptom.
+
+*Source: `04-investigations/INV-009-amfi-ter-readtimeout-event-loop-starvation.md`,
+"Residual risk — explicitly not closed" section; `08-evidence/documents/engineering-loop/session.md`.*
+
+### R-059 — Two parallel CAS-import backend code paths independently drifted to need the identical duplicate-detection fix wired in twice (Open, medium — architectural, surfaced not fixed)
+
+While wiring the 2026-09-02/03 non-PAN duplicate-person-detection design
+into production, the same confirmation-gate logic had to be added at all
+three backend commit sites across what turned out to be two separate,
+parallel import-backend code paths — the two paths had already drifted
+apart enough that a single shared fix could not be applied once and
+inherited by both. This was surfaced as a standalone architectural
+finding during that work and deliberately **not** fixed as part of that
+pass, to avoid scope creep into an unrelated feature change.
+
+**Why this matters:** having two parallel backends for the same import
+functionality means every future fix, validation rule, or behavioural
+change to CAS import has to be identified and re-applied in two places
+by hand, as this duplicate-detection gate already was — a structural
+source of the exact kind of silent drift (one path fixed, the other
+forgotten) that this finding itself is an instance of.
+
+**What needs to be fixed:** the two import backends need to be
+reconciled — either consolidated into a single shared code path, or
+given an explicit, enforced mechanism (a shared helper, a lint rule, or
+a test that fails if the two diverge) that stops future fixes from
+needing to be applied twice by hand. Not scoped or designed here;
+recorded so it is not lost.
+
+**To verify:** identify the two concrete backend code paths against the
+current state of the Unifolio code repo, and confirm whether they have
+since been consolidated or whether the dual-maintenance burden is still
+live.
+
+*Source: `02-journey/2026-09-02-compliance-audit-group-1-and-non-pan-duplicate-detection.md`,
+"What actually happened" (non-PAN duplicate-person detection) and
+"Result" sections.*
 
 ## Deferred by decision (not debt, tracked so it is not lost)
 

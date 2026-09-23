@@ -70,3 +70,18 @@ Build status unconfirmed by this batch's source material — see
 - R-053 — no execution evidence for this plan in this batch
 - Evidence: `08-evidence/documents/specs/2026-09-11-fund-score-card-redesign-design.md`
 - Evidence: `08-evidence/documents/plans/2026-09-11-fund-score-card-redesign.md`
+
+## Addendum — 2026-09-22: fully executed, 2026-09-12
+
+Later-ingested source material confirms this plan was built the following
+day: all 9 implementation tasks executed, both full test suites passing,
+and the mandatory whole-branch adversarial review closed with no
+unresolved findings. See the addendum on
+[ADR-017](../03-decisions/ADR-017-fund-score-card-redesign.md) and the
+resolution note appended to [R-053](../07-risks-and-debt.md). The
+precompute-cache backfill for already-cached rows is not evidenced as done
+in this batch — still open.
+
+### Addendum evidence
+
+- `08-evidence/documents/engineering-loop/session.md`, 2026-09-12 section

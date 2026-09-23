@@ -132,3 +132,36 @@ state first — a caution this vault should repeat rather than resolve.
 - Evidence: `08-evidence/documents/specs/2026-08-19-auth-left-visual-redesign.md`
 - Evidence: `08-evidence/documents/plans/2026-08-19-auth-left-panel-editorial-refinement.md`
 - Evidence: `08-evidence/documents/specs/2026-08-19-cas-import-illustration-redesign.md`
+
+## Addendum — 2026-09-22: the chaos-loop-to-grid panel's build event is directly evidenced, plus new same-day execution
+
+This stage's "Result" states the two 2026-08-19 design specs ("fragments-
+align-and-sharpen" and editorial "Direction B") "carry no execution record
+in this batch at all" — that remains true; neither is corroborated by this
+later-ingested material either. What this material does add: a direct
+build-event record (not merely the v2.0 spec's own claim) for the earlier
+chaos-loop-to-grid graphic itself (commit `75a1925`) — a session titled
+"Left Auth Panel Motion, Auth Validation Engine, and Hand-Drawn Hero
+Illustrations Integration" describes building "one deliberate continuous
+trajectory drawing smoothly along its actual SVG path from chaotic
+waveform to structured compounding" with a `hasAnimatedInSession` guard and
+cursor-hover milestone tooltips at exactly `+14.8%`, `+28.4%`, `+41.2%`,
+`+56.8%` — consistent with, and more specific than, this entry's existing
+"chaos-loop-to-grid ... with milestone hover tooltips" description. The
+same session also executed a comprehensive email/phone frontend validation
+engine (typo suggestions, Indian mobile normalization, 30/30 unit tests)
+and integrated the hand-drawn hero illustrations into
+`OnboardingIllustration.tsx`, `Q4Household.tsx` and `TrustPrimer.tsx` —
+both previously only specified, now confirmed built. R-033's core finding
+is unchanged: no document reconciles which of the later concepts, if any,
+superseded this one.
+
+### Addendum evidence
+
+- `08-evidence/documents/engineering-loop/log.md`, "2026-08-19 — Left Auth
+  Panel Motion, Auth Validation Engine, and Hand-Drawn Hero Illustrations
+  Integration" section
+- `08-evidence/documents/engineering-loop/decisions.md`, "2026-08-19 — Left
+  Auth Showcase Panel: Single Continuous Deliberate SVG Path Motion",
+  "Comprehensive Frontend Validation & Typo Detection Engine", and
+  "Hand-Drawn Hero Illustrations & Bespoke Option Card SVGs" entries

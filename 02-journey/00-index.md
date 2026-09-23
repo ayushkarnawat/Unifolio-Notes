@@ -13,14 +13,19 @@ file with the full for-stakeholders/technical-detail record.
 | 2026-08-10 | [Analytics research and first integrations](2026-08-10-analytics-research-and-first-integrations.md) | Every analytics data source identified and live-verified; a missing category universe found and sourced (INV-001); a silently stale index endpoint replaced (INV-002); granular allocation shipped |
 | 2026-08-12 → 2026-08-13 | [Delegated execution and the fund scorer](2026-08-12-delegated-execution-and-the-fund-scorer.md) | A written model-delegation process (ADR-011) and the three-ingredient Unifolio Scorer settled with the product owner (ADR-010) — which contradicts the vault's existing scoring methodology doc |
 | 2026-08-14 | [Multi-method auth and the analytics frontend](2026-08-14-multi-method-auth-and-the-analytics-frontend.md) | Google and email sign-in added on a mandatory phone anchor, with non-silent account linking (ADR-008) and Postmark chosen but stubbed (ADR-009). Privacy Policy, real email delivery and Apple all outstanding |
+| 2026-08-14 | [A second branch reconciled: CAS import lifecycle rebuild, UI foundation, and the Scorer's backend](2026-08-14-cas-import-lifecycle-and-branch-reconciliation.md) | A parallel branch merged in: the full CAS import lifecycle redesign (ADR-018), a new design-token/mobile UI foundation, and the fund Scorer's backend completed. All tests pass; most of it skipped the mandatory independent review pass — recorded as a gap (R-004), not smoothed over |
 | 2026-08-17 | [Email and password auth, built in full and reversed](2026-08-17-email-password-auth-built-and-reversed.md) | Migration `0006`, bcrypt, five routes, two tables and the email-OTP path deleted — then reversed the same day by management. A reachable crash in identity selection found by reading and fixed (INV-006) |
 | 2026-08-18 | [The active-SIP window is replaced by a cadence model](2026-08-18-active-sip-cadence-redesign.md) | The 40-day window rejected by the product owner and replaced by cadence projection (ADR-012), reversing one clause of the 2026-08-06 accounting conventions. Designed and planned, not built |
 | 2026-08-18 → 2026-08-19 | [A visual and motion redesign, and four concepts for one auth panel](2026-08-18-visual-motion-redesign-and-the-auth-panel.md) | A zero-token-change design system pass handed to an external agent; one decorative panel through four concepts in 48 hours with no accepted record (R-033); a real import-flow routing defect found on the way (INV-007) |
 | 2026-08-19 → 2026-08-25 | [The mobile track pulls ahead of desktop](2026-08-19-the-mobile-track-pulls-ahead.md) | A mobile design system, two mockup-stage rejections recorded with reasons, and the finding that the desktop Main Dashboard is still a stub while mobile is mature (R-037). A doc-versus-code routing contradiction flagged, not resolved (R-035) |
 | 2026-08-20 → 2026-08-27 | [Analytics deepening, and a category split that was deferred](2026-08-20-analytics-deepening-and-a-deferred-split.md) | PDF export via a server-side headless browser and a capability token (ADR-013); distributor comparison moved to portfolio level, old route deleted; the 1,150-scheme index-fund category found unsplittable and deferred (INV-005). No plan executed |
 | 2026-08-25 → 2026-08-26 | [Phase 2: stocks and demat import](2026-08-25-phase-2-stocks-and-demat-import.md) | Nine ingestion routes assessed; statement upload plus in-house email ingestion chosen, broker APIs and the Account Aggregator ruled out for this phase (ADR-014). No equity cost basis exists in the source data and none is fabricated. Seven deviations flagged, including the PAN question (R-043) |
+| 2026-08-27 | [Mobile polish continues, and a Fund Details performance graph is added](2026-08-27-mobile-polish-and-fund-details-performance-graph.md) | Roadmap animation/scrolling/layout fixes plus a new NAV-history performance graph on Fund Details, with a narrow, documented `Decimal`-never-`float` exception for chart pixel geometry only |
 | 2026-08-31 | [The marketing website goes to a second external agent](2026-08-31-marketing-website-handoff.md) | A creative brief handed to Manus, which builds and hosts outside the product repo. Five placeholders outstanding, one carrying a factual claim that contradicts how ingestion actually works (R-046) |
+| 2026-09-02 | [Compliance audit Group 1 fixed, and non-PAN duplicate-person detection designed](2026-09-02-compliance-audit-group-1-and-non-pan-duplicate-detection.md) | A uniqueness gap, a job-wiring gap, a schema-doc refresh and a slow-query fix closed; a same-user/cross-user duplicate-person design built without needing PAN (R-043 still open, not resolved by this) |
 | 2026-09-02 | [Analytics precompute architecture designed and built](2026-09-02-analytics-precompute-architecture.md) | Live-compute-on-read replaced by a per-household precompute (ADR-015), resolving R-042. Merged to `feat/enhanced-ui`, full suite green |
+| 2026-09-07 | [An AWS account is created, and the domain moves to Route 53](2026-09-07-aws-account-created-and-domain-cutover.md) | Root MFA, budget alert, an admin IAM user, region confirmed `ap-south-1`, and `unifolio.in` cut over to Route 53 with mail preserved. Three-subdomain shape (marketing/app/staging) fixed for all infrastructure to follow |
+| 2026-09-09 | [Terraform applied to real AWS, two follow-up fixes, and an IAM key briefly exposed and rotated](2026-09-09-terraform-applied-and-iam-key-incident.md) | Phases 1-3 live: network, RDS, ECR, ECS service. A crash-loop and a schema-less database both root-caused and fixed same session, verified four ways. A real AWS access key exposed in chat and rotated before misuse (INV-010) |
 | 2026-09-10 | [Frontend catches up to the precompute merge, and a staging push is sequenced](2026-09-10-frontend-migration-and-staging-push-plan.md) | The frontend migration confirmed done; a 10-step staging push plan written. An AMFI period-selection bug found and fixed (INV-008) |
 | 2026-09-11 | [A detailed staging deployment runbook replaces the prior plan](2026-09-11-aws-staging-deployment-runbook.md) | An exact, copy-paste runbook written; Terraform state found already ahead of `session.md`'s own notes and reconciled (R-052). Execution against the runbook itself unconfirmed |
 | 2026-09-11 | [Fund Score card redesigned for plain-English readability](2026-09-11-fund-score-card-redesign.md) | A plain-verdict card and a tier-display fix designed and fully planned (ADR-017). No execution evidence in this batch (R-053) |
@@ -52,6 +57,8 @@ flowchart LR
     N -->|"Scorer formula contradicts\nthe vault's methodology doc"| N2["R-015 — OPEN"]
     N --> O["2026-08-14\nGoogle + email sign-in\non a phone anchor\n(ADR-008, ADR-009)"]
     O -->|"No Privacy Policy exists;\nGoogle requires one"| O2["R-023 — OPEN,\nlaunch blocker"]
+    N --> O3["2026-08-14\nSecond branch reconciled:\nCAS import lifecycle\n(ADR-018), UI foundation,\nScorer backend"]
+    O3 -->|"Merged mostly without\nthe mandatory review pass"| O4["R-004 update:\nreview debt still open"]
     O --> P["2026-08-17\nEmail+password auth\nbuilt in full"]
     P -->|"Reversed the same day\nby management"| P2["Passwordless restored;\npassword tables dropped\n(0007-0008)"]
     P -->|"New provider missing from\nthe precedence map"| P3["INV-006:\nreachable KeyError,\nfixed same day"]
@@ -72,16 +79,29 @@ flowchart LR
     V -->|"Trust-bar claim contradicts\nactual CAS ingestion"| V2["R-046 — OPEN,\nlaunch-facing"]
     U --> W["6 of 8 plans in this\nfortnight not fully built\n(R-051)"]
     V --> H
-    W --> X["2026-09-02\nAnalytics precompute\narchitecture (ADR-015)"]
+    W --> AC["2026-08-27\nMobile polish continues;\nFund Details perf graph"]
+    AC -->|"Chart pixel geometry only"| AC2["Documented narrow\nDecimal-never-float\nexception"]
+    AC --> AD["2026-09-02\nCompliance audit Group 1;\nnon-PAN dedup design"]
+    AD -->|"PAN idea rejected again;\nsame-user/cross-user\nmatch instead"| AD2["R-043 still OPEN;\nnot resolved by this"]
+    AD --> X["2026-09-02\nAnalytics precompute\narchitecture (ADR-015)"]
     X -->|"Resolves an earlier\nunverified rumor"| X2["R-042 resolved:\nmechanism now built"]
-    X --> Y["2026-09-10\nFrontend migration +\nstaging push plan"]
+    X --> AE["2026-09-07\nAWS account created;\ndomain cut over\nto Route 53"]
+    AE --> AF["2026-09-09\nTerraform Phases 1-3\napplied to real AWS"]
+    AF -->|"Crash-loop + missing\nschema, fixed same session"| AF2["Verified 4 ways,\nnot a single health check"]
+    AF -->|"Real IAM key exposed\nin chat"| AF3["INV-010: rotated\nsame session, closed"]
+    AF --> Y["2026-09-10\nFrontend migration +\nstaging push plan"]
     Y -->|"Wrong AMFI period\nselection, max vs min"| Y2["INV-008:\naaum-quarterly bug,\nfixed same day"]
     Y --> Z["2026-09-11\nAWS staging runbook"]
     Z -->|"Terraform state was\nahead of session.md"| Z2["R-052 — OPEN,\ndocs can lag infra"]
     Z --> AA["2026-09-11\nFund Score card\nredesign (ADR-017)"]
-    AA -->|"Designed + planned,\nno execution evidence"| AA2["R-053 — OPEN"]
+    AA -->|"Designed + planned,\nno execution evidence"| AA2["R-053 — OPEN\n(now Resolved, see\naddendum 2026-09-22)"]
     AA --> AB["2026-09-16\nThis vault's own\narchitecture (ADR-016)"]
+    O4 --> H
+    AC2 --> H
+    AD2 --> H
     X2 --> H
+    AF2 --> H
+    AF3 --> H
     Y2 --> H
     Z2 --> H
     AA2 --> H

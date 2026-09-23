@@ -83,3 +83,20 @@ about intent, not about shipped behaviour.
 - R-032 — the PRD-03 superseding note is required and not yet written
 - Evidence: `08-evidence/documents/specs/2026-08-18-active-sips-cadence-redesign-design.md`
 - Evidence: `08-evidence/documents/plans/2026-08-18-active-sips-cadence-redesign.md`
+
+## Addendum — 2026-09-22: fully executed, 2026-08-19
+
+This stage's "Result" as originally recorded ("designed, planned, and not
+yet implemented") described the state as of batch 2b's source material.
+Later-ingested source material confirms the frontend half (Tasks 6-8) was
+executed and closed through three rounds of mandatory adversarial review,
+with the backend half (Tasks 1-5) already done in a prior session. Full
+detail and the accepted low-severity ARIA gap: see the addendum on
+[ADR-012](../03-decisions/ADR-012-active-sip-cadence-projection.md) and
+[R-055](../07-risks-and-debt.md). Any downstream claim that Unifolio no
+longer uses a 40-day window is now a claim about shipped behaviour, not
+only intent.
+
+### Addendum evidence
+
+- `08-evidence/documents/engineering-loop/session.md`, "'This Month' SIP tab feature, Tasks 6-8 review gate closed (2026-08-19)" section

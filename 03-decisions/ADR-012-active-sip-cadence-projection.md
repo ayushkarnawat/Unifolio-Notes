@@ -127,3 +127,25 @@ fallback if it does not hold up in use.
 - Design: `08-evidence/documents/specs/2026-08-18-active-sips-cadence-redesign-design.md`
 - Plan: `08-evidence/documents/plans/2026-08-18-active-sips-cadence-redesign.md`
 - Superseded convention: `decisions-log.md`, 2026-08-06, "Three portfolio-accounting conventions fixed" (left untouched)
+
+## Addendum — 2026-09-22: the implementation plan was fully executed, 2026-08-19
+
+This ADR's own "Validation" section, as originally written, stated every
+task in the implementation plan was unticked and no part of the decision
+was in the product. Later-ingested source material confirms the frontend
+half (Tasks 6-8, the backend Tasks 1-5 having already landed in a prior
+session) was executed and closed through the mandatory adversarial-review
+gate, three rounds: round 0 fixed a tab-switcher visibility gate, a
+stale-row flash, and missing ARIA tab semantics; round 1 fixed a remaining
+loading-flash edge case and added `tabpanel` wiring; round 2 accepted one
+remaining low-severity ARIA IDREF gap (the inactive tab's `aria-controls`
+points at an unmounted panel id) as a documented limitation rather than a
+third fix round, on the reasoning that screen readers still get the
+correct tab/panel pairing via `aria-selected`/`aria-labelledby`. Full
+frontend suite on the closing round: 218 of 218 tests across 55 files,
+zero regressions. The accepted ARIA gap is tracked as its own low-severity
+item, not silently dropped — see [R-055](../07-risks-and-debt.md).
+
+### Addendum evidence
+
+- `08-evidence/documents/engineering-loop/session.md`, "'This Month' SIP tab feature, Tasks 6-8 review gate closed (2026-08-19)" section

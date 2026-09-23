@@ -86,3 +86,22 @@ source material — see [R-052](../07-risks-and-debt.md).
 - ADR-015 — analytics precompute architecture (the dispatcher this runbook wires up)
 - R-052 — Terraform state can silently drift ahead of session notes
 - Evidence: `08-evidence/documents/plans/2026-09-11-aws-staging-prerequisites.md`
+
+## Addendum — 2026-09-22: the investor feature batch this runbook was written against
+
+This stage's original text names "the investor feature batch (Profile,
+account deletion, contact-change OTP, theme toggle, import history/delete,
+Dashboard XIRR, allocation sort, AMC drill-down)" only as context, stating
+it was "not itself part of this batch's source material." Later-ingested
+source material now covers it directly and confirms it was built and
+independently verified the same day: backend 649 passed/8 skipped,
+frontend 437 passed/79 files, clean `tsc -b --noEmit`. A mandatory
+adversarial-review gate for the two most recent fix rounds in this batch
+was recorded as **deferred, not skipped** — the external review agent was
+unavailable that session; both rounds were logged for a review pass once
+it returned. No later document in this batch confirms that deferred
+review pass was ever completed — treat it as still outstanding.
+
+### Addendum evidence
+
+- `08-evidence/documents/engineering-loop/session.md`, 2026-09-11 section (the entry immediately preceding the runbook's own drafting)
