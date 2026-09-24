@@ -163,3 +163,57 @@ journey entries and the dated update on [R-052](../07-risks-and-debt.md).
   `aws-phase4-frontend-deployment-handoff.md`, `aws-phase5-networking-domains-handoff.md`,
   `aws-phase5-networking-domains-implementation-prompt.md`,
   `adr006-scheduler-terraform-handoff.md`
+
+## Update — 2026-09-24: concrete network layout and RDS backup-retention decision (batch 5 ingestion), plus two batch-internal discrepancies flagged, not resolved
+
+Newly-ingested go-live readiness material (`aws-golive-readiness-report.md`
+and `aws-technical-architecture-flow.md`) fills in specifics the above
+phase-handoff summaries described only structurally, and separately
+resolves one open question this file did not previously record an answer
+to. This is corroborating/completing detail on the same already-applied
+Phase 1-5 architecture above, not a new decision.
+
+- **VPC/subnet CIDR layout:** VPC `10.20.0.0/16`; public subnets
+  `10.20.0.0/24` / `10.20.1.0/24` (one per AZ — hosts ALB, NAT/fck-nat,
+  bastion); private app subnets `10.20.10.0/24` / `10.20.11.0/24` (hosts
+  the ECS Fargate task ENI); private data subnets `10.20.20.0/24` /
+  `10.20.21.0/24` (hosts RDS). Consistent between both source documents,
+  no discrepancy on this point.
+- **RDS automated-backup retention, resolved for staging:** the main
+  readiness report's §19 records this as "Resolved staging (default
+  accepted) — automated backups on, 3-day retention, no cross-region
+  replication. Production needs real answer (7-35 day retention,
+  point-in-time recovery) before go-live — deferred Phase 7." This is the
+  first place this vault records a concrete staging retention number;
+  ADR-003 discusses backups as a decision driver but never named a window.
+- **NAT strategy:** fck-nat (a self-hosted EC2-based NAT alternative) was
+  chosen over a managed NAT Gateway, per §12 Option C, dated 2026-09-07 —
+  not previously recorded in this file; consistent with the
+  cost-conscious, team-size-appropriate posture already documented above
+  for the KMS/egress/stop-then-start decisions.
+
+**Two discrepancies found between this batch's own two source files —
+flagged for human review, not resolved here (neither source document
+states which is authoritative, and this file's already-applied Terraform
+is the actual source of truth; not independently re-verified against the
+live `.tf` files as part of this ingestion):**
+
+1. **RDS backup retention window:** the main readiness report (§19, quoted
+   above) says staging is "3-day retention." `aws-technical-architecture-flow.md`'s
+   own RDS spec row instead says "automated backups on 7-day retention
+   window (staging default — revisit before production)." Both describe
+   the same staging RDS instance; the two numbers disagree.
+2. **Terraform module count:** the main readiness report's own "Recommended
+   structure" (§9-adjacent) lists 6 modules — `networking`, `database`,
+   `ecr`, `backend`, `frontend`, `dns` — with the EC2 bastion provisioned
+   as a standalone resource, not its own module.
+   `aws-technical-architecture-flow.md` instead lists 7 modules, the same
+   6 plus a dedicated `bastion/` module. Both agree the bastion itself
+   should exist and be SSM-only, scoped to RDS access; they disagree only
+   on whether it is Terraform-modularized separately.
+
+### 2026-09-24 update evidence
+
+- `08-evidence/documents/aws-golive-readiness-report.md` (§9, §12, §19)
+- `08-evidence/documents/aws-technical-architecture-flow.md` (network-layout
+  table, RDS spec row, module-list section)

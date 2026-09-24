@@ -1128,6 +1128,40 @@ directly in this vault — only derivative handoff/prompt/plan documents
 that reference it. Stays Open until the source report itself is ingested.
 Evidence: `08-evidence/documents/orchestration/phase7-production-hardening-plan.md`
 
+**Update — 2026-09-24 (source report itself now ingested — confirmed, title no
+longer accurate):** `aws-golive-readiness-report.md` (batch 5) has been read
+directly. The claim is **confirmed accurate**, not a misattribution — with one
+correction to this entry's own title: the item is not confined to a single
+§22 "Phase 7" mention, it recurs throughout the report as a named, load-bearing
+constraint. §1a states the finding plainly: "a hard architectural ceiling of
+exactly one running backend instance until seven in-process caches are fixed."
+§7 names the fix directly: "Move the seven in-process caches to a shared store
+(Redis, or DB-backed)." §22 Phase 7 (the section this entry originally named)
+restates it as a sequencing instruction: "Prioritize moving the seven
+in-process caches to a shared store to remove the single-ECS-task constraint
+(§7) — do this before staging is trusted as the ongoing home for ~1,000 real
+users; ... treat it as the first item in this phase, not the last." §8 adds a
+capacity-driven reprioritization not previously known to this vault: given a
+~1,000 MAU target, the report moves this cache rewrite earlier in the overall
+sequence than a first read of the Phase 7 label alone would suggest.
+
+The exact seven caches, per `aws-golive-launch-blockers.md` (same batch): the
+CAS-import password-retry PDF buffer, import-preview sessions, the analytics
+PDF-export payload handoff, the dashboard holdings cache, the
+distributor-comparison cache, and the NAV-warming/TER-backoff/category-ranking
+caches. This list matches, rather than contradicts, what R-058's 2026-09-23
+update already described as the reason the single-ECS-task constraint is
+being deliberately held rather than relaxed.
+
+Status stays **Open** — the caches have not been moved to a shared store, only
+the claim about their existence and priority is now verified against primary
+source rather than second-hand. No longer "flagged, not verified"; retitling
+the entry itself is not done here per the vault's append-only rule for
+already-committed content — this update supersedes that framing in substance.
+
+Evidence: `08-evidence/documents/aws-golive-readiness-report.md` (§1a, §7, §8,
+§22 Phase 7), `08-evidence/documents/aws-golive-launch-blockers.md`.
+
 ### R-055 — SIP tab switcher: an inactive tab's `aria-controls` points at an unmounted panel id (Open, low — accepted documented limitation)
 
 Found during the active-SIP cadence redesign's mandatory adversarial-review
@@ -1364,6 +1398,37 @@ problem from duplicate recomputes, not a schedule.
 
 *Source: `08-evidence/documents/orchestration/dashboard-nav-perf-handoff.md`
 (round 4); `02-journey/2026-08-13-dashboard-nav-and-holdings-cache-race-hardening.md`.*
+
+### R-061 — Test fixtures create schema directly (`Base.metadata.create_all()`), so migration/model drift can pass a green test suite (Open, medium — testing-process gap)
+
+`tests/conftest.py:24-26` builds the test database schema straight from the
+current SQLAlchemy models, bypassing the Alembic migration chain entirely.
+A migration that is missing, wrong, or silently out of sync with the models
+(exactly the kind of drift already found and fixed once — see migration
+`0010`'s enum-widening fix, recorded in the 2026-09-02 journey entry's
+2026-09-23 addendum, and R-050's migration-numbering finding) will not be
+caught by the test suite, because the tests never actually run the
+migrations that a real deploy applies to RDS. The suite can stay green while
+the migration chain that would run against staging/production Postgres is
+broken or incomplete.
+
+**Why this matters:** this is a root-cause finding, not a restatement of the
+already-fixed enum-widening incident — it explains *why* that kind of drift
+was able to go undetected until an unrelated audit found it by hand, and why
+the same class of gap can recur silently. A schema/migration mismatch would
+currently surface only in a real deploy (or a manual audit like this one),
+not in CI.
+
+**To verify / what would fix it:** add a test-suite path (even a single
+smoke test) that builds the schema by running the actual Alembic migration
+chain against a throwaway Postgres database, rather than `create_all()`,
+and fails if the two diverge. Not scoped or designed here — recorded so the
+gap is not lost, consistent with this vault's audit having independently
+reconfirmed F1-F3/F5-F10 already-resolved elsewhere and found this as the
+one genuinely new item.
+
+*Source: `08-evidence/documents/sqlite-postgres-migration-compliance-audit.md`,
+Section 6 (root-cause discussion of `tests/conftest.py:24-26`).*
 
 ## Deferred by decision (not debt, tracked so it is not lost)
 
