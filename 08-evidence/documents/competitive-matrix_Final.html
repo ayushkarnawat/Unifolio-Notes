@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Competitive Landscape — Feature Parity, Profiles &amp; Positioning</title>
+<style>
+:root{
+  --bg:#F7F6F3; --surface:#FFFFFF; --surface-2:#EFEDE7;
+  --text:#1C1B19; --text-2:#6B6862; --text-3:#9A9790;
+  --border:#E4E1D9; --accent:#3B5BDB; --accent-soft:#EAEEFC;
+  --green:#1D9E75; --green-bg:#E1F5EE;
+  --amber:#BA7517; --amber-bg:#FAEEDA;
+  --red:#A32D2D; --red-bg:#FCEBEB;
+  --gray:#9A9790; --gray-bg:#EFEDE7;
+  --radius:14px; --radius-sm:9px;
+  --font: -apple-system, "SF Pro Display", "Inter", "Segoe UI", sans-serif;
+}
+[data-theme="dark"]{
+  --bg:#171614; --surface:#211F1C; --surface-2:#2A2825;
+  --text:#F2F0EA; --text-2:#B4B0A6; --text-3:#7E7A70;
+  --border:#39362F; --accent:#7F9BFF; --accent-soft:#232A47;
+  --green:#5DCAA5; --green-bg:#0F3229;
+  --amber:#EF9F27; --amber-bg:#3A2A0C;
+  --red:#F09595; --red-bg:#3A1414;
+  --gray:#7E7A70; --gray-bg:#2A2825;
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font);-webkit-font-smoothing:antialiased;}
+.wrap{max-width:1180px;margin:0 auto;padding:32px 24px 80px;}
+header{display:flex;justify-content:space-between;align-items:flex-start;gap:24px;margin-bottom:8px;}
+h1{font-size:26px;font-weight:600;margin:0 0 4px;letter-spacing:-0.01em;}
+.sub{color:var(--text-2);font-size:14px;margin:0;max-width:640px;line-height:1.5;}
+.theme-btn{border:1px solid var(--border);background:var(--surface);color:var(--text);border-radius:999px;padding:8px 14px;font-size:13px;cursor:pointer;font-family:var(--font);white-space:nowrap;}
+.theme-btn:hover{border-color:var(--accent);}
+
+nav{display:flex;gap:6px;margin:28px 0 24px;flex-wrap:wrap;border-bottom:1px solid var(--border);padding-bottom:0;}
+.tab{border:none;background:transparent;color:var(--text-2);font-family:var(--font);font-size:13.5px;font-weight:500;padding:10px 4px;cursor:pointer;border-bottom:2px solid transparent;margin-right:18px;}
+.tab.active{color:var(--text);border-bottom-color:var(--accent);}
+.tab:hover{color:var(--text);}
+
+section{display:none;}
+section.active{display:block;animation:fade .25s ease;}
+@keyframes fade{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px 22px;margin-bottom:16px;}
+.card h2{font-size:16px;font-weight:600;margin:0 0 6px;}
+.card p.desc{color:var(--text-2);font-size:13.5px;line-height:1.6;margin:0 0 14px;}
+
+/* Overview grid */
+.ov-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;}
+.ov-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;}
+.ov-card.us{border-color:var(--accent);background:var(--accent-soft);}
+.ov-name{font-weight:600;font-size:14.5px;margin-bottom:3px;}
+.ov-tag{display:inline-block;font-size:11px;color:var(--text-2);background:var(--surface-2);border-radius:5px;padding:2px 7px;margin-bottom:8px;}
+.ov-card.us .ov-tag{background:var(--accent);color:#fff;}
+.ov-line{font-size:12.5px;color:var(--text-2);line-height:1.55;}
+
+/* Profiles */
+.profile{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:10px;overflow:hidden;}
+.profile-head{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;cursor:pointer;gap:16px;}
+.profile-head:hover{background:var(--surface-2);}
+.profile-title{display:flex;align-items:baseline;gap:10px;}
+.profile-title .name{font-weight:600;font-size:15px;}
+.profile-title .tag{font-size:11.5px;color:var(--accent);background:var(--accent-soft);padding:2px 9px;border-radius:6px;}
+.profile-chevron{color:var(--text-3);font-size:13px;transition:transform .2s;flex-shrink:0;}
+.profile.open .profile-chevron{transform:rotate(90deg);}
+.profile-body{max-height:0;overflow:hidden;transition:max-height .3s ease;}
+.profile.open .profile-body{max-height:1200px;}
+.profile-inner{padding:0 20px 20px;font-size:13.5px;line-height:1.7;color:var(--text);}
+.profile-inner .facts{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;}
+.profile-inner .fact{background:var(--surface-2);border-radius:7px;padding:5px 10px;font-size:12px;color:var(--text-2);}
+.profile-inner h4{font-size:12px;text-transform:uppercase;letter-spacing:.03em;color:var(--text-3);margin:14px 0 5px;font-weight:600;}
+.profile-inner p{margin:0 0 8px;}
+.sw-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:6px;}
+@media(max-width:640px){.sw-grid{grid-template-columns:1fr;}}
+.sw-box{border-radius:var(--radius-sm);padding:12px 14px;font-size:12.5px;line-height:1.6;}
+.sw-box.strength{background:var(--green-bg);color:var(--text);}
+.sw-box.weakness{background:var(--red-bg);color:var(--text);}
+.sw-box .lbl{font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.03em;margin-bottom:5px;display:block;}
+.sw-box.strength .lbl{color:var(--green);}
+.sw-box.weakness .lbl{color:var(--red);}
+.expand-all{border:1px solid var(--border);background:var(--surface);color:var(--text-2);border-radius:999px;padding:7px 14px;font-size:12.5px;cursor:pointer;font-family:var(--font);margin-bottom:14px;}
+
+/* Matrix */
+.matrix-scroll{overflow-x:auto;}
+table.matrix{border-collapse:collapse;font-size:12.5px;min-width:900px;width:100%;}
+table.matrix th, table.matrix td{padding:0;text-align:center;}
+table.matrix th.feat, table.matrix td.feat{text-align:left;padding:8px 12px 8px 0;color:var(--text);font-weight:500;white-space:nowrap;position:sticky;left:0;background:var(--surface);min-width:190px;font-size:12.5px;}
+table.matrix thead th{padding:6px 3px 10px;font-weight:600;font-size:11px;color:var(--text-2);vertical-align:bottom;}
+table.matrix thead th.us-col{color:var(--accent);}
+table.matrix tbody tr{border-top:1px solid var(--border);}
+.cell{width:34px;height:28px;display:flex;align-items:center;justify-content:center;margin:2px auto;border-radius:6px;font-size:11px;font-weight:600;}
+.cell.full{background:var(--green-bg);color:var(--green);}
+.cell.partial{background:var(--amber-bg);color:var(--amber);}
+.cell.none{background:var(--surface-2);color:var(--text-3);}
+.legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:14px;font-size:12px;color:var(--text-2);}
+.legend span.dot{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:5px;vertical-align:middle;}
+
+.cat-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;}
+.cat-tab{border:1px solid var(--border);background:var(--surface);color:var(--text-2);font-family:var(--font);font-size:12.5px;padding:6px 12px;border-radius:999px;cursor:pointer;}
+.cat-tab.active{background:var(--text);color:var(--bg);border-color:var(--text);}
+[data-theme="dark"] .cat-tab.active{background:var(--accent);border-color:var(--accent);color:#fff;}
+
+.read{background:var(--accent-soft);border-radius:var(--radius-sm);padding:12px 14px;font-size:13px;color:var(--text);margin-top:14px;line-height:1.6;}
+.read b{color:var(--accent);}
+
+/* Quadrants — redesigned, one large plot at a time */
+.quad-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;}
+.quad-desc{color:var(--text-2);font-size:13px;margin:0 0 16px;}
+svg.quad{width:100%;height:auto;overflow:visible;font-family:var(--font);}
+.axis-label{font-size:12px;fill:var(--text-2);font-weight:500;}
+.corner-label{font-size:11px;fill:var(--text-3);font-style:italic;}
+.quad-line{stroke:var(--border);stroke-width:1;}
+.quad-frame{fill:none;stroke:var(--border);}
+.dot circle{fill:var(--surface);stroke:var(--text-3);stroke-width:1.5;}
+.dot text{font-size:12px;fill:var(--text-2);font-weight:500;}
+.dot.us circle{fill:var(--accent);stroke:var(--accent);}
+.dot.us text{fill:var(--accent);font-weight:700;}
+.leader{stroke:var(--border);stroke-width:1;stroke-dasharray:2 2;}
+.quad-read{font-size:13px;color:var(--text-2);line-height:1.65;margin-top:16px;padding-top:14px;border-top:1px solid var(--border);}
+.quad-read b{color:var(--text);}
+
+/* Synthesis */
+.syn-list{display:grid;gap:10px;}
+.syn-item{display:flex;gap:12px;align-items:flex-start;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px 16px;}
+.syn-num{flex-shrink:0;width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent);font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;}
+.syn-text{font-size:13.5px;line-height:1.6;color:var(--text);}
+.syn-text b{color:var(--accent);}
+
+.tags{display:flex;flex-wrap:wrap;gap:7px;}
+.tag{background:var(--surface-2);color:var(--text-2);font-size:12px;padding:5px 11px;border-radius:999px;}
+.tag.novel{background:var(--accent-soft);color:var(--accent);font-weight:500;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Competitive Landscape</h1>
+      <p class="sub">Feature parity, full profiles, and positioning across 11 competitors — synthesized for stakeholder review.</p>
+    </div>
+    <button class="theme-btn" onclick="toggleTheme()">Toggle dark mode</button>
+  </header>
+
+  <nav>
+    <button class="tab active" data-tab="overview">Overview</button>
+    <button class="tab" data-tab="profiles">Competitor profiles</button>
+    <button class="tab" data-tab="matrix">Feature matrix</button>
+    <button class="tab" data-tab="quadrants">Positioning maps</button>
+    <button class="tab" data-tab="calculators">Calculators</button>
+    <button class="tab" data-tab="synthesis">Synthesis</button>
+  </nav>
+
+  <section id="overview" class="active">
+    <div class="card">
+      <h2>11 competitors mapped</h2>
+      <p class="desc">Self-reported status only — no non-public systems accessed. "Us" reflects the MF-only MVP plan. Open the Competitor profiles tab for the full detail behind each card.</p>
+      <div class="ov-grid" id="ovGrid"></div>
+    </div>
+  </section>
+
+  <section id="profiles">
+    <div class="card">
+      <h2>Full competitor profiles</h2>
+      <p class="desc">Click any competitor to expand. Strengths and weaknesses are battlecard-style — genuine, not dismissive.</p>
+      <button class="expand-all" id="expandAllBtn" onclick="toggleAll()">Expand all</button>
+      <div id="profileList"></div>
+    </div>
+  </section>
+
+  <section id="matrix">
+    <div class="card">
+      <h2>Feature parity matrix</h2>
+      <p class="desc">Switch categories below. Each cell shows whether a competitor offers that capability.</p>
+      <div class="cat-tabs" id="catTabs"></div>
+      <div class="matrix-scroll" id="matrixHost"></div>
+      <div class="legend">
+        <span><span class="dot" style="background:var(--green)"></span>Full</span>
+        <span><span class="dot" style="background:var(--amber)"></span>Partial</span>
+        <span><span class="dot" style="background:var(--text-3)"></span>None / unconfirmed</span>
+      </div>
+      <div class="read" id="catRead"></div>
+    </div>
+  </section>
+
+  <section id="quadrants">
+    <div class="card">
+      <div class="quad-tabs" id="quadTabs"></div>
+      <p class="quad-desc" id="quadDesc"></p>
+      <svg class="quad" id="quadSvg" viewBox="0 0 760 520"></svg>
+      <div class="quad-read" id="quadRead"></div>
+    </div>
+  </section>
+
+  <section id="calculators">
+    <div class="card">
+      <h2>Calculator / tool inventory</h2>
+      <p class="desc">Every calculator seen across the competitive set — highlighted tags are genuinely novel additions worth prioritizing in our own backlog.</p>
+      <div class="tags" id="calcTags"></div>
+    </div>
+  </section>
+
+  <section id="synthesis">
+    <div class="card">
+      <h2>Where this leaves our MVP scope</h2>
+      <div class="syn-list" id="synList"></div>
+    </div>
+  </section>
+</div>
+
+<script>
+function toggleTheme(){
+  const cur = document.documentElement.getAttribute('data-theme');
+  document.documentElement.setAttribute('data-theme', cur==='dark' ? 'light' : 'dark');
+}
+document.querySelectorAll('.tab').forEach(t=>{
+  t.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('section').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    document.getElementById(t.dataset.tab).classList.add('active');
+  });
+});
+
+const competitors = [
+  {code:'MP', name:'Mprofit'},{code:'FL', name:'Famli'},{code:'PB.ai', name:'Passbook.ai'},
+  {code:'KV', name:'Kuvera'},{code:'SB', name:'Safebox'},{code:'PU', name:'PowerUp'},
+  {code:'PB.fam', name:'Passbook Fam.'},{code:'ION', name:'Ionic Wealth'},{code:'STK', name:'Stack Wealth'},
+  {code:'NOV', name:'Novelty'},{code:'US', name:'Us (MVP)', us:true}
+];
+
+const overview = [
+  {name:'Mprofit', tag:'Accounting depth', line:'14+ yrs of per-broker parsing templates. Deepest tax/XIRR engine. No AA. Dated stack.'},
+  {name:'Famli', tag:'AI + family', line:'SEBI RIA, AA-native, family-first. Narrow coverage, pre-revenue.'},
+  {name:'Passbook.ai', tag:'Broadest coverage', line:'AA-native super-app: chits, crypto, pension. Early-access stage.'},
+  {name:'Kuvera (by CRED)', tag:'Free direct investing', line:'CRED-backed, free. Recent redesign backlash — forced data merge.'},
+  {name:'Safebox', tag:'Vault + net worth', line:'Documents, passwords, emergency access. No tax depth, mobile-only.'},
+  {name:'PowerUp Money', tag:'MF advisory only', line:'SEBI RIA, fund ratings, strong traction. No multi-asset tracking.'},
+  {name:'Passbook (Family)', tag:'Local-first', line:'Zero-server, encrypted, synced to your own Google Drive. Sole architectural outlier.'},
+  {name:'Ionic Wealth', tag:'HNI / ₹1 Cr+', line:'Angel One-backed. MF Central + AA both live in production. Not self-serve.'},
+  {name:'Stack Wealth', tag:'YC-backed, affluent', line:'Finvu-powered AA. Tracking paywalled behind ₹30–38k/yr subscription.'},
+  {name:'Novelty Wealth', tag:'Fee-only advisory', line:'IIT/IIM/McKinsey team. Clean no-commission RIA. Broad coverage + NovaAI.'},
+  {name:'Us (MVP)', tag:'Our plan', line:'Free, self-serve, CAS-first import. MF-only at launch. Brokerage/STT/GST analysis uncontested.', us:true}
+];
+const ovGrid = document.getElementById('ovGrid');
+overview.forEach(o=>{
+  const d = document.createElement('div');
+  d.className = 'ov-card' + (o.us ? ' us' : '');
+  d.innerHTML = `<div class="ov-name">${o.name}</div><div class="ov-tag">${o.tag}</div><div class="ov-line">${o.line}</div>`;
+  ovGrid.appendChild(d);
+});
+
+// ---------- FULL PROFILES ----------
+const profiles = [
+{
+  name:'Mprofit', tag:'The accounting-depth benchmark',
+  facts:['Founded 2009, Mumbai','200,000+ signups','~$2M raised (Rainmatter, Enam)','No RIA/MFD of its own — MF Central via MVest partner'],
+  body:`<p>Mprofit is the explicit north star for this build and the deepest accounting engine in the market — 14+ years of per-broker parsing templates covering 700–1,600+ institutions and 3,000–5,000+ statement formats. Desktop app is C#/.NET with a local SQLite store; web is a 2018-era Angular 6 SPA; mobile is React Native 0.57. All confirmed via their own published Third-Party Licenses disclosure, not inference.</p>
+  <p>Core capability: FIFO capital gains with LTCG grandfathering, XIRR, double-entry-style accounting reports, tax-software-compatible exports. Zero advisory layer — purely descriptive.</p>`,
+  strength:'Deepest, most trusted tax/accounting computation in the market. Genuine long-run moat in per-institution parsing coverage.',
+  weakness:'Import fragility on the long tail of brokers (user-reported "confusing modifications" needed). No Account Aggregator integration anywhere in public materials. Dated tech stack. Purely descriptive — no advice, no AI.'
+},
+{
+  name:'Famli', tag:'AI-led, family-first, RIA-backed',
+  facts:['SEBI RIA (INA000021979)','Mobile only — web "coming"','Pre-revenue / early access'],
+  body:`<p>Famli positions as an AI-driven family net-worth app, RIA-registered from day one rather than bolted on later. Coverage is narrower than the "broad" players — mutual funds, bank accounts, insurance, loans, cards — but the family-first design (coordinated goals, not just shared visibility) is genuine rather than cosmetic.</p>`,
+  strength:'SEBI RIA-backed from inception. Genuinely family-first design. AI-insights framing used with real product intent.',
+  weakness:'Narrow asset coverage — no stocks, property, or gold explicitly listed. No web app yet. Unproven at scale, pre-revenue stage.'
+},
+{
+  name:'Passbook.ai', tag:'Broadest coverage, AA-native',
+  facts:['AMFI-registered MFD (ARN-323410)','Waitlist/early-access stage'],
+  body:`<p>The broadest asset coverage of any competitor reviewed — banking, FD, RD, cards, loans, insurance, stocks, MF, property, gold, bonds, F&O, crypto, pension, government savings, even chits. Explicitly built on RBI-licensed Account Aggregators as the core data-access method ("Safe data from RBI-licensed AAs" is on their homepage) — the most future-proof import strategy of any competitor in this set at time of research.</p>
+  <p><em>Note:</em> unrelated to "Passbook (Family)" below — same name, different company, opposite architecture (cloud vs. local-first).</p>`,
+  strength:'Broadest coverage of any competitor. AA-native from the start — no PDF-parsing legacy debt to carry.',
+  weakness:'No public evidence of tax/capital-gains depth. Still early-access/waitlist stage — breadth may come at the cost of per-asset accuracy, unverified.'
+},
+{
+  name:'Kuvera (by CRED)', tag:'Free direct-plan investing app',
+  facts:['SEBI RIA (Arevuk Advisory, INA200005166)','Owned by CRED since 2024','Free — monetizes via Surplus liquid-fund float'],
+  body:`<p>Free, direct-plan-only mutual fund investing and tracking, now under CRED ownership. Strong brand trust and a genuinely useful tax-harvesting tool. Primarily an investing/distribution app that happens to show a portfolio, not a tracking-first product.</p>
+  <p>The recent CRED-led redesign has drawn sustained negative user feedback — a live cautionary tale: force-merging all data sources into one undifferentiated view without a "my platform only" toggle actively alienated a loyal user base.</p>`,
+  strength:'Strong brand trust (CRED). Genuinely free, no commission drag from direct plans. Real tax-harvesting utility.',
+  weakness:'Recent redesign backlash over forced data aggregation and removed features — a direct, current lesson for our own dashboard design. Primarily a distribution app, tracking secondary.'
+},
+{
+  name:'Safebox', tag:'Document vault + net worth',
+  facts:['SEBI Regulated Entity (RIA)','Mobile only'],
+  body:`<p>A genuinely different job-to-be-done from pure portfolio tracking: document vault, password manager, and net-worth view combined, with explicit "what to do in an emergency" framing and nomination/succession-gap messaging nobody else in this set addresses directly.</p>`,
+  strength:'Genuinely differentiated job-to-be-done — emergency family access and succession-gap awareness, addressed by no other competitor.',
+  weakness:'No visible tax/capital-gains capability. No evidence of CAS/AA import — appears manual-entry-heavy. Mobile-only.'
+},
+{
+  name:'PowerUp Money', tag:'MF-only advisory, strong traction',
+  facts:['SEBI RIA (Uniorbit Wealth Mgmt, INA000019798)','9L+ users, ₹65,000 Cr+ AUM claimed (self-reported, 8 months)','PowerUp Elite ₹999/yr'],
+  body:`<p>Pure mutual-fund advisory — In-form / On-track / Off-track / Out-of-form fund ratings, no-commission positioning, strong self-reported traction. No multi-asset tracking at all, the narrowest scope of any competitor in this set.</p>`,
+  strength:'Strong reported traction and growth. Clean SEBI RIA-backed advisory model, no-commission positioning.',
+  weakness:'MF-only — zero multi-asset tracking. AUM/user figures are self-reported press claims, not independently verified.'
+},
+{
+  name:'Passbook (Family)', tag:'Local-first — the sole architectural outlier',
+  facts:['passbook.family — distinct from Passbook.ai','Desktop app (Mac/Windows) + web view','v1.1.0, launched 2026'],
+  body:`<p>Zero central server for financial data: encrypted SQLite on-device, backed up to the user’s own Google Drive (ChaCha20 encryption, Argon2id key derivation, hardware-backed key storage). Family sharing places an encrypted copy directly in a family member’s own Drive — Passbook’s servers see only an email address and an anonymized install ID.</p>
+  <p>MF import: CAS PDF parsing, same approach we’ve already built — useful external validation. Equity import: confirmed via CDSL sync in the v1.1.0 release notes. CDSL’s Easi/Easiest portal (free, self-service, BO ID + PAN + OTP) is the only publicly known legitimate access point for this — structurally identical to how CAS statements work, and the safe path to replicate rather than reverse-engineer.</p>
+  <p>v1.1.0 added: Mutual Funds analytics (top holdings, regular-plan flags, missing-nominee flags), family-account filters across every asset class, PPF/NPS accounts, FIFO-based realized gains.</p>`,
+  strength:'Coherent, well-executed "your data never leaves your control" trust narrative — a genuinely different architecture, not just marketing. Strong emergency-access/vault framing for families.',
+  weakness:'No visible XIRR/capital-gains rigor beyond basic FIFO gains (added only in v1.1.0). Local-first makes cross-device and AI-layer features structurally harder to build later.'
+},
+{
+  name:'Ionic Wealth', tag:'Angel One’s HNI advisory arm (₹1 Cr+)',
+  facts:['Entities: AOWL + AOISPL (Angel One)','AMFI MFD (ARN 306165), SEBI RA (INH000020305)','₹9,000 Cr+ AUM claimed, 400+ HNI clients'],
+  body:`<p>Not a self-serve tracking app — a full-service HNI wealth advisory business (minimum ~₹1 Cr portfolios) using a free tool, Portfolio Streamliner, as the lead-gen funnel. Grew from ₹5,070 Cr to ₹9,000 Cr+ AUM in under a year per press coverage — an aggressive trajectory backed by Angel One’s existing retail brokerage base.</p>
+  <p><b>The single most important data point from this competitor:</b> their own product copy confirms both MF Central OTP sync and Account Aggregator stock import are live in production today — "Import your mutual funds through a single OTP using MF Central. Stocks will be imported through Account Aggregator through 2 OTPs — no upload required." Independent, current confirmation that both paths are genuinely production-ready, not theoretical.</p>
+  <p>Output framing worth stealing: "Instead of a 40-page dump, you get a ranked list of actions" — action-oriented, not a data dump. IQ is their proprietary institutional strategy taxonomy (Quant, Passives, PIPE & Secondaries, High Yield, Global) — not directly relevant to our MVP, but a clean naming pattern.</p>`,
+  strength:'Real institutional backing and existing user funnel (Angel One). Production-proven MF Central + AA dual import. Strong, actionable-output UX framing. Modern tech stack (Next.js, Sentry, CloudFront).',
+  weakness:'Not self-serve — the free tool is a funnel into a ₹1 Cr+ minimum relationship. No standalone tracking product for retail/mass-market users, which is exactly our target segment.'
+},
+{
+  name:'Stack Wealth', tag:'YC-backed, invest-through model',
+  facts:['StackFin Technology + Invacia Labs','AMFI MFD (171554), SEBI RIA (INA000021313)','Backers: Y Combinator, Harvard Mgmt, Goodwater, Kunal Shah, Tanuj Shori'],
+  body:`<p>Y Combinator-backed, targeting India’s "emerging affluent." Full-stack investing app (curated stock "Stacks," direct MF investing) with tracking (Vault, Financial Health Report) as both retention tool and paid-tier lead-gen. Legacy: a wealth team reportedly managing ₹1,600+ Cr for 1 lakh+ investors over 25 years, suggesting Invacia Labs is an older acquired advisory book paired with StackFin’s newer consumer layer.</p>
+  <p>Confirmed via uploaded screenshot: their Account Aggregator TSP is <b>Finvu</b> — concrete, named vendor intel for our own AA evaluation later, not just an abstract framework.</p>
+  <p>Pricing: Stack One (~₹29,660/yr) and Stack One Plus (~₹38,135/yr) — and notably, "track all investments including those from other apps" is gated behind the Plus tier, not free. A messaging tension worth avoiding: their homepage headline claims "No Hidden Fees, No Commissions," immediately followed by "we earn a commission directly from the fund house" — technically about additional cost to the user, but reads as contradictory on a careful pass.</p>`,
+  strength:'Strong pedigree (YC, Harvard Management, Goodwater, notable angels). Real legacy advisory book. Proven, copyable SEO calculator strategy (bank-specific FD/RD pages). Named AA vendor (Finvu) removes ambiguity for our own evaluation.',
+  weakness:'Tracking/aggregation paywalled behind a ~₹30–38k/yr subscription — expensive for anyone who just wants visibility. Internal contradiction in "no commissions" messaging. Investing-first product, doesn’t serve someone who already holds assets elsewhere.'
+},
+{
+  name:'Novelty Wealth', tag:'Fee-only RIA, broad coverage, NovaAI',
+  facts:['Entity: FW Fintech Pvt Ltd','SEBI RIA (INA000019415), BASL2191','Bangalore-based, founded 2024'],
+  body:`<p>The competitor most directly relevant to our "broad coverage + real advice" whitespace analysis — a credentialed team (CEO: CA, AIR 9, IIM-A MBA; CTO: IIT Delhi, JEE Rank 22; CGO: ex-McKinsey) running a genuinely clean fee-only advisory model: "we do not receive commissions, referral fees, or incentives from any mutual fund house, broker, or financial institution" — legally backed by RIA registration, not just a marketing claim.</p>
+  <p>Coverage breadth rivals Passbook.ai/Passbook Family: bank accounts, EPF, ETFs, stocks, bonds, PPF, gold, FDs, insurance, real estate, NPS, SIPs, dividends, credit cards, loans — organized around net worth, family finance, retirement, emergency fund, and tax planning.</p>
+  <p><b>NovaAI</b> — the first AI chat assistant used as a headline, named product feature in this entire competitive set (11 companies), positioned as "trained by SEBI-licensed experts on India’s tax laws" and available 24/7. Whether it’s a thin LLM wrapper or something more custom isn’t verifiable from the site, but the positioning move itself is the signal worth tracking.</p>
+  <p>Explicitly filters out short-term traders: "If you’re looking for stock tips or quick returns, we’re probably not the right fit" — a confident, disciplined customer-fit stance.</p>`,
+  strength:'Cleanest, legally-backed no-conflict positioning in the entire set. Strongest founder credentials seen. Genuinely broad coverage. Named AI feature used as a real differentiator, not an afterthought.',
+  weakness:'No visible pricing — fee-only RIA models are often expensive, likely still filtering out mass-market retail despite less exclusive-sounding marketing than Ionic Wealth. No visible FIFO/grandfathering-level tax depth. Scale claims (15K+ families) are self-reported and unverified.'
+},
+];
+
+const profileList = document.getElementById('profileList');
+let allOpen = false;
+profiles.forEach(p=>{
+  const el = document.createElement('div');
+  el.className = 'profile';
+  el.innerHTML = `
+    <div class="profile-head" onclick="this.parentElement.classList.toggle('open')">
+      <div class="profile-title"><span class="name">${p.name}</span><span class="tag">${p.tag}</span></div>
+      <span class="profile-chevron">›</span>
+    </div>
+    <div class="profile-body"><div class="profile-inner">
+      <div class="facts">${p.facts.map(f=>`<span class="fact">${f}</span>`).join('')}</div>
+      ${p.body}
+      <div class="sw-grid">
+        <div class="sw-box strength"><span class="lbl">Strength</span>${p.strength}</div>
+        <div class="sw-box weakness"><span class="lbl">Weakness / our opening</span>${p.weakness}</div>
+      </div>
+    </div></div>
+  `;
+  profileList.appendChild(el);
+});
+function toggleAll(){
+  allOpen = !allOpen;
+  document.querySelectorAll('.profile').forEach(p=>p.classList.toggle('open', allOpen));
+  document.getElementById('expandAllBtn').textContent = allOpen ? 'Collapse all' : 'Expand all';
+}
+
+// ---------- MATRIX ----------
+const categories = {
+  'Asset coverage': [
+    ['Mutual funds', {MP:1,FL:.5,'PB.ai':1,KV:1,SB:.5,PU:1,'PB.fam':1,ION:1,STK:1,NOV:1,US:1}],
+    ['Stocks & ETFs', {MP:1,FL:0,'PB.ai':1,KV:.5,SB:.5,PU:0,'PB.fam':1,ION:.5,STK:1,NOV:1,US:0}],
+    ['Bonds', {MP:1,FL:0,'PB.ai':1,KV:0,SB:0,PU:0,'PB.fam':0,ION:.5,STK:0,NOV:1,US:0}],
+    ['FD/RD', {MP:1,FL:0,'PB.ai':1,KV:1,SB:1,PU:0,'PB.fam':1,ION:0,STK:0,NOV:1,US:0}],
+    ['EPF', {MP:1,FL:0,'PB.ai':1,KV:1,SB:1,PU:0,'PB.fam':1,ION:0,STK:0,NOV:1,US:0}],
+    ['PPF / NPS', {MP:1,FL:0,'PB.ai':1,KV:0,SB:1,PU:0,'PB.fam':1,ION:0,STK:0,NOV:1,US:0}],
+    ['Gold / Real estate', {MP:1,FL:0,'PB.ai':1,KV:.5,SB:1,PU:0,'PB.fam':1,ION:0,STK:0,NOV:1,US:0}],
+    ['Insurance', {MP:0,FL:1,'PB.ai':1,KV:0,SB:1,PU:0,'PB.fam':1,ION:0,STK:0,NOV:1,US:0}],
+    ['Bank / loans / cards', {MP:0,FL:1,'PB.ai':1,KV:0,SB:0,PU:0,'PB.fam':0,ION:0,STK:0,NOV:1,US:0}],
+    ['PMS / AIF / alt.', {MP:1,FL:0,'PB.ai':.5,KV:0,SB:0,PU:0,'PB.fam':0,ION:1,STK:0,NOV:0,US:0}],
+  ],
+  'Data import': [
+    ['CAS PDF parsing', {MP:1,FL:.5,'PB.ai':.5,KV:1,SB:0,PU:.5,'PB.fam':1,ION:0,STK:0,NOV:.5,US:1}],
+    ['MF Central OTP', {MP:1,FL:.5,'PB.ai':.5,KV:0,SB:0,PU:.5,'PB.fam':0,ION:1,STK:.5,NOV:.5,US:.5}],
+    ['Account Aggregator', {MP:0,FL:1,'PB.ai':1,KV:.5,SB:.5,PU:.5,'PB.fam':0,ION:1,STK:1,NOV:.5,US:.5}],
+    ['CDSL Easi/Easiest', {MP:0,FL:0,'PB.ai':0,KV:0,SB:0,PU:0,'PB.fam':1,ION:0,STK:0,NOV:0,US:.5}],
+    ['Direct broker API', {MP:0,FL:0,'PB.ai':0,KV:1,SB:0,PU:0,'PB.fam':0,ION:0,STK:0,NOV:0,US:.5}],
+    ['EPF auto-fetch', {MP:0,FL:0,'PB.ai':0,KV:0,SB:1,PU:0,'PB.fam':1,ION:0,STK:0,NOV:.5,US:0}],
+  ],
+  'Analytics & tax': [
+    ['XIRR (fund/portfolio)', {MP:1,FL:0,'PB.ai':.5,KV:.5,SB:0,PU:0,'PB.fam':1,ION:1,STK:.5,NOV:1,US:1}],
+    ['FIFO capital gains', {MP:1,FL:0,'PB.ai':.5,KV:.5,SB:0,PU:0,'PB.fam':1,ION:1,STK:.5,NOV:.5,US:1}],
+    ['Benchmark comparison', {MP:0,FL:.5,'PB.ai':.5,KV:0,SB:0,PU:1,'PB.fam':0,ION:1,STK:.5,NOV:.5,US:0}],
+    ['Overlap detection', {MP:0,FL:0,'PB.ai':0,KV:0,SB:0,PU:0,'PB.fam':0,ION:1,STK:.5,NOV:1,US:0}],
+    ['Concentration flags', {MP:0,FL:.5,'PB.ai':0,KV:0,SB:0,PU:0,'PB.fam':1,ION:1,STK:.5,NOV:.5,US:0}],
+    ['Portfolio health score', {MP:0,FL:0,'PB.ai':0,KV:0,SB:0,PU:1,'PB.fam':1,ION:0,STK:1,NOV:0,US:0}],
+    ['Brokerage / STT / GST', {MP:0,FL:0,'PB.ai':0,KV:0,SB:0,PU:0,'PB.fam':0,ION:0,STK:0,NOV:0,US:1}],
+  ],
+  'Advisory': [
+    ['Personalized advice', {MP:0,FL:1,'PB.ai':.5,KV:.5,SB:0,PU:1,'PB.fam':0,ION:1,STK:1,NOV:1,US:0}],
+    ['Model portfolios', {MP:0,FL:0,'PB.ai':0,KV:0,SB:0,PU:0,'PB.fam':0,ION:1,STK:1,NOV:0,US:0}],
+    ['AI chat assistant', {MP:0,FL:1,'PB.ai':0,KV:0,SB:0,PU:0,'PB.fam':0,ION:0,STK:0,NOV:1,US:0}],
+    ['Human advisor access', {MP:0,FL:0,'PB.ai':0,KV:0,SB:0,PU:0,'PB.fam':0,ION:1,STK:1,NOV:1,US:0}],
+    ['Rebalancing alerts', {MP:0,FL:0,'PB.ai':0,KV:0,SB:0,PU:0,'PB.fam':0,ION:.5,STK:1,NOV:.5,US:0}],
+  ],
+  'Family & vault': [
+    ['Multi-member accounts', {MP:1,FL:1,'PB.ai':.5,KV:1,SB:1,PU:0,'PB.fam':1,ION:0,STK:.5,NOV:1,US:0}],
+    ['Coordinated family goals', {MP:0,FL:1,'PB.ai':0,KV:0,SB:0,PU:0,'PB.fam':0,ION:0,STK:0,NOV:1,US:0}],
+    ['Document/password vault', {MP:0,FL:.5,'PB.ai':.5,KV:0,SB:1,PU:0,'PB.fam':1,ION:0,STK:0,NOV:0,US:0}],
+    ['Emergency-access notes', {MP:0,FL:0,'PB.ai':0,KV:0,SB:1,PU:0,'PB.fam':1,ION:0,STK:0,NOV:0,US:0}],
+  ],
+  'Trust & platform': [
+    ['Regulated (MFD/RIA/RA)', {MP:.5,FL:1,'PB.ai':1,KV:1,SB:1,PU:1,'PB.fam':0,ION:1,STK:1,NOV:1,US:.5}],
+    ['Free core tracking', {MP:1,FL:1,'PB.ai':1,KV:1,SB:1,PU:.5,'PB.fam':1,ION:.5,STK:0,NOV:0,US:1}],
+    ['"Read-only access" trust copy', {MP:0,FL:.5,'PB.ai':.5,KV:.5,SB:.5,PU:.5,'PB.fam':0,ION:1,STK:1,NOV:1,US:0}],
+    ['Local-first architecture', {MP:0,FL:0,'PB.ai':0,KV:0,SB:0,PU:0,'PB.fam':1,ION:0,STK:0,NOV:0,US:0}],
+    ['Web app', {MP:1,FL:.5,'PB.ai':.5,KV:1,SB:0,PU:0,'PB.fam':1,ION:1,STK:1,NOV:1,US:1}],
+    ['Mobile app', {MP:1,FL:1,'PB.ai':.5,KV:1,SB:1,PU:1,'PB.fam':0,ION:1,STK:1,NOV:.5,US:0}],
+  ],
+};
+const reads = {
+  'Asset coverage': 'Passbook.ai, Novelty Wealth, and Mprofit are the three broadest. Our MVP is deliberately MF-only — the widest gap between launch scope and category-leader breadth in this set, by design.',
+  'Data import': 'Five of eleven competitors now confirm production Account Aggregator usage. CAS-parsing-first remains our only viable path before ARN/RIA registration lands — and worth keeping permanently as a fallback for asset classes AA doesn\'t cover.',
+  'Analytics & tax': '<b>Brokerage / STT / GST analysis is completely uncontested</b> across all eleven competitors — the single most defensible "more advanced than Mprofit" claim in the current roadmap.',
+  'Advisory': 'Advisory has become a majority pattern — 6 of 10 real competitors now have some form of it. Worth treating the RIA-registration decision as increasingly time-sensitive.',
+  'Family & vault': '"Family" is claimed by 7 of 11 competitors but implemented with real depth by only three. Legitimate Phase 2/3 backlog, not urgent for MVP.',
+  'Trust & platform': 'Free core tracking is still the market norm — Stack Wealth and Novelty Wealth are the exceptions, both because they monetize elsewhere. We don\'t have that second engine yet, so staying free is the right call.',
+};
+const catTabs = document.getElementById('catTabs');
+const matrixHost = document.getElementById('matrixHost');
+const catRead = document.getElementById('catRead');
+const catNames = Object.keys(categories);
+function renderMatrix(catName){
+  const rows = categories[catName];
+  let html = '<table class="matrix"><thead><tr><th class="feat"></th>';
+  competitors.forEach(c=>{ html += `<th class="${c.us?'us-col':''}">${c.name.split(' ')[0]}</th>`; });
+  html += '</tr></thead><tbody>';
+  rows.forEach(([feat, vals])=>{
+    html += `<tr><td class="feat">${feat}</td>`;
+    competitors.forEach(c=>{
+      const v = vals[c.code];
+      const cls = v===1?'full':v===.5?'partial':'none';
+      const label = v===1?'✓':v===.5?'~':'–';
+      html += `<td><div class="cell ${cls}">${label}</div></td>`;
+    });
+    html += '</tr>';
+  });
+  html += '</tbody></table>';
+  matrixHost.innerHTML = html;
+  catRead.innerHTML = reads[catName] || '';
+}
+catNames.forEach((name,i)=>{
+  const b = document.createElement('button');
+  b.className = 'cat-tab' + (i===0?' active':'');
+  b.textContent = name;
+  b.addEventListener('click', ()=>{
+    document.querySelectorAll('#catTabs .cat-tab').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    renderMatrix(name);
+  });
+  catTabs.appendChild(b);
+});
+renderMatrix(catNames[0]);
+
+// ---------- QUADRANTS — redesigned: one large plot at a time, hand-tuned label offsets ----------
+const quadrants = [
+  {
+    title:'1 · Breadth × Advice',
+    desc:'The original framing, revised — the "empty" quadrant is now contested.',
+    xLabel:'Broad multi-asset coverage →', yLabel:'↑ High advice / action',
+    corners:{tl:'Narrow + advisory',tr:'Broad + advisory (contested)',bl:'Narrow + passive',br:'Broad + passive tracker'},
+    points:[
+      {n:'PowerUp',x:10,y:85,side:'right'},
+      {n:'Novelty',x:76,y:88,side:'right'},
+      {n:'Ionic',x:92,y:66,side:'left'},
+      {n:'Famli',x:46,y:74,side:'right'},
+      {n:'Kuvera',x:16,y:52,side:'right'},
+      {n:'Stack',x:66,y:44,side:'right'},
+      {n:'Mprofit',x:94,y:24,side:'left'},
+      {n:'Safebox',x:70,y:14,side:'right'},
+      {n:'Passbook.ai',x:88,y:10,side:'left'},
+      {n:'Passbook Fam.',x:52,y:8,side:'right'},
+      {n:'US',x:22,y:10,side:'right',us:true},
+    ],
+    read:'The remaining opening is narrower than before: broad coverage + advice + <b>genuinely free, non-gated access</b> — none of the three occupants (Novelty, Ionic, Stack) give away tracking for free.'
+  },
+  {
+    title:'2 · Import × Access',
+    desc:'Surfaces a gap the first map can\'t see.',
+    xLabel:'Advisory/paid-gated → Free, self-serve', yLabel:'↑ API/AA-native import',
+    corners:{tl:'Gated + API-native',tr:'Free + API-native (sparse)',bl:'Gated + document-first',br:'Free + document-first'},
+    points:[
+      {n:'Famli',x:80,y:86,side:'left'},
+      {n:'Passbook.ai',x:92,y:76,side:'left'},
+      {n:'US',x:78,y:52,side:'right',us:true},
+      {n:'Kuvera',x:82,y:30,side:'left'},
+      {n:'Passbook Fam.',x:88,y:18,side:'left'},
+      {n:'Ionic',x:14,y:88,side:'right'},
+      {n:'Stack',x:18,y:66,side:'right'},
+      {n:'Mprofit',x:68,y:12,side:'right'},
+    ],
+    read:'The free + API-native cell is genuinely sparse — only Passbook.ai and Famli sit there confidently, both early-stage. <b>Our sharpest opening</b>: free, self-serve, moving toward AA-native as registration lands.'
+  },
+  {
+    title:'3 · Segment × Model',
+    desc:'Separates "who" from "how".',
+    xLabel:'Mass retail → HNI / affluent', yLabel:'↑ Relationship-driven (human advisor)',
+    corners:{tl:'Mass retail + advisor',tr:'HNI + advisor',bl:'Mass retail + self-serve (crowded)',br:'HNI + self-serve'},
+    points:[
+      {n:'Ionic',x:90,y:86,side:'left'},
+      {n:'Novelty',x:66,y:56,side:'right'},
+      {n:'Stack',x:74,y:44,side:'left'},
+      {n:'PowerUp',x:78,y:18,side:'left'},
+      {n:'Mprofit',x:18,y:8,side:'right'},
+      {n:'Kuvera',x:26,y:16,side:'right'},
+      {n:'Passbook.ai',x:14,y:24,side:'right'},
+      {n:'Passbook Fam.',x:34,y:10,side:'right'},
+      {n:'Safebox',x:22,y:32,side:'right'},
+      {n:'US',x:10,y:14,side:'right',us:true},
+    ],
+    read:'Mass-retail + self-serve is the most crowded cell — exactly where our free-tracking MVP lands. Differentiation has to come from <b>execution quality</b>, not a structurally different position.'
+  },
+  {
+    title:'4 · Trust × Monetization',
+    desc:'The Passbook Family fork, generalized.',
+    xLabel:'Free/low-cost → Paid/gated', yLabel:'↑ Local-first / zero-server',
+    corners:{tl:'Local-first + free',tr:'Local-first + paid',bl:'Cloud + free (crowded)',br:'Cloud + paid'},
+    points:[
+      {n:'Passbook Fam.',x:22,y:88,side:'right'},
+      {n:'Mprofit',x:16,y:20,side:'right'},
+      {n:'Kuvera',x:26,y:10,side:'right'},
+      {n:'Passbook.ai',x:34,y:26,side:'right'},
+      {n:'Safebox',x:20,y:34,side:'right'},
+      {n:'US',x:12,y:8,side:'right',us:true},
+      {n:'Ionic',x:86,y:14,side:'left'},
+      {n:'Stack',x:92,y:26,side:'left'},
+      {n:'Novelty',x:80,y:6,side:'left'},
+    ],
+    read:'Passbook Family is alone in the local-first cell. Worth a deliberate yes/no on our own cloud-first (AWS S3+Athena) direction — flagged, not a recommendation to switch.'
+  },
+];
+
+const quadTabs = document.getElementById('quadTabs');
+const quadDesc = document.getElementById('quadDesc');
+const quadSvg = document.getElementById('quadSvg');
+const quadRead = document.getElementById('quadRead');
+
+function renderQuadrant(idx){
+  const q = quadrants[idx];
+  quadDesc.textContent = q.desc;
+  quadRead.innerHTML = q.read;
+  const W=760,H=520,pad=90;
+  const innerW = W-2*pad, innerH = H-2*pad-30;
+  let svg = '';
+  // corner labels
+  svg += `<text class="corner-label" x="${pad+8}" y="${pad+16}">${q.corners.tl}</text>`;
+  svg += `<text class="corner-label" x="${W-pad-8}" y="${pad+16}" text-anchor="end">${q.corners.tr}</text>`;
+  svg += `<text class="corner-label" x="${pad+8}" y="${pad+innerH-8}">${q.corners.bl}</text>`;
+  svg += `<text class="corner-label" x="${W-pad-8}" y="${pad+innerH-8}" text-anchor="end">${q.corners.br}</text>`;
+  // frame + gridlines
+  svg += `<rect class="quad-frame" x="${pad}" y="${pad}" width="${innerW}" height="${innerH}"/>`;
+  svg += `<line class="quad-line" x1="${pad}" y1="${pad+innerH/2}" x2="${pad+innerW}" y2="${pad+innerH/2}"/>`;
+  svg += `<line class="quad-line" x1="${pad+innerW/2}" y1="${pad}" x2="${pad+innerW/2}" y2="${pad+innerH}"/>`;
+  // dots + leader + labels, offset by side
+  q.points.forEach(p=>{
+    const px = pad + (p.x/100)*innerW;
+    const py = pad+innerH - (p.y/100)*innerH;
+    const r = p.us ? 6 : 4.5;
+    const gap = p.us ? 11 : 9;
+    const lx = p.side==='right' ? px+gap : px-gap;
+    const anchor = p.side==='right' ? 'start' : 'end';
+    svg += `<g class="dot${p.us?' us':''}">
+      <circle cx="${px}" cy="${py}" r="${r}"/>
+      <text x="${lx}" y="${py+4}" text-anchor="${anchor}">${p.n}</text>
+    </g>`;
+  });
+  // axis labels
+  svg += `<text class="axis-label" x="${pad+innerW/2}" y="${H-24}" text-anchor="middle">${q.xLabel}</text>`;
+  svg += `<text class="axis-label" x="${pad}" y="${pad-24}">${q.yLabel}</text>`;
+  quadSvg.innerHTML = svg;
+}
+quadrants.forEach((q,i)=>{
+  const b = document.createElement('button');
+  b.className = 'cat-tab' + (i===0?' active':'');
+  b.textContent = q.title;
+  b.addEventListener('click', ()=>{
+    document.querySelectorAll('#quadTabs .cat-tab').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    renderQuadrant(i);
+  });
+  quadTabs.appendChild(b);
+});
+renderQuadrant(0);
+
+// ---------- Calculators ----------
+const calcs = [
+  ['SIP',0],['SWP',0],['Lumpsum',0],['Step-Up SIP',0],['Goal SIP',0],['XIRR',0],['CAGR',0],
+  ['Present Value',0],['EMI',0],['Retirement',0],['PPF',0],['EPF',0],['Fixed Deposit',0],
+  ['Bank-specific FD/RD (HDFC, SBI, ICICI...)',1],['FIRE number',0],['Buy vs. Rent',0],
+  ['USD/dollar exposure',0],['HRA',1],['Tax regime comparison',1],['Portfolio overlap',0],
+];
+const calcTags = document.getElementById('calcTags');
+calcs.forEach(([name,novel])=>{
+  const t = document.createElement('span');
+  t.className = 'tag' + (novel?' novel':'');
+  t.textContent = name;
+  calcTags.appendChild(t);
+});
+
+// ---------- Synthesis ----------
+const synth = [
+  'MF-only, free, self-serve tracking with CAS-parsing-first import is not contested by anyone currently in the sparse "free + self-serve" cell of Quadrant 2 — the cleanest opening across all four maps.',
+  'Brokerage/STT/GST analysis remains genuinely uncontested across all eleven competitors — the single most defensible "more advanced than Mprofit" claim in the current roadmap.',
+  'Advisory is now a majority pattern (6 of 10 real competitors) — worth treating the RIA-registration decision as increasingly time-sensitive, even though it stays out of the MF-only MVP.',
+  'Family depth and document/emergency vault features recur constantly (7+ competitors) but are rarely done deeply — legitimate Phase 2/3 backlog items, not urgent for MVP.',
+  'The calculator backlog should draw from Stack Wealth (bank-specific FD/RD, SEO play) and Novelty Wealth (HRA, tax regime) in addition to the original Finology-inspired set.',
+];
+const synList = document.getElementById('synList');
+synth.forEach((s,i)=>{
+  const d = document.createElement('div');
+  d.className = 'syn-item';
+  d.innerHTML = `<div class="syn-num">${i+1}</div><div class="syn-text">${s}</div>`;
+  synList.appendChild(d);
+});
+</script>
+</body>
+</html>

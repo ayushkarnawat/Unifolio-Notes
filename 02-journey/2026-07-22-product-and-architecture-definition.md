@@ -104,3 +104,88 @@ transaction dedupe key, two unreconciled generations of the CAS import flow, and
 - [Architecture index](../06-architecture/00-index.md)
 - [Risks and debt](../07-risks-and-debt.md)
 - Sources: `08-evidence/documents/` (14 files)
+
+## Addendum — 2026-09-23: the earliest artifact this vault holds predates this stage by 8 days
+
+A newly-ingested investor-facing roadmap document, dated **2026-07-14**, is
+now the earliest dated artifact in this vault — a week before this stage's
+own 2026-07-22 start. It shows the project's MVP scope and schedule as
+management framed it before the formal specification set (PRD-01 through
+PRD-04, the six ADRs above) existed:
+
+- **Original target:** a working MF-only MVP shippable by **1 August 2026**,
+  on the already-built CAS-parser pipeline (`casparser` + `mfapi.in` +
+  XIRR/FIFO), with a four-phase timeline (Foundation Jul 14–18, Build Jul
+  19–24, Complete Jul 25–Aug 1, Launch Aug 2–15).
+- **A single named critical-path dependency:** the whole downstream schedule
+  assumed the first engineer would start around **2026-07-21**; the document
+  states explicitly there was "no hidden slack to absorb" a hiring delay
+  elsewhere in the plan.
+- **Scope at that point explicitly excluded** equity/broker integration,
+  MFCentral live API / Account Aggregator access (both already named as
+  gated behind ARN/RIA registration — consistent with what became ADR-014's
+  Phase 2 framing a month later), and **multi-member family accounts
+  ("single-login only for MVP")**.
+
+That last point does not match what this vault otherwise documents: the
+2026-07-22 specification set that followed (PRD-02's household step) and
+everything built since (`current-status.md`: "add family members") already
+treat multi-member/household accounts as in scope for the same MVP, not a
+later phase. No source material in this vault records the specific moment
+this changed — flagged as a hypothesis that the single-login-only framing
+was an early, pre-spec simplification superseded within days, not a
+verified fact, since no document narrates the change itself.
+
+This does not change any status, ADR, or risk recorded above — it is
+earlier-dated context that predates and does not contradict the stage's own
+"what actually happened" account, except for the one scope point flagged.
+See also the [ADR-003 addendum](../03-decisions/ADR-003-primary-database-rds-postgresql.md)
+for a related early-stage alternative (S3+Athena) that this same batch's
+material surfaced and that also predates the formal ADRs above.
+
+Source: `08-evidence/documents/mf-mvp-roadmap.md.pdf`.
+
+## Addendum — 2026-09-24 (batch 4e1 ingestion): the pre-PRD-01 CAS-import build-vs-buy triage
+
+Two raw planning files ingested in batch 4e1 (`Planning-V1.MD`, `MF CAS PARSER.pdf`) contain
+an explicit build-vs-buy comparison that precedes PRD-01 and is not otherwise recorded in the
+vault at this level of detail. PRD-01's background section already notes the MFCentral CAS API
+shutdown at summary level; these files show the actual options considered and rejected. Neither
+source file carries an internal date — treat the dating as "before or around PRD-01's 2026-07-22
+creation," not confirmed.
+
+**Options considered, per the raw table:**
+
+| Path | User data access | Cost/effort | Verdict |
+|---|---|---|---|
+| CAS PDF parsing (open-source `casparser`) | Full transaction history | Free, ~a day | **Chosen** — user's own consented download/upload, works today |
+| casparser.in hosted API | Same | ₹999/mo, 10 free credits | Fallback/benchmark only |
+| mfapi.in | NAV/scheme data only, no user holdings | Free | Enrichment only (NAV series) |
+| parse.bot MFCentral API | Public scheme data only, no user holdings | Key needed | Enrichment only (sector/holdings reference data) |
+| smallcase Gateway | Full | Commercial partnership + KYB required | Rejected as "not viable for a test build" |
+| Account Aggregator (via a TSP such as Setu/Finvu) | Full, real-time | Regulated-entity status, 5–10 months, ₹5–25L | Deferred — "your long-term differentiator, not the prototype" |
+
+This is the same AA cost/timeline figure (5–10 months, ₹5–25L) that reappears in the later,
+separate Phase 2 stocks/demat decision — see
+[ADR-014](../03-decisions/ADR-014-phase-2-demat-ingestion.md) and the
+[2026-08-25 journey entry](2026-08-25-phase-2-stocks-and-demat-import.md) — confirming the same
+build-vs-buy reasoning was applied consistently across both the original MF CAS decision and the
+later stocks/demat one, not re-derived from scratch each time.
+
+**Why MFCentral's own API was ruled out, specifically:** the raw material states SEBI/AMFI shut
+down the MFCentral CAS API in September 2025, "stranding 100+ fintechs that relied on it,"
+including the PAN+OTP sync flow that Mprofit and Investwell reportedly used — so "recreate what
+Mprofit does" was explicitly not an option. The source is explicit that attempting to hit
+MFCentral's now-private endpoints, or automate its OTP flow without authorization, "would be
+unauthorized access, so that path is out both practically and legally." This is a hypothesis from
+a single raw planning document, not independently verified against SEBI/AMFI's own notices, but it
+is the stated reasoning behind going with CAS-PDF parsing rather than an MFCentral integration.
+
+This connects to **R-046** in [`07-risks-and-debt.md`](../07-risks-and-debt.md) (the marketing
+brief's "powered by MFCentral" trust-bar claim contradicting how Unifolio actually imports
+statements): this addendum's source material is evidence that the contradiction is not just
+imprecise marketing copy but reflects a real, deliberate technical/legal constraint — Unifolio's
+CAS import was built the way it was in part *because* a direct MFCentral integration was
+considered and ruled out, not merely not-yet-built.
+
+Sources: `08-evidence/documents/Planning-V1.MD`, `08-evidence/documents/MF CAS PARSER.pdf`.

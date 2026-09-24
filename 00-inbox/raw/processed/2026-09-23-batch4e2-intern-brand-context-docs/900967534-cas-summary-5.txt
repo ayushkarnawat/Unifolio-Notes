@@ -1,0 +1,884 @@
+                                        Fetch CAS summary
+Description: This initial section is a pre-requisite for API integration to MFC.
+
+
+
+1. What is MFcentral?
+
+
+MFcentral is application that allows users to seamlessly navigate, search, analyze, and invest in MF
+trading platform for all funds serviced by RTA’s. It lets you execute orders in real time, manage user
+portfolios and place any Non-Financial and Financial Transactions request across all Mutual Funds.
+
+2. Getting Started
+
+
+This application provides a single unified portal for the user to access information regarding
+investments made across mutual funds. This Walkthrough goes over the basics of the authentication
+process as it applies to the MFCentral API using Json Web Tokens (JWT).
+
+
+
+
+Above illustration explained w.r.t GetCASDocument API, the invoking process remains the same for
+other APIs too.
+
+3. Onboarding & API Invoking Process
+
+
+To access MFcentral APIs, you will need the client Id and Client secret to generate the token.
+
+You may contact an MFcentral representative for generating Client Id and secret.
+
+Once you have the Id and secret, connecting to our API is easy. You can proceed with generating the
+token, which should be passed in the header. Please refer to section 3.1
+
+The following steps walk you through the basics to get started using the API.
+3.1 Get Client ID and Client Secret.
+ You can get the client ID and secret, through an Offline process.
+
+ If you think the key has been compromised, contact immediately to generate a new Client Secret
+     Below details will be shared by MFCentral during on-boarding
+
+              String clientId = "";
+              String clientSecret =
+              ""; String userName =
+              ""; String password =
+              "";
+              String encryptionDecryptionKey =
+              ""; String privateKey = "";
+              String publicKey = "";
+
+ 3.2                                                                                                    G
+ enerate Token
+ POST <baseURL>/oauth2/token. This endpoint is accessible only over HTTPS. Plain HTTP
+ connections are refused.
+
+ To generate a token that will be used for authorizing all subsequent APIs pass the Client ID, Client
+ Secret and in the Authorization header.
+
+     Token generation involves passing Headers and Body together to the URL. Refer to the below
+     Postman screenshot on how to generate token.
+
+     Every token object will have an expiry time. Ensure that you are creating a new token object
+     if the existing token object is expired.(token expires in 30 days)
+    Sample:
+              Endpoint: https://uatservices.mfcentral.com/oauth/token
+
+              Headers:
+                         Content-Type: application/x-www-form-urlencoded Authorization:
+                         Basic dGVzdC1jbGllbnQxOnNzcGwkMTIzNA==
+              Body:
+                         username: mfc-client1
+                         password: Cams$1234
+                         grant_type: password
+
+               Response:
+                     {
+                             "access_token": "dd33510a-f161-4818-8d35-65a64f617516","token_type":
+                             "bearer",
+                             "refresh_token": "a0f749fa-2f97-44fd-be93-a5da24a22ca0","expires_in":
+                             2591999,
+                             "scope": "read write trust"
+                         }
+For JAVA users - // Request 1 - Token Generation
+    String tokenGenerationUrl =
+"https://uatservices.mfcentral.com/oauth/token "; String token =
+getToken(tokenGenerationUrl, clientId, clientSecret, userName,
+password);
+    3.3Submitting Request to MFC
+
+    The token is sent in the header (Authorization Tag) along with the keyword “Bearer”. This token is
+    authenticated and on success the validation of the signature process begins. If authentication fails,
+    the response is returned, and the process is terminated.
+
+    Sample: URL: https://uatservices.mfcentral.com/api/client/V1/<endpoint>
+
+     3.3.1) Request Before encryption:
+
+{
+    "clientRefNo": "testing12345",
+    "reqId":"083635320",
+    "email":"",
+    "mobile":"+918015933245",
+    "pan":"EEAPK9544D",
+    "pekrn":"",
+    "
+}
+               Note: clientRefNo should be unique across different unique requests from client for
+               tracking purpose
+
+
+     3.3.2) Encrypt the above request:
+
+               The above request should be encrypted using SHA 256 hash logic
+               To encrypt/decrypt data, use the below details.
+               During Encryption: Final value should be base 64 encoded value from the encrypted
+               result.
+               Take SHA-256 hash of the shared key and use the first 32 byte of the hash as your secret
+               key for both encryption and decryption.
+
+               Algorithm         :        AES Symmetric 256-bit
+               Cipher Mode       :        CBC
+               Padding           :        PKCS5Padding
+               IV text           :        <Constant> - will be shared via email separately
+
+               Reference
+                   Use CryptUtils.encryptDecrypt() for decryption
+                   Sample Usage for
+               Encryption :CryptUtils.encryptDecrypt("ENCRYPT", payload,
+
+     3.3.3)   Generate Signature for the above encrypted request:
+
+               Generate a signature which should passed along with the request. The signed value is
+               a JWS (JSON WEB SIGNATURE) based value. Use the below detail to generate a JWS.
+
+               Algorithm: RS256 (RSA using SHA-256 hash algorithm)
+
+               Serialization: Compact Serialization, detached
+
+               payload
+Reference :
+Use generateSignature function
+Sample Usage: generateSignature(encryptedText, privateKey);
+sample process – for JAVA based Users:
+       // Inputs to the request (Switch API structure)
+
+String pan =
+"ACXXXX91XX"; String
+pekrn = "";
+String mobile =
+"+91XXXXX70XX9"; String email
+= "";
+String clientReferenceNumber = "testing12345"; //dynamic value
+generated by client
+
+// Request 2 - submit pan/pekrn & mobile/email to MFCentral for
+Financial Transactions.
+
+UAT URL : https://uatservices.mfcentral.com/api/client/V1/redeem
+
+String request = Switch structure as given above
+
+String redeemRequestUrl =
+"https://uatservices.mfcentral.com/api/client/V1/redeem"; JSONObject response =
+submitRequestToMFCentral(
+RequestUrl
+, token,
+clientId,
+Response From MFC
+{
+       "reqId": 56475, //Generated by MFC
+       "otpRef": "9b69c14e-76f5-4ccb-9cd1-22e20793c4e9",//Generated by
+       MFC "userSubjectReference": "",
+       "clientRefNo": "testing12345"
+}
+3.3.4) Submitting the request to MFCentral
+        Once you have generated the signature, submit your request in the below request
+        format.
+
+                        {"signature": “<signature generated in step 3.3.3>”,
+                        “request”: “<encrypted request generated in step 3.3.2>”}
+           Headers:
+            Content-Type: application/json
+            ClientId: test-client1
+            Authorization: Bearer dd33510a-f161-4818-8d35-65a64f617516
+
+           Method: POST
+         Reference
+
+
+
+
+             Sample Response: {"signature":"","response":""}
+
+3.3.5)    Verifying the signature
+
+           MFCentral returns response payload along with the digital signature. Verify the
+           signature before processing the response.
+
+          Reference:
+
+          Use verifySignature
+          function Sample Usage:
+                  verifyDigitalSignature(response, signature, publicKey);
+3.36) Decrypt the response
+
+             Before decryption, decode the base 64 value first.
+
+             Algorithm            :         AES Symmetric 256-bit
+             Cipher Mode          :         CBC
+             Padding              :         PKCS5Padding
+             IV text              :         <constant>
+
+
+               Reference
+
+           Use CryptUtils.encryptDecrypt() for decryption
+       Sample Usage:
+   CryptUtils.encryptDecrypt("DECRYPT", response, encryptionKey);
+
+
+
+
+ 3.4                                                                                                      Sub
+    mitting Investor consent to MFCentral (Validating OTP):
+  Upon successful authentication, you shall request for user OTP validation.
+
+  Once the User enters the OTP, MFcentral will validate and if validation is successful, shall allow to
+  proceed with the next step, else return error as OTP validation failed.
+
+  For every request OTP validation shall be a mandatory process.
+
+  Below is the process for Investor consent
+
+       URL: https://uatservices.mfcentral.com/api/client/V1/investorconsent
+
+               Headers:
+                      Content-Type: application/json
+                      ClientId: test-client1
+                      Authorization: Bearer dd33510a-f161-4818-8d35-65a64f617516
+
+        3.4.1) Request Before encryption:
+
+                          {
+                                  "reqId": 28364,
+                                  "otpRef": "83057769-d7dd-4636-83e7-a5a898066f73",
+                                  "userSubjectReference": "",
+                                  "clientRefNo": "client1-123456",
+                                  "enteredOtp": "973947"
+                          }
+                         reqId – generated from response – step 3.3.6
+                         otpRef – generated from response – step 3.3.6
+
+    perform steps 3.3.2 to 3.3.6 for the payload to be sent and to
+    get the response
+
+               // Request 3 - Submit investor Consent to MFCentral
+
+       String otpValidationUrl =
+       "https://uatservices.mfcentral.com/api/client/V1/investorconsent ";
+       JSONObject otpRequest = new
+       JSONObject("{\"reqId\":55718,\"otpRef\":\"35979fc2-e2c8-4faa-
+       b6dc-
+       submitRequestToMFCentral(
+       otpValidationUrl, token, clientId, encryptionDecryptionKey,
+       private key,public key, otpRequest.Tostring()
+
+
+
+
+    Response:
+  Response from MFCentral: Accepted status 202
+  <<empty>>
+
+
+3.5 Submit request to get the status of the transaction:
+    Upon successful OTP validation, you can invoke the MFcentral APIs. The API response structure
+    are provided in section 4
+
+  Below sample is provided for redemption, likewise you may use the respective service endpoints.
+
+       Endpoint: https://sitservices.mfcentral.com/api/client/V1/getFtTransactionStatus
+                Headers:
+                       Content-Type: application/json
+                       ClientId: test-client1
+                       Authorization: Bearer dd33510a-f161-4818-8d35-65a64f617516
+
+        3.5.1)    Request Before encryption:
+
+                        Use the reqId and clientRefNo sent in the previous request 3.4.1
+
+                        {"reqId":28364,"clientRefNo":"testing-12345"}
+
+    perform steps 3.3.2 to 3.3.6 for the payload to be sent and get the response
+
+
+                 // Request 4 - Get Transaction Status
+
+       String transactionstatus =
+       https://sitservices.mfcentral.com/api/client/V1/getFtTransactionStatus ";
+
+Note: As this is asynchronous call, you may invoke the API to get the
+actual status of the Transaction.
+
+There is no limit/restriction for the no of hits for Transaction status API
+
+API Flow:
+
+  1. Encrypt JSON Request( https://uatservices.mfcentral.com/api/test/encrypt)
+  2. Generate Signature for calling CAS
+     API(https://uatservices.mfcentral.com/api/test/generateSignature)
+  3. Invoke the CAS Summary API:
+     https://uatservices.mfcentral.com/api/client/V1/submitcassummaryrequest
+  4. Decrypt the Response Received : ( https://uatservices.mfcentral.com/api/test/decrypt)
+  5. Encrypt the request for Investor Consent : https://uatservices.mfcentral.com/api/test/encrypt
+  6. Generate Signature(https://uatservices.mfcentral.com/api/test/generateSignature)
+  7. Invoke Investor Consent API( https://uatservices.mfcentral.com/api/client/V1/investorconsent)
+  8. Encrypt the request for CAS Document API : https://uatservices.mfcentral.com/api/test/encrypt
+  9. Generate Signature(https://uatservices.mfcentral.com/api/test/generateSignature)
+    10. Invoke CAS Document API (https://uatservices.mfcentral.com/api/client/V1/getcasdocument)
+    11. Decrypt to get CAS : ( https://uatservices.mfcentral.com/api/test/decrypt)
+
+
+  4. CAS
+
+Description: A common account statement is a consolidated statement where you van view all your
+mutual fund investments and their statuses, irrespective of the fund, RTA or depository where your
+investments are held
+
+
+This post request is designed to receive switch transaction requests and process them in accordance
+with RTA rules and validations.
+
+Request endpoints:
+CAS request summary api : https://uatservices.mfcentral.com/api/client/V1/submitcassummaryrequest
+CAS document api: https://uatservices.mfcentral.com/api/client/V1/getcasdocument
+
+
+  Header: Instead of individual key-value pairs, we're providing bulk edit content for direct copying and
+  pasting during Postman testing. Please follow the steps below:
+      1. Navigate to the header section.
+      2. Select the "Bulk Edit" option.
+      3. Paste the provided content into the designated area.
+
+
+
+
+          Content-Type:application/json
+          Authorization:Bearer {{token}}
+          origin:https://uatapp.mfcentral.com
+          ClientId:ranjani
+
+
+
+
+Parameters
+
+
+
+  Parameter     Data type(Length)         Mandatory           Description                Validation
+
+ clientRefNo    String(30            REQUIRED          A client reference          Ensure that the client
+                characters)                            number serves as a          reference number is a
+                                                       unique key for each API     unique alphanumeric
+                                                       call, facilitating the      or numeric value
+                                                       updating of the internal    within 30 characters
+                                                       database for logging
+                                                       requests
+    reqId        String(50)        OPTIONAL         The request id is a series
+                                                    of characters or
+                                                    numbers used to
+                                                    identify each request
+                                                    received for processing.
+                                                    Pass this value as empty
+                                                    or NULL
+    email        String(500)       CONDITIONAL      Email address of the         A non-empty string
+                                   REQUIRED         investor registered in       containing "@"
+                                                    the PAN/folio number.        symbol and should
+                                                    Either email or mobile       have atleast one ‘.’
+                                                    number is mandatory,
+                                                    Do not pass both values
+    mobile       String(30)        CONDITIONAL      Mobile number of the         Should be in the
+                                   REQUIRED         investor registered in       format "+91" followed
+                                                    the PAN/folio number.        by 10 digits or simply
+                                                    Either email or mobile       10 digits
+                                                    number is mandatory,
+                                                    Do not pass both values
+    pan          String(45)        CONDITIONAL      PAN (Permanent               Should follow the
+                                   REQUIRED         Account Number) of the       format of 5 alpha
+                                                    investor. Either PAN or      characters, followed
+                                                    PEKRN is mandatory. Do       by 4 numeric
+                                                    not pass both values         characters, and ending
+                                                                                 with 1 alpha
+                                                                                 character.
+    pekrn        String(15)        CONDITIONAL      PEKRN is a unique
+                                   REQUIRED         identification number
+                                                    provided to individuals
+                                                    who are exempt from
+                                                    providing a Permanent
+                                                    Account Number (PAN)
+                                                    during the Know Your
+                                                    Customer (KYC) process
+                                                    for mutual fund
+                                                    investments. Either PAN
+                                                    or PEKRN is mandatory.
+                                                    Do not pass both values
+
+
+
+Request
+
+{
+       "clientRefNo": "2492dcc241753123",
+       "reqId": "1101",
+       "pan": "ALNPR6026P",
+       "mobile": "9884174067",
+       "email": "",
+       "pekrn": ""
+}
+
+  RESPONSE:
+Invokes the investor consent api by trigering an OTP
+Response from MFCentral: Accepted status 200<<empty>>(if otp matches with the otp ref)
+CAS Document api:
+Parameters
+
+
+     Parameter    Data type(Length)    Mandatory         Description                  Validation
+
+    clientRefNo   String(30           REQUIRED     A client reference           Ensure that the client
+                  characters)                      number serves as a           reference number is a
+                                                   unique key for each API      unique alphanumeric
+                                                   call, facilitating the       or numeric value
+                                                   updating of the internal     within 30 characters
+                                                   database for logging
+                                                   requests
+    reqId         String(50)          REQUIRED     The request id is a series
+                                                   of characters or
+                                                   numbers used to
+                                                   identify each request
+                                                   received for processing.
+                                                   Pass this value as empty
+                                                   or NULL
+
+
+Request
+
+{
+       "reqId": 2563565,
+       "clientRefNo": "2492dcc241753123"
+
+
+}
+
+
+
+Response
+
+{
+       "reqId": "2563566",
+       "pan": "ALNPR6026P",
+       "pekrn": "",
+       "mobile": "9884174067",
+       "email": "",
+       "data": [
+           {
+               "summary": [
+                    {
+                       "amc": "H",
+                       "amcName": "MFHMF Test Fund",
+                       "isDemat": "N",
+                       "currentMktValue": "14088984.96",
+                       "costValue": "11550590.64",
+                       "gainLoss": "2538394.32",
+                       "gainLossPercentage": "21.98"
+                    }
+               ],
+               "schemes": [
+                    {
+"amc": "H",
+"amcName": "MFHMF Test Fund",
+"folio": "10006292",
+"investorName": "GRAZSUTPSGEC",
+"age": 68,
+"mobile": "9884174067",
+"email": "ranjani.sr@camsonline.com",
+"taxStatus": "01",
+"modeOfHolding": "Single",
+"transactionSource": "Channel",
+"schemeCode": "BFG",
+"schemeName": "HDFC Balanced Fund - Regular Plan - Growth ",
+"idcwChangeAllowed": "False",
+"schemeOption": "Growth",
+"assetType": "EQUITY",
+"schemeType": "Balanced",
+"nav": "147.069",
+"navDate": "01-Jun-2018",
+"closingBalance": "0.00",
+"availableUnits": "0.000",
+"availableAmount": "0.00",
+"currentMktValue": "0.00",
+"costValue": "0.00",
+"gainLoss": "0.00",
+"gainLossPercentage": "0.00",
+"isDemat": "N",
+"lienUnitsFlag": "N",
+"decimalUnits": 3,
+"decimalAmount": 2,
+"decimalNav": 3,
+"brokerCode": "ARN-111569",
+"brokerName": "ANAND RATHI WEALTH LIMITED",
+"isin": "INF179K01392",
+"purAllow": "N",
+"redAllow": "N",
+"swtAllow": "N",
+"sipAllow": "N",
+"stpAllow": "N",
+"swpAllow": "N",
+"planMode": "R",
+"dpId": "",
+"mobileRelationship": "",
+"emailRelationship": "SE",
+"newFolio": "N",
+"nomineeStatus": "Y",
+"lienEligibleUnits": "0.000",
+"bank": {
+    "accountNo": "00271930014183",
+    "accountType": "SB",
+    "name": "HDFC Bank Ltd",
+    "branch": "Greater Kailash 2",
+    "city": "New Delhi",
+    "pincode": "",
+    "micr": "",
+    "ifsc": "HDFC0000027",
+                             "neftifsc": "HDFC0000027"
+                        },
+                        "rtaName": "CAMS"
+                   },
+          }
+            "portfolio": [
+          {
+               "currentMktValue": "22631954.56",
+               "costValue": "11749460.00",
+               "gainLoss": "10882494.56",
+               "gainLossPercentage": "92.62",
+               "isDemat": "N"
+          },
+          {
+               "currentMktValue": "121884.12",
+               "costValue": "70000.00",
+               "gainLoss": "51884.12",
+               "gainLossPercentage": "74.12",
+               "isDemat": "Y"
+          }
+       ],
+       "investorDetails": {
+          "address": {
+              "line1": "S/O GAJENDRA RAUT H.NO 3.-3-76-123/10/A ",
+              "line2": "ENCLAVE JANPRIYA UTOPIA HYDERGUDA NEAR J",
+              "line3": "TELANGANA",
+              "state": "TELANGANA",
+              "pincode": 500048,
+              "country": "INDIA",
+              "city": "ATTAPUR"
+          },
+          "email": "xxx@kfintech.com",
+          "mobile": "9884174067",
+          "investorName": "PRASANNA KUMAR RAUT"
+       },
+       "statementHoldingFilter": "NON-ZERO"
+
+
+}
+
+
+
+
+    Parameter            Data                                   Description
+                     type(Length)
+ reqId             String(50)        The request id is a series of characters or numbers used to
+                                     identify each request received for processing. Pass this value as
+                                     empty or NULL
+ email             String(500)       Email address of the investor registered in the PAN/folio
+                                     number. Either email or mobile number is mandatory, Do not
+                                     pass both values
+ mobile            String(30)        Mobile number of the investor registered in the PAN/folio
+                                     number. Either email or mobile number is mandatory, Do not
+                                     pass both values
+ pan               String(45)        PAN (Permanent Account Number) of the investor. Either PAN
+                                     or PEKRN is mandatory. Do not pass both values
+ pekrn             String(15)        PEKRN is a unique identification number provided to
+                                     individuals who are exempt from providing a Permanent
+                                      Account Number (PAN) during the Know Your Customer
+                                      (KYC) process for mutual fund investments. Either PAN or
+                                      PEKRN is mandatory. Do not pass both values
+
+amc                String(5)          AMC (Asset Management Company) code
+amcName            String(100)        This provides the full name of the Asset Management Company
+                                      Tax status code for the investment (e.g., "01" might indicate
+taxStatus          String             resident individual).
+modeOfHolding      String             How the investment is held (e.g., "Single" for sole ownership).
+transactionSourc                      Channel through which the investment was made (e.g.,
+e                  String             "Channel" for bank or broker).
+schemeCode         String             Unique code assigned to the specific mutual fund scheme.
+schemeName         String             Full name of the mutual fund scheme you hold.
+idcwChangeAll                         Indicates if switching between direct & regular plans (IDCW) is
+owed               String (Boolean)   allowed (e.g., "False" for not allowed).
+schemeOption       String             Reinvestment option (e.g., "Growth" for dividends reinvested).
+                                      Primary underlying investment of the scheme (e.g., "EQUITY"
+assetType          String             for stocks).
+                                      Investment style of the scheme (e.g., "Balanced" for a mix of
+schemeType         String             equity and debt).
+nav                Decimal            Net Asset Value per unit of the scheme on a specific date.
+navDate            Date               Date for which the Net Asset Value (NAV) is provided.
+                                      Number of units held in the scheme at the end of the period (e.g.,
+closingBalance     Decimal            "0.00" for zero units).
+isDemat            String(1)          This indicates whether the holding is in dematerialized form or
+                                      physical
+currentMktValu     Integer            This represents the current market value of your holding in the
+e                                     mutual fund scheme. It is likely the closing price of the scheme
+                                      on a specific date.
+costValue          Integer            This indicates the total cost price at which you purchased all
+                                      your units in this scheme.
+gainLoss           String             This shows the difference between the current market value and
+                                      the cost value. A positive value indicates unrealized capital gain,
+                                      while negative indicates unrealized capital loss.
+gainLossPercent    String             This represents the gain or loss as a percentage of the cost value
+age
+isDemat            String (Boolean)   This signifies whether the holding is in dematerialized form
+                                      (electronic or physical)
+lienUnitsFlag      String (Boolean)   This could indicate if any units in this holding are under lien
+                                      (restricted for selling or transacting) due to a loan or other reason
+decimalUnits       Integer            This might allow holding units with decimals
+decimalAmount      Integer            Similar to decimalUnits, this might allow investment amounts
+                                      with decimals
+decimalNav         Integer            This could indicate that the NAV is represented with decimals
+brokerCode         String             This might be included if the report is generated by a broker
+                                      platform and shows the broker code associated with the holding.
+brokerName         String             Similar to brokerCode, this could provide the name of the broker
+                                      if applicable.
+purAllow           String (Boolean)   This parameter indicates whether you can make additional
+                                      purchases of units in the specific mutual fund scheme
+redAllow           String (Boolean)   This refers to whether you are allowed to redeem (sell back)
+                                      your units in a specific mutual fund scheme
+swtAllow           String (Boolean)   This refers to whether you are allowed to switch your investment
+                                      units from one mutual fund scheme to another within the same
+                                      AMC
+sipAllow           String (Boolean)   This shows whether Systematic Investment Plans (SIP) are
+                                      allowed for this scheme
+stpAllow           String (Boolean)   This parameter indicates whether Systematic Transfer Plans
+                                     (STPs) are allowed for the specific mutual fund scheme.
+swpAllow          String (Boolean)   This parameter indicates whether Systematic Withdrawal Plans
+                                     (SWPs) are allowed for the specific mutual fund scheme.
+planModeclosi     String             This could potentially indicate the investment plan mode which
+                                     is direct or regular
+dpId              String             DPID (Depository Participant Identification) A DP is an
+                                     intermediary registered with a central depository, such as the
+                                     National Securities Depository Limited (NSDL) or the Central
+                                     Depository Services Limited (CDSL), which facilitates the
+                                     holding, transfer, and trading of securities in electronic form.
+mobileRelations   String             This field lets you define how the phone number you provide is
+hip                                  associated with your MF investment.
+emailRelationsh   String             This field allows you to categorize the email address you
+ip                                   provide
+newFolio          String (Boolean)   This parameter might be used during account creation or a new
+                                     folio request (separate holding within an AMC). Its presence
+                                     suggests the potential for generating a new portfolio.
+nomineeStatus     String             This could indicate whether a nominee (someone you appoint to
+                                     inherit your investments) is registered for this portfolio
+lienAvailableUn   Integer            It’s the number of units held by the lender to take and hold or
+its                                  sell the property of a debtor as security or payment for a debt.the
+                                     number of units under lien is usually restricted for selling due to
+                                     a loan or other reason
+bank.accountNo    Integer            This could be your bank account number associated with your
+                                     mutual fund investments
+bank.accountTy    String             Specifies the type of bank account linked to the SIP, such as
+pe                                   savings account (SB), current account (CA), etc.
+bank.name         String             Indicates the name of the bank where the investment linked bank
+                                     account is held
+bank.branch       String             branch of the bank where the investment linked bank account is
+                                     held
+bank.city         String             Denotes the city where the bank branch associated with the SIP
+                                     account is located
+bank.pincode      Integer            Represents the postal code or ZIP code of the bank branch's
+                                     location.
+bank.micr         String             This could be the Magnetic Ink Character Recognition (MICR)
+                                     code of your bank branch, used for cheque processing
+bank.ifsc         String             Indian Financial System Code(IFSC), A unique alphanumeric
+                                     code that is used for online fund transfer transactions done via
+                                     NEFT, RTGS and IMPS
+bank.neftifsc     String             The NEFT IFSC (National Electronic Funds Transfer Indian
+                                     Financial System Code) is a unique alphanumeric code required
+                                     for initiating NEFT (National Electronic Funds Transfer)
+                                     transactions in India. This code uniquely identifies a specific
+                                     branch of a bank participating in the NEFT network, enabling
+                                     seamless electronic fund transfers between accounts held in
+                                     different branches or banks across the country.
+rtaName           String             This could be the name of the Record and Transfer Agent (RTA)
+                                     associated with the AMC that manages your mutual fund
+                                     scheme(s)
+costValue         Integer            This indicates the total cost price at which you purchased all
+                                     your units in this scheme.
+gainLoss          String             This shows the difference between the current market value and
+                                     the cost value. A positive value indicates unrealized capital gain,
+                                     while negative indicates unrealized capital loss.
+gainLossPercent   String             This represents the gain or loss as a percentage of the cost value
+age
+isDemat           String (Boolean)   This signifies whether the holding is in dematerialized form
+                                     (electronic or physical)
+lienUnitsFlag     String (Boolean)   This could indicate if any units in this holding are under lien
+                                     (restricted for selling or transacting) due to a loan or other reason
+decimalUnits      Integer            This might allow holding units with decimals
+decimalAmount     Integer            Similar to decimalUnits, this might allow investment amounts
+                                     with decimals
+decimalNav        Integer            This could indicate that the NAV is represented with decimals
+brokerCode        String             This might be included if the report is generated by a broker
+                                     platform and shows the broker code associated with the holding.
+brokerName        String             Similar to brokerCode, this could provide the name of the broker
+                                     if applicable.
+purAllow          String (Boolean)   This parameter indicates whether you can make additional
+                                     purchases of units in the specific mutual fund scheme
+redAllow          String (Boolean)   This refers to whether you are allowed to redeem (sell back)
+                                     your units in a specific mutual fund scheme
+swtAllow          String (Boolean)   This refers to whether you are allowed to switch your investment
+                                     units from one mutual fund scheme to another within the same
+                                     AMC
+sipAllow          String (Boolean)   This shows whether Systematic Investment Plans (SIP) are
+                                     allowed for this scheme
+stpAllow          String (Boolean)   This parameter indicates whether Systematic Transfer Plans
+                                     (STPs) are allowed for the specific mutual fund scheme.
+swpAllow          String (Boolean)   This parameter indicates whether Systematic Withdrawal Plans
+                                     (SWPs) are allowed for the specific mutual fund scheme.
+planMode          String             This could potentially indicate the investment plan mode which
+                                     is direct or regular
+dpId              String             DPID (Depository Participant Identification) A DP is an
+                                     intermediary registered with a central depository, such as the
+                                     National Securities Depository Limited (NSDL) or the Central
+                                     Depository Services Limited (CDSL), which facilitates the
+                                     holding, transfer, and trading of securities in electronic form.
+mobileRelations   String             This field lets you define how the phone number you provide is
+hip                                  associated with your MF investment.
+emailRelationsh   String             This field allows you to categorize the email address you
+ip                                   provide
+newFolio          String (Boolean)   This parameter might be used during account creation or a new
+                                     folio request (separate holding within an AMC). Its presence
+                                     suggests the potential for generating a new portfolio.
+nomineeStatus     String             This could indicate whether a nominee (someone you appoint to
+                                     inherit your investments) is registered for this portfolio
+lienAvailableUn   Integer            It’s the number of units held by the lender to take and hold or
+its                                  sell the property of a debtor as security or payment for a debt.the
+                                     number of units under lien is usually restricted for selling due to
+                                     a loan or other reason
+bank.accountNo    Integer            This could be your bank account number associated with your
+                                     mutual fund investments
+bank.accountTy    String             Specifies the type of bank account linked to the SIP, such as
+pe                                   savings account (SB), current account (CA), etc.
+bank.name         String             Indicates the name of the bank where the investment linked bank
+                                     account is held
+bank.branch       String             branch of the bank where the investment linked bank account is
+                                     held
+bank.city         String             Denotes the city where the bank branch associated with the SIP
+                                     account is located
+bank.pincode      Integer            Represents the postal code or ZIP code of the bank branch's
+                                     location.
+bank.micr         String             This could be the Magnetic Ink Character Recognition (MICR)
+                                     code of your bank branch, used for cheque processing
+bank.ifsc         String               Indian Financial System Code(IFSC), A unique alphanumeric
+                                       code that is used for online fund transfer transactions done via
+                                       NEFT, RTGS and IMPS
+bank.neftifsc     String               The NEFT IFSC (National Electronic Funds Transfer Indian
+                                       Financial System Code) is a unique alphanumeric code required
+                                       for initiating NEFT (National Electronic Funds Transfer)
+                                       transactions in India. This code uniquely identifies a specific
+                                       branch of a bank participating in the NEFT network, enabling
+                                       seamless electronic fund transfers between accounts held in
+                                       different branches or banks across the country.
+
+
+
+
+rtaName           String               This could be the name of the Record and Transfer Agent (RTA)
+                                       associated with the AMC that manages your mutual fund
+                                       scheme(s)
+line1             String               Denotes the address line1 of the investor, providing a detailed
+                                       postal address
+line2             String               Address line 2
+line3             String               Address line 3
+state             String               Represents the state of the investor’s address
+country           String               Represents the country of the investor's address
+investorName      String(50)           This parameter represents the name of the investor. It identifies
+                                       the individual or entity making the investment.
+
+
+ ERROR:
+
+  A failure response is preceded by the corresponding 40x or 50 x HTTP headers. The code key in the
+ response contains the value error. The message key contains a textual description of the error.
+
+ Below are the possible error codes:
+
+   Status Code      Actual Status                              Reason/Description
+  400             Valid Business        In this case, refer error description of the error & take action,
+                  error                 these are generally business validation errors. Basis the error
+                                        received, you can ask the user to remediate certain fields &
+                                        resubmit the transaction again
+  500             Internal server       In this case, refer error description of the error & take action,
+                  error or              these are generally technical errors.
+                  Connectivity error
+  401             Unauthorized          Invalid token or client Id
+
+  422             Un-processable        Invalid Input or Request Format
+                  Entity (WebDAV)
+  404             Not Found             The requested resource could not be found on the server.
+                                        Please verify the endpoint URL and try again.
+  202              Accepted             In this case, the request has been accepted for processing, but
+                                        the processing has not been completed.
+  200             Successful            Request has been accepted and it is a successful request
+
+
+
+
+AMC CODE MASTER:
+       AMC
+S. No. CODE                 AMC NAME                  AMC SHORT NAME
+   1       IF         360 ONE Mutual Fund                360 ONE MF
+   2       B    Aditya Birla Sun Life Mutual Fund          BIRLA MF
+   3       G          Bandhan Mutual Fund                Bandhan MF
+   4       D             DSP Mutual Fund                    DSP MF
+   5      FTI   Franklin Templeton Mutual Fund      Franklin Templeton MF
+   6       H            HDFC Mutual Fund                   HDFC MF
+   7       O            HSBC Mutual Fund                   HSBC MF
+   8       P      ICICI Prudential Mutual Fund             I-PRU MF
+   9       K            Kotak Mutual Fund                 KOTAK MF
+  10     MM     Mahindra Manulife Mutual Fund           MAHINDRA MF
+  11     PLF            NAVI Mutual Fund                   NAVI MF
+  12      PP           PPFAS Mutual Fund                   PPFAS MF
+  13        L             SBI Mutual Fund                    SBI MF
+  14      SH          Shriram Mutual Fund                SHIRAM MF
+  15       T             Tata Mutual Fund                  TATA MF
+  16      UK           Union Mutual Fund                  UNION MF
+  17       Y     WhiteOak Capital Mutual Fund        WhiteOak Capital MF
+  18     128           AXIS MUTUAL FUND                    Axis MF
+  19     178    BARODA BNP PARIBAS MUTUAL FUND           Baroda MF
+  20     116         BOI AXA MUTUAL FUND                   Boi MF
+  21     189        Bajaj Finserv Mutual Fund            Bajaj Finserv
+  22     101     CANARA ROBECO MUTUAL FUND                Canara MF
+  23     118        EDELWEISS MUTUAL FUND               Edelweiss MF
+  24     125           Groww Mutual Fund                 Groww MF
+  25     120         INVESCO MUTUAL FUND                 Invesco MF
+  26     152            ITI MUTUAL FUND                     Iti MF
+  27     105       JM FINANCIAL MUTUAL FUND                 Jm MF
+  28     102            LIC MUTUAL FUND                     Lic MF
+  29     117       MIRAE ASSET MUTUAL FUND                Mirae MF
+  30     127      MOTILAL OSWAL MUTUAL FUND               Motilal MF
+  31     RMF       NIPPON INDIA MUTUAL FUND              Nippon MF
+  32     187            NJ MUTUAL FUND                      Nj MF
+  33     129        PGIM INDIA MUTUAL FUND                Pgim MF
+  34     166         QUANT MUTUAL FUND                    Quant MF
+  35     123        QUANTUM MUTUAL FUND                 Quantum MF
+  36     188         SAMCO MUTUAL FUND                    Samco MF
+  37     176        SUNDARAM MUTUAL FUND                Sundaram MF
+  38     104         TAURUS MUTUAL FUND                   Taurus MF
+  39     185          TRUST MUTUAL FUND                   Trust MF
+  40     108           UTI MUTUAL FUND                     UTI MF
+  41     139        OLD BRIDGE MUTUAL FUND              Old Bridge MF
+    42       HLS          HELIOS MUTUAL FUND   Helios MF
+    43        Z          ZERODHA MUTUAL FUND   Zerodha MF
+
+
+
+Other Api master
+
+ Code     Description
+ R        Redemption
+ S        Switch
+ NP       New Purchase ( Lumpsum / SIP)
+          Additional Purchase ( Lumpsum /
+ AP       SIP)
+ ST       STP
+ SW       SWP
+ SS       Summary ( SIP / STP/ SWP)
+ SPC      Pause and Cancel submit
+ SPCV     Pause and Cancel Validate
+

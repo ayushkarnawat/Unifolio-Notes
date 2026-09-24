@@ -105,3 +105,30 @@ Docker Postgres.
 
 - Source document: `08-evidence/documents/ADR-Technical-Stack-Decisions.md` (ADR-003)
 - Migration plan: `08-evidence/documents/Migration-Plan-SQLite-to-Postgres.md`
+
+## Addendum — 2026-09-23: an earlier, informally-considered alternative not in the formal options list
+
+A newly-ingested "Product Context" living reference doc (co-maintained by the
+PM and an AI PM-partner, undated but internally describing itself as
+pre-dating this ADR's formal write-up) shows that **AWS S3 plus Athena as a
+data-lake-style query layer** — not a relational database at all — was under
+live consideration for the primary transactional store before this ADR was
+written. The document itself flags this as unresolved and names the exact
+open question this ADR eventually settled: "Needs research: Athena right
+query layer transactional portfolio data (which needs frequent point
+reads/writes), or is better suited only analytics/reporting workloads sitting
+alongside proper OLTP database (Postgres) transactional core? needs ADR."
+
+This option does not appear anywhere in this ADR's "Options considered"
+(RDS Postgres, continued SQLite, self-managed Postgres on EC2) — it was
+dropped before formalization rather than formally evaluated and rejected in
+writing. Nothing in this vault's source material explains why; the most
+likely reading, consistent with everything built afterward (RDS Postgres
+from ADR-003 onward, no Athena or S3-as-primary-store reference anywhere
+else in this vault), is that it was an early brainstormed option quietly
+superseded once RDS Postgres was chosen — recorded here as a hypothesis, not
+a verified fact, since no source material documents an explicit decision
+point between the two. Does not change this ADR's status or decision.
+
+Source: `08-evidence/documents/Product Context — Wealth Management Platform.pdf`
+(Section 5, "Technical Direction").
