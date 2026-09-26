@@ -132,3 +132,39 @@ prematurely or silently dropped.
   `aws-phase5-networking-domains-handoff.md`, `aws-phase5-networking-domains-implementation-prompt.md`,
   `adr006-scheduler-terraform-handoff.md`, `adr006-scheduler-terraform-implementation-prompt.md`,
   `phase7-production-hardening-plan.md`
+
+## Addendum — 2026-09-24 (batch 6b): Phase 4, Phase 5, and the scheduler/dispatcher apply are now directly confirmed, with real resource counts and outputs
+
+This entry's own text corroborated Phase 4/5 only indirectly (via a
+scheduler dispatch's stated precondition) and named ADR-006's scheduler
+piece as "reviewed PASS... not yet confirmed applied by this batch's
+material." A later-ingested raw source (`Move to Cloud.md`) closes both
+gaps with first-hand `terraform apply` output from the same live session:
+
+- **Phase 4** (S3 + CloudFront): applied cleanly, `5 added, 0 changed, 0
+  destroyed`. Outputs: `s3_bucket_name =
+  unifolio-staging-frontend-811364789032`, `cloudfront_distribution_id =
+  E2SF2SFE80NW54`, `cloudfront_domain_name = d4vemdkml3wey.cloudfront.net`.
+- **Phase 5** (ACM/DNS/ALB HTTPS): applied cleanly, `9 added, 2 changed, 0
+  destroyed` (the "2 changed" was Terraform reconciling an S3 policy whose
+  content already matched, not a real behavior change). Both ACM
+  certificates confirmed `ISSUED`; both `staging.unifolio.in` and
+  `staging-api.unifolio.in` confirmed resolving correctly.
+- **The analytics-recompute dispatcher's scheduler wiring** (this entry's
+  ADR-006 "remaining piece"): applied, `8 added, 2 changed, 1 destroyed`
+  (the destroy was an expected backend ECS task-definition revision
+  replacement, not data loss). Rollout confirmed `COMPLETED` via `aws ecs
+  describe-services`, closing this entry's "not yet confirmed applied" note
+  for ADR-006's second piece.
+
+This is separate from, and does not resolve, the distinct migration-drift
+finding recorded in
+[INV-015](../04-investigations/INV-015-staging-rds-missing-analytics-migration.md)
+and the apparent contradiction flagged on the
+[2026-09-11 runbook entry](2026-09-11-aws-staging-deployment-runbook.md) —
+those concern the database schema, not the Terraform-managed
+infrastructure this addendum confirms.
+
+### Addendum evidence
+
+- `08-evidence/documents/Move to Cloud.md`

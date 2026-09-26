@@ -135,3 +135,57 @@ pending engineering translation.
 
 - `08-evidence/documents/Updated_and_Approved_Unifolio_Fund_Scoring_Methodology.md`
 - `08-evidence/documents/Scorer-v2-Calculation-Annex-Open-Questions.md`
+
+## Addendum — 2026-09-24: an independent source corroborates the 10/6 prose summary is the annex's own error, not the 11/7 table
+
+### For stakeholders
+
+This ADR's own "For stakeholders" section and its "How this differs" table
+both describe the v2 methodology as "ten weighted components across six
+buckets" — but the ADR's own "v2 formula, as approved" section lists 11
+distinct weighted line items across 7 distinct buckets (Return;
+Consistency [2]; Downside Risk [2]; Risk-Adjusted Efficiency [2]; Upside
+Participation; Valuation Overlay; Cost Efficiency [2]). This is an internal
+inconsistency that was already present in this ADR when first written, not
+introduced by this addendum. A separate, later engineering conversation
+independently reviewing the same approved annex reached the identical
+conclusion: the 11-row/7-bucket table is internally consistent and correct,
+and the "ten... six buckets" prose summary sentence is the annex's own
+error. This corroboration doesn't change the ADR's content, but confirms
+the "10/6" framing (repeated in this ADR's stakeholder-facing text) should
+not be trusted as the accurate count going forward.
+
+### Technical detail
+
+Per this batch's source material, an engineering review of Codex's
+assessment of `Updated_and_Approved_Unifolio_Fund_Scoring_Methodology.md`
+reached this independently: "the overview says 'ten weighted components
+across six buckets,' but the table has 11 rows across 7 buckets... The
+table is internally consistent; the prose summary sentence is just wrong."
+This is the same discrepancy this ADR's own text already exhibits (compare
+this ADR's "For stakeholders" and "How this differs" sections, which say
+"10, across 6 buckets," against its own "v2 formula, as approved" section).
+No correction is made to the ADR's original text per this vault's
+append-only rule; this addendum flags the count as unresolved/likely-wrong
+in the prose framing specifically, not in the formula table.
+
+A related, separate count discrepancy was also noticed but is **not**
+independently confirmed either way and is left as an open item, not a
+finding: this ADR's "Open questions" section states "13 concrete
+engineering questions," while the source conversation for this addendum
+consistently refers to "14" clarifying decisions/definitions. Which count
+is correct (or whether they're counting slightly different things) is not
+resolved by this batch's source material.
+
+A further, unconfirmed note from the same source conversation: it proposes
+building Scorer v2 on a new dedicated branch `feat/scorer-v2` (not a
+worktree, since interactive testing was wanted), based off
+`feat/enhanced-ui` rather than `main`. This ADR does not record a branch
+strategy at all, and this batch's source material does not confirm whether
+that branch was actually created — noted here only as an open item for a
+future batch to confirm or supersede, not as a settled fact.
+
+### Addendum evidence
+
+- `08-evidence/documents/Notes for the product.md` (the "Updated Fund
+  scorer" section, lines ~811-873 of that evidence copy)

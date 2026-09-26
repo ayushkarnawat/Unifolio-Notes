@@ -117,3 +117,50 @@ existed) is superseded by ADR-019's existence, not by any change to this
 investigation's own findings.
 
 Evidence: `08-evidence/documents/Scorer-v2-Calculation-Annex-Open-Questions.md`
+
+### Addendum, 2026-09-24 (batch 6c) — three of four holdings-dependent features turn out not to need Path A's hardest part; a Layer 1/Layer 2 split
+
+This entry's "Root cause" section states the AMC-disclosure-ingestion format
+survey (Path A, step 1) is the hardest sub-problem in building the
+Valuation Overlay. A separate raw note, investigating three *other*
+holdings-dependent features that PRD-03/PRD-04 had deferred for the same
+"no aggregated AMC holdings feed" reason (cap-wise composition, stock-level
+fund overlap detection, equity look-through), found a genuinely new fact
+that narrows — but does not resolve — this investigation's own Path A cost
+estimate: **AMFI itself publishes a free, official, biannual large/mid/
+small-cap stock classification list**, mandated by SEBI circular 2017/114
+(at `amfiindia.com/otherdata/categorisation-of-stocks`) — a fixed
+rank-based classification (top 100 = large, 101–250 = mid, 251+ = small).
+This is a **hypothesis carried over from a raw note, not independently
+verified against the live AMFI site or this codebase by this vault** —
+flagged accordingly, consistent with this vault's practice of not treating
+an unverified claim as settled fact.
+
+If accurate, this means cap-wise composition, stock overlap detection, and
+equity look-through need only the shared holdings-ingestion pipeline (Layer
+1) plus, for cap-wise composition specifically, that one free AMFI list —
+no paid vendor. The Valuation Overlay (this investigation's actual
+subject) is the outlier of the four: it additionally needs stock-level
+PE/PB fundamentals, which remains the harder, possibly-paid dependency this
+investigation already found (Path A step 2 / Path B). The raw note frames
+this as a Layer 1 (shared holdings-ingestion foundation) / Layer 2 (up to
+four independent consumer features sitting on top of it) split, and raises
+an as-yet-undecided scope question for Layer 1 itself: ingest holdings only
+for schemes users actually hold (~50-150 schemes, lazily/on-demand — enough
+for look-through, overlap detection, and cap-wise composition, none of
+which compare a fund's holdings against its category peers) versus the
+full category universe (matching how NAV/AAUM/TER are already ingested
+today, but a materially larger scope). Branch names mentioned in the raw
+note for this track: `feat/scorer-v2` (this investigation's Valuation
+Overlay work) and `feat/fund-holdings-foundation` (the separate Layer 1 +
+three-feature track) — not verified against the actual repository by this
+vault.
+
+This does not change this investigation's own resolution (Path A vs. Path B
+for PE/PB specifically remains an open build-vs-buy decision) — it records
+that three sibling deferred features, previously assumed to share the same
+"hard" data gap, may be materially cheaper than the Valuation Overlay once
+the shared holdings pipeline exists.
+
+Evidence: `08-evidence/documents/everything defered till now.md`,
+`08-evidence/documents/Fund scorer notes.md`.

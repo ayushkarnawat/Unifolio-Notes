@@ -1070,6 +1070,39 @@ apply` command or session that performed the Phase 4/5 apply.
 Evidence: `08-evidence/documents/orchestration/adr006-scheduler-terraform-handoff.md`,
 `adr006-scheduler-terraform-implementation-prompt.md`
 
+**Update — 2026-09-24 (narrowed further, still Open):** Later-ingested
+material confirms the 2026-09-11 runbook's Steps 1-8 were, in fact, carried
+out to completion the same day: Terraform applied exactly the "2
+EventBridge jobs + 1 IAM policy change" this entry already predicted (3
+add/1 change/0 destroy), the three pending migrations were applied, both
+new scheduled jobs ran successfully (`exitCode: 0`), and
+`staging.unifolio.in`/`staging-api.unifolio.in` were confirmed serving the
+new deployment. This resolves the "whether the runbook was actually run"
+question for that session specifically. The underlying risk this entry
+tracks — a status note going stale faster than infrastructure reality, with
+no automated `terraform plan`-diff check forcing a re-sync — is unchanged
+and stays Open; only this one instance is now fully accounted for. See also
+the new, separate finding at [R-065](#r-065) about this same deployment
+proceeding while a different batch's review gate was still open — a
+process gap, not a repeat of this Terraform-drift risk.
+Evidence: `08-evidence/documents/darshan changes.md`
+
+**Update — 2026-09-24 (batch 6b): apparent contradiction on migration `0012`, flagged not adjudicated.**
+A different, directly-verified raw source (`Move to Cloud.md`) shows the
+`0012_analytics_sections` migration specifically was still *not* applied
+when Analytics was first exercised against the deployed staging
+environment — a live `psycopg2.errors.UndefinedTable` failure, with an
+`alembic current` check confirming `0011`, fixed via the same SSM-tunnel
+pattern and re-verified end to end (`GET /analytics/*` 500 → 200, a real
+dispatched ECS recompute task exiting cleanly). This conflicts with the
+update immediately above, which states all three pending migrations
+"were applied" as part of this same runbook's Step 2. Both source
+documents are preserved; this vault does not adjudicate which account is
+more accurate — see
+[INV-015](04-investigations/INV-015-staging-rds-missing-analytics-migration.md)
+for the directly-verified fix record and its own note on this same
+discrepancy. Evidence: `08-evidence/documents/Move to Cloud.md`.
+
 ### R-053 — Fund Score card redesign is approved and fully planned, but has no execution evidence in this batch (Open, low)
 
 A plain-English verdict card and a display-only tier-badge fix were designed
@@ -1314,6 +1347,23 @@ rather than by fixing the blocking-call vulnerability itself.
 Evidence: `08-evidence/documents/orchestration/aws-phase3-backend-deployment-handoff.md`,
 `08-evidence/documents/orchestration/phase7-production-hardening-plan.md`
 
+**Update — 2026-09-24:** A full call-graph audit (traced separately from
+this risk's original scope, while investigating a QueuePool-exhaustion bug)
+found the fix's actual reach was wider than "the specific commits that were
+already known to be slow": every `db.commit()` reachable from an `async def`
+route was enumerated and routed through `commit_off_loop` — 8 production
+files, 9 call sites, confirmed by tracing each call chain to its route
+decorator, not just the 3 sites session.md originally named (one of which,
+CAS import's `confirm_import_route`, turned out to be a plain `def`, never
+actually exposed). This is closer to option 2 above (blanket coverage of
+every currently-reachable async-handler commit) than option 1, but it does
+not close this risk: nothing prevents a *future* new async route from
+reintroducing the same class of bug, since the coverage was achieved by a
+one-time manual audit, not a structural guard (a lint rule, a code-review
+checklist item, or a wrapper enforced at the session layer). Full detail:
+[INV-009](04-investigations/INV-009-amfi-ter-readtimeout-event-loop-starvation.md)'s
+2026-09-24 addendum. Evidence: `08-evidence/documents/Mid Load Tab Switch and Tab Preloading.md`.
+
 ### R-059 — Two parallel CAS-import backend code paths independently drifted to need the identical duplicate-detection fix wired in twice (Open, medium — architectural, surfaced not fixed)
 
 While wiring the 2026-09-02/03 non-PAN duplicate-person-detection design
@@ -1429,6 +1479,133 @@ one genuinely new item.
 
 *Source: `08-evidence/documents/sqlite-postgres-migration-compliance-audit.md`,
 Section 6 (root-cause discussion of `tests/conftest.py:24-26`).*
+
+### R-062 — `category_ranking.py`'s `_cagr` can crash on a 0/0 division for thin multi-category NAV history (Open, low — known, unfixed bug)
+
+Flagged directly by the vault owner's own engineering notes as a real,
+reproducible, pre-existing bug: `_cagr` in
+`app/services/analytics/category_ranking.py` can divide by zero when
+computing a compound-annual-growth-rate figure during aggregate category
+scoring, if the multi-category NAV history it's working from is thin
+enough that the denominator collapses to zero. Explicitly not fixed —
+ledgered for a follow-up ticket rather than patched inline.
+
+**Why this matters:** an unhandled `ZeroDivisionError` inside a scoring
+path would surface as a 500 rather than a graceful degrade, for whichever
+category first hits the thin-history condition — inconsistent with this
+codebase's otherwise-established graceful-degrade pattern elsewhere (see
+the silent partial-XIRR and valuation-date-alignment items in the deferred
+list below).
+
+**To verify / what would fix it:** a guard clause (return `None`/unscored
+rather than dividing) at the identified line, plus a regression test using
+a deliberately thin NAV history fixture. Not scoped here — no source line
+number was given in the raw note, only the function and file name.
+
+*Source: `08-evidence/documents/everything defered till now.md`, section 5
+("Known correctness gaps, deliberately not fixed").*
+
+### R-063 — `refresh_nav_daily.py` only warms NAV history for held schemes, so a category nobody has ever held triggers a ~113-second live cold-start the first time anyone ranks against it (Open, low — known, unfixed scope gap)
+
+The daily NAV refresh job (`backend/scripts/jobs/refresh_nav_daily.py:19-27`)
+queries schemes via a join through `Folio`, warming NAV history only for
+schemes at least one user actually holds (confirmed in its own log line,
+`held_schemes=19`, in the source incident). Category ranking, however,
+compares a held fund against its **entire SEBI-category peer universe**,
+not against other held funds — `_compute_category_returns` in
+`category_ranking.py` needed NAV history for all 1,078 schemes in the
+"Other Scheme - Index Funds" category the first time anyone ranked an
+index fund, and only 5 of those had ever been touched by any prior batch
+job. The result: 1,073 sequential/concurrent live `api.mfapi.in` fetches
+on that one request, measured at ~113 seconds total
+(`fetch=37.64s commit=75.60s`, per `warm_nav_history`'s own instrumentation).
+Two other categories in the same account ("Flexi Cap Fund", "Mid Cap Fund")
+hit 0 network fetches in the same run, because something had already
+warmed them — confirming this is specifically a per-category cold-start
+gap, not a general NAV-caching failure.
+
+**Why this matters:** this is a distinct, narrower root cause from
+[INV-013](04-investigations/INV-013-dashboard-stuck-loading-after-analytics-navigation.md)'s
+unbounded-`Promise.all` dashboard hang and from
+[ADR-015](03-decisions/ADR-015-analytics-precompute-architecture.md)'s
+QueuePool-exhaustion fix — this gap is about which schemes the daily batch
+job chooses to warm, not about connection pooling or frontend wait
+behavior, and it recurs for any category nobody has ever ranked before
+(the source note names "Other Scheme - Index Funds" as the observed case,
+but the mechanism applies to any never-before-touched category).
+
+**To verify / what would fix it:** widen `refresh_nav_daily.py`'s scheme
+query from "schemes held by any user" to "every scheme in every SEBI
+category represented by anything any user holds" (a join through category
+rather than only through `Folio`) — described in the source note as a
+small, bounded query change. This moves the cold-start cost onto the daily
+batch job's own schedule (fetching ~1,000+ schemes instead of 19) rather
+than onto a live user-facing request. Not implemented here — the source
+note is a diagnosis and proposed fix, not a shipped change.
+
+*Source: `08-evidence/documents/huh.md`.*
+
+### R-064 — Already-registered phone numbers can get stuck endlessly re-sending an OTP without ever reaching the verification screen (Open, unconfirmed — symptom reported, not yet root-caused)
+
+Reported directly by the vault owner as a live, reproduced symptom during
+product-side testing: entering a phone number that is already registered
+can leave the login/signup flow stuck sending OTP after OTP, never
+advancing to the OTP-verification screen. This is a **hypothesis flagged
+from a raw symptom report, not a confirmed root cause** — no code trace,
+log, or diagnosis accompanies the note, and it is distinct from both bugs
+already closed in
+[INV-012](04-investigations/INV-012-otp-verification-account-binding-bugs.md)
+(an email-OTP-signup binding check, and a remove-password step-up
+pre-emptive claim) and from the separate known issue (tracked in the
+engineering-loop process notes) where an *unrecognized* number silently
+creates a new account — this report is specifically about an
+*already-registered* number that never progresses past OTP-sending.
+
+**Why this matters:** an already-registered user unable to complete login
+is a hard blocker for that user, not a degraded experience — but with only
+one reported instance and no root-cause trace yet, severity and scope are
+both unconfirmed.
+
+**To verify / what would fix it:** reproduce against the specific reported
+account, then trace the OTP-send/verify call chain for the
+already-registered-number path (`app/api/auth.py` and whatever it calls in
+`auth/session.py`/`auth/otp.py`/`auth/identity.py`) to find why the flow
+does not advance. Not investigated here — recorded so the report is not
+lost, consistent with this vault's practice of flagging unverified raw
+claims as hypotheses rather than settled facts.
+
+*Source: `08-evidence/documents/TO Build for the product.md`.*
+
+### R-065 — The investor-beta-feature-batch's mandatory adversarial-review gate never closed, and a staging deployment happened anyway (Open, medium — process gap)
+
+This project's own stated rule is that every batch of work goes through a
+mandatory adversarial-review gate before it counts as finished. The
+2026-09-11 investor-beta-feature-batch (Profile page, account deletion,
+Dashboard XIRR, allocation drill-down — see the 2026-09-11 journey entry)
+went through two review rounds that found real issues (8, then 5 more),
+both fixed. A later-ingested raw source confirms that after those fixes, no
+further review re-examined them or the PM-gap-analysis follow-up fixes
+(3 more items) — work instead went straight into rerunning both test
+suites and then executing the AWS staging deployment runbook to
+completion, landing this batch on a real, externally-reachable staging
+environment (`staging.unifolio.in`) while its own status remained
+**OPEN, not DONE**.
+
+**Why this matters:** the fixes themselves may well be correct — both full
+test suites passed and the orchestrator spot-checked the highest-risk
+diffs directly — but the project's own quality gate exists specifically so
+that isn't taken on faith. Skipping it once, silently, for a batch that
+includes an account-deletion cascade and an auth-adjacent pending-deletion
+gate, is a meaningful process gap independent of whether these particular
+fixes happen to be fine.
+
+**To verify:** confirm with the vault owner whether a review of the
+round-3/PM-gap fixes has since been run (in this codebase, not in this
+vault) and, if not, run one before treating this batch as trustworthy for
+anything beyond what's already been spot-checked.
+
+*Source: `08-evidence/documents/darshan changes.md`.* See also
+[R-052](#r-052)'s 2026-09-24 update (same source, a different finding).
 
 ## Deferred by decision (not debt, tracked so it is not lost)
 

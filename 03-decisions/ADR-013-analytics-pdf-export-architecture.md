@@ -214,3 +214,58 @@ this addendum and remain covered only by the 2026-09-22 addendum's
 ### Addendum evidence
 
 - `08-evidence/documents/orchestration/analytics-pdf-export-final-review-handoff.md`
+
+## Addendum — 2026-09-24: a second, post-launch bug round — the Allocation section and its donut chart weren't print-safe either
+
+### For stakeholders
+
+After the PDF export feature above had shipped, a user reported that a
+generated PDF's portfolio-allocation section wasn't rendering correctly:
+it showed the Category breakdown tab but not the AMC tab, and the donut
+chart appeared as a thin, incomplete sliver rather than a full circle.
+Root cause was two separate gaps in features this ADR's original design
+didn't extend far enough to cover: the allocation section's own
+Category/AMC toggle hadn't been given the same "show everything, hide the
+interactive toggle" treatment already built for the Benchmark section
+(this ADR's Task 10 finding), and the donut chart's slice-by-slice
+entrance animation was being captured mid-draw because the PDF-ready
+signal fired the instant it appeared, before the animation finished. Both
+were fixed by extending the same patterns already used elsewhere in this
+feature (a `printMode` prop, and turning the animation off for print
+specifically) rather than inventing anything new.
+
+### Technical detail
+
+Two independent causes, found together:
+
+1. `AllocationSection.tsx`'s Category/AMC toggle is driven by local
+   `useState` and had never received the `printMode` treatment already
+   applied to `BenchmarkSection` (this ADR's original Task 10 finding, "the
+   click-gated tab/pagination invisible to static PDF" bug) — so only
+   whichever tab was selected client-side at capture time rendered, and
+   the AMC tab was invisible in the PDF.
+2. `PieSlice.tsx`'s entrance animation (a staggered `motion/react` spring
+   per slice) fires the moment the `data-print-ready` marker appears,
+   which is before the animation has finished — Playwright's `page.pdf()`
+   captured the donut mid-draw, rendering as a thin sliver. `PieSlice`
+   already had an unused, instant/static `animate={false}` render path
+   from its original build — this bug was that print mode never set it.
+
+Fix: added a `printMode` prop to `AllocationSection` mirroring
+`BenchmarkSection`'s existing pattern (hides the toggle, shows both
+Category and AMC donuts stacked instead of one at a time), wired into
+`PrintAnalyticsView.tsx`; threaded a new `animate` prop through
+`AllocationDonut` → `PieSlice`, set `animate={false}` for both donuts in
+print mode. New regression tests added (`AllocationDonut.test.tsx`, a new
+`AllocationSection.test.tsx`); full frontend suite reported green
+(335/335) with a clean `tsc`. No backend change.
+
+This is a distinct, later bug round from the Task 10 fix recorded above in
+this ADR (which covered `BenchmarkSection`'s equivalent toggle problem but
+not `AllocationSection`'s) — the same bug class recurred because the
+`printMode` pattern wasn't applied everywhere it was needed the first time.
+
+### Addendum evidence
+
+- `08-evidence/documents/Notes for the product.md` (the section immediately
+  preceding "NEW DISTRIBUTOR ANAYSIS," describing this bug report and fix)

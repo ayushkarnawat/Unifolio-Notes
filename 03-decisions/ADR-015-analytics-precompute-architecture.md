@@ -167,3 +167,51 @@ skipped every event-triggered recompute) introduced by the round-1 fix
 itself and caught by the round-2 scoped re-review before merge. Full detail:
 [02-journey/2026-09-02-analytics-precompute-architecture.md](../02-journey/2026-09-02-analytics-precompute-architecture.md)'s
 2026-09-23 addendum. Evidence: `08-evidence/documents/orchestration/analytics-precompute-implementation-handoff.md`.
+
+## Addendum — 2026-09-24 (batch 6c): why Postgres, not Redis, is the shared store
+
+This ADR's "Options considered" section above does not spell out why the
+precomputed results live in a new Postgres table rather than a shared
+in-memory store like Redis — worth recording, since a later, unrelated
+design conversation (about an Analytics-prefetch feature) surfaced the
+reasoning directly. Every existing cache in this codebase (TER, category
+ranking, Scorer, `compute_holdings`) is deliberately process-local
+in-memory, each carrying its own code comment: "move to Redis/similar if/when
+this backend ever runs multiple workers." That trigger condition was, until
+this point, treated as a someday concern — no ADR had actually decided the
+app would only ever run one worker/replica in production, it was an
+unexamined assumption baked in because every cache was built for the
+single-dev-process environment that existed at the time.
+
+Checking that assumption against the actual deployment target found it
+does not hold: [ADR-005](ADR-005-deployment-architecture.md) confirms the
+backend runs on ECS Express Mode with automatic scaling provisioning,
+meaning production plausibly runs multiple Fargate task replicas — each a
+separate process, unable to share an in-memory dict. This is not a someday
+concern; it is baked into the already-chosen deployment target.
+
+That reopened the Redis question this ADR had not addressed — but
+`AGENTS.md`'s non-negotiables explicitly lock the stack to "React + Vite,
+FastAPI, AWS RDS PostgreSQL, scoped S3, ECS Express Mode, EventBridge
+Scheduler" and state the stack is "decided, not up for debate mid-build...
+if a real blocker makes one of these wrong, stop and flag it explicitly."
+Redis is not on that list. The resolution found: Redis is not actually
+needed to solve the shared-store problem this ADR already solves for
+Analytics specifically — RDS Postgres is already the shared,
+cross-instance-visible store every Fargate task replica can see, and this
+ADR's own `analytics_sections` table is exactly that: precomputed results
+in a Postgres table, refreshed via the same EventBridge-scheduled
+background-job mechanism ADR-006 already approved for the four periodic
+reference-data jobs (AMFI TER, AMFI AAUM, NSE Indices). This ADR's design
+therefore already is the "Postgres-as-shared-store" answer for Analytics;
+the addendum's contribution is making that reasoning explicit rather than
+implicit, and flagging that the same open question (which of the other
+process-local caches — TER, category ranking, Scorer, `compute_holdings`
+— need to move to a shared store, and by which
+mechanism) remains unresolved for those caches specifically, since they
+were out of this ADR's scope. Not a new decision for those other caches;
+recorded so the open question is not lost. See also
+[R-054](../07-risks-and-debt.md) (the existing "7 in-process caches" risk
+entry, which this addendum's finding narrows but does not close).
+
+Evidence: `08-evidence/documents/Mid Load Tab Switch and Tab Preloading.md`.

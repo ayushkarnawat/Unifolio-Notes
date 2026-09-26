@@ -180,3 +180,44 @@ actually stands in the source material, not as complete.
 - Evidence: `08-evidence/documents/orchestration/investor-beta-feature-batch-handoff.md`
 - Evidence: `08-evidence/documents/orchestration/investor-beta-feature-batch-implementation-prompt.md`
 - Evidence: `08-evidence/documents/orchestration/delegation-log.md` (2026-09-11 entries)
+
+## Addendum — 2026-09-24: the review gate never closed, and staging deployment proceeded anyway
+
+### For stakeholders
+
+This entry's original text says this batch was "still open, not finished"
+pending a final review of the round-2/round-3 fixes and the PM-gap-analysis
+fixes. A later-ingested raw source, covering the same day in more
+continuous detail, confirms that final review never happened: work moved
+directly from the PM-gap-analysis fixes into full test-suite reruns and
+then into actually executing the AWS staging deployment runbook (see the
+addendum on that runbook's own journey entry) — with no visible adversarial
+review step in between. In other words, this batch's own status stayed
+**OPEN** all the way through a real deployment to the shared staging
+environment other people can reach. This is recorded as a new risk,
+[R-065](../07-risks-and-debt.md), since it's a process gap (a mandatory
+quality gate not being enforced before a deploy), not a specific code bug.
+
+### Technical detail
+
+The source material shows, in one continuous session: round-3 review
+fixes (5 findings) applied directly by the orchestrator → both full test
+suites rerun clean (backend 649/8 skipped, frontend 436/79 files) → a
+PM/tech-lead gap-analysis pass (5 findings, 3 approved and fixed: an XIRR
+popover replaced with a Lifetime/Current toggle, a subtotal line added to
+the allocation drill-down modal, and a Postgres-specific cascade-delete
+test added) → both suites rerun again → straight into the AWS staging
+runbook's Steps 1-9 (see the 2026-09-11 runbook entry's new addendum for
+what was actually executed). At no point in this continuous account does
+a review agent re-examine the round-3 fixes or the PM-gap-analysis fixes
+before that deployment. This doesn't mean the fixes were wrong — the
+orchestrator's own spot-checks and both full suites passing are real
+signal — but it does mean this project's own stated rule ("every task/batch
+goes through a mandatory adversarial-review gate before it counts as
+finished") was not actually followed for this specific batch before it
+reached a shared, externally-reachable environment.
+
+### Addendum evidence
+
+- `08-evidence/documents/darshan changes.md` (the entire session, from the
+  round-3 review through the AWS staging deployment)

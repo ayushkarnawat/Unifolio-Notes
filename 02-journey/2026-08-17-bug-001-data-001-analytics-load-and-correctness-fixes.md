@@ -282,3 +282,51 @@ is required before merging this branch into `feat/enhanced-ui`."
 - Evidence: `08-evidence/documents/orchestration/bug-001-data-001-post-implementation-performance-assessment.md`
 - Evidence: `08-evidence/documents/orchestration/import-identity-validation-handoff.md`
 - Evidence: `08-evidence/documents/orchestration/delegation-log.md` (2026-08-18/19 entries)
+
+## Addendum — 2026-09-24: item 7's ≥0.92 similarity gate had a real gap, closed by an ISIN cross-check
+
+### For stakeholders
+
+Item 7 above ("Import identity validation") added a ≥0.92 name-similarity
+check to confirm a CAS-imported scheme against its canonical AMFI record.
+A later, real case fell through that gate: two throwaway test household
+members both imported the same statement and both had "JioBlackRock Flexi
+Cap Fund" (a scheme that only launched in October 2025) manually mapped to
+the wrong scheme, "UTI Children's Equity Fund," during import confirmation
+— because the name-similarity between the CAS-parsed name and mfapi.in's
+canonical name for this new scheme was 0.87, just under item 7's 0.92 gate.
+This wasn't a backend bug causing bad data on its own — a human picked the
+wrong option from a confirmation list — but the gate that should have made
+the correct option obviously preferred wasn't strict enough for this
+scheme. Fixed by also cross-checking the scheme's ISIN (already available
+from CAS parsing) against mfapi.in's own ISIN fields, which is a stronger
+signal than name-similarity and doesn't depend on either name being
+phrased similarly.
+
+### Technical detail
+
+`enrich.py`'s `resolve_scheme` now checks the CAS-supplied ISIN against
+mfapi.in's `isinGrowth`/`isinDivReinvestment` fields for the CAS-supplied
+AMFI code, *before* falling back to item 7's existing ≥0.92 name-similarity
+check — purely additive, never weaker than the existing DATA-001 cross-check,
+and only activates when both sides actually have ISIN data (mfapi.in
+publishes ISIN for a minority of schemes; the fix's own verification found
+zero collisions across the cases it could check). 2 new tests added, 4
+existing test mocks updated for the new lookup, full backend suite reported
+446 passed/2 skipped. The two throwaway test accounts that surfaced this
+were cleaned up, not treated as production data loss.
+
+This is presented as an addendum, not a new investigation, because the
+underlying evidence (this exact fix, in more technical detail) was already
+present in this vault's `08-evidence/documents/engineering-loop/session.md`
+from an earlier ingestion batch — this addendum is the first time it's
+been promoted into a structured record connecting it explicitly to item
+7's gate above.
+
+### Addendum evidence
+
+- `08-evidence/documents/engineering-loop/session.md` (already in this
+  vault; see its "Root-caused a dashboard-visible phantom... UTI Children's
+  Equity Fund" section)
+- `08-evidence/documents/Notes for the product.md` (a second, independent
+  retelling of the same fix, consistent with `session.md`'s account)
