@@ -253,3 +253,32 @@ ingested into this vault).
   2026-09-24 entries
 - `08-evidence/documents/engineering-loop/log.md`, 2026-09-18, 2026-09-19,
   and 2026-09-24 entries
+
+## Correction — 2026-09-28: the 2026-09-28 addendum above overstated the file-storage detail
+
+The addendum immediately above this one described `file_reference` as
+"local disk in dev, S3 in production." That is not what the evidence
+shows. Reading the primary source documents directly (rather than only
+the root engineering-loop changelogs) found: an S3 bucket for CAS files,
+with SSE-KMS encryption and a Lifecycle rule for the 30-day expiry, was
+**authored in Terraform** (`infra/modules/storage/`) — but, per `log.md`'s
+own entry for that infra commit, **not yet applied** (no `.tfstate`
+existed for it at the time). The running application writes to local disk
+in every environment, dev included, behind a storage interface designed
+for an S3 swap that has not yet happened. Not rewriting the addendum above
+per this vault's append-only rule; this correction stands alongside it.
+
+One open question from the 2026-09-18 design discussion is resolved by
+this same evidence: whether PAN encryption uses a customer-managed KMS
+key (CMK) or the free AWS-managed SSM key was left undecided at the time
+(see the full account in
+[02-journey/2026-09-18-pan-persistence-and-cas-attribution.md](../02-journey/2026-09-18-pan-persistence-and-cas-attribution.md)).
+The same Terraform module's SSE-KMS choice resolves it: **CMK**.
+
+### Correction evidence
+
+- `08-evidence/documents/engineering-loop/log.md`, 2026-09-18/24
+  infra-commit entry ("`infra/modules/storage/` (CAS-files S3 bucket,
+  private, SSE-KMS, lifecycle expiry) ... authored, not yet applied")
+- `08-evidence/documents/orchestration/pan-cas-attribution-feature-documentation.md`
+  §5 ("No real cloud storage yet")

@@ -1,0 +1,468 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PAN Storage Map</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@500;600;700&family=Manrope:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+:root {
+  --bg: #FCFCFC; --surface: #FFFFFF; --ink: #111111; --muted: #5C5C5C; --border: #E5E5E5;
+  --accent: #22C55E; --accent-ink: #15803D;
+  --pending: #B45309; --pending-bg: #FEF3C7; --pending-line: #F59E0B;
+  --permanent: #15803D; --permanent-bg: #DCFCE7; --permanent-line: #16A34A;
+  --none: #475569; --none-bg: #F1F5F9; --none-line: #94A3B8;
+  --code-bg: #F4F6F5;
+  --diagram-bg: #FFFFFF;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #0F0F0F; --surface: #1A1A1A; --ink: #F5F5F5; --muted: #A3A3A3; --border: #2A2A2A;
+    --accent: #22C55E; --accent-ink: #4ADE80;
+    --pending: #FCD34D; --pending-bg: #3A2A0A; --pending-line: #F59E0B;
+    --permanent: #86EFAC; --permanent-bg: #0F2E1A; --permanent-line: #22C55E;
+    --none: #CBD5E1; --none-bg: #1E232B; --none-line: #64748B;
+    --code-bg: #202322;
+    --diagram-bg: #161616;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0F0F0F; --surface: #1A1A1A; --ink: #F5F5F5; --muted: #A3A3A3; --border: #2A2A2A;
+  --accent: #22C55E; --accent-ink: #4ADE80;
+  --pending: #FCD34D; --pending-bg: #3A2A0A; --pending-line: #F59E0B;
+  --permanent: #86EFAC; --permanent-bg: #0F2E1A; --permanent-line: #22C55E;
+  --none: #CBD5E1; --none-bg: #1E232B; --none-line: #64748B;
+  --code-bg: #202322;
+  --diagram-bg: #161616;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink);
+  font: 400 15px/1.6 "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif;
+  padding-inline: 20px; padding-block: 40px 72px;
+}
+.wrap { max-width: 1040px; margin: 0 auto; display: flex; flex-direction: column; gap: 56px; }
+h1, h2, h3 { font-family: "DM Sans", system-ui, sans-serif; text-wrap: balance; margin: 0; letter-spacing: -0.01em; }
+h1 { font-size: clamp(28px, 4.2vw, 38px); font-weight: 700; line-height: 1.15; }
+h2 { font-size: 22px; font-weight: 700; line-height: 1.3; }
+h3 { font-size: 16px; font-weight: 600; }
+p { margin: 0; max-width: 68ch; }
+code, .mono { font-family: "JetBrains Mono", ui-monospace, "SFMono-Regular", Consolas, monospace; font-size: 0.86em; }
+code { background: var(--code-bg); padding: 1px 6px; border-radius: 4px; white-space: nowrap; }
+.eyebrow { font: 600 12px/1 "Manrope", sans-serif; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent-ink); }
+header { display: flex; flex-direction: column; gap: 14px; }
+header .lede { font-size: 17px; color: var(--muted); }
+nav { display: flex; flex-wrap: wrap; gap: 8px; }
+nav a {
+  color: var(--ink); text-decoration: none; font-size: 13px; font-weight: 500;
+  border: 1px solid var(--border); border-radius: 999px; padding: 6px 12px; background: var(--surface);
+}
+nav a:hover { border-color: var(--accent); }
+nav a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+section { display: flex; flex-direction: column; gap: 18px; scroll-margin-top: 16px; }
+.section-head { display: flex; flex-direction: column; gap: 6px; }
+.section-head p { color: var(--muted); }
+
+/* The answer: a timeline of the three columns */
+.timeline { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); overflow: hidden; }
+.stage { padding: 18px 18px 20px; display: flex; flex-direction: column; gap: 10px; border-right: 1px solid var(--border); }
+.stage:last-child { border-right: 0; }
+.stage .when { font: 600 12px/1.2 "Manrope", sans-serif; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.stage .screen { font: 600 16px/1.3 "DM Sans", sans-serif; }
+.cols { display: flex; flex-direction: column; gap: 6px; }
+.col { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; font-size: 13px; }
+.col .name { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 12px; color: var(--muted); }
+.val { font-weight: 600; font-size: 12px; padding: 1px 8px; border-radius: 999px; white-space: nowrap; }
+.v-null { color: var(--none); background: var(--none-bg); }
+.v-pending { color: var(--pending); background: var(--pending-bg); }
+.v-perm { color: var(--permanent); background: var(--permanent-bg); }
+.stage.hl-pending { box-shadow: inset 0 3px 0 var(--pending-line); }
+.stage.hl-perm { box-shadow: inset 0 3px 0 var(--permanent-line); }
+.stage .note { font-size: 13px; color: var(--muted); }
+@media (max-width: 820px) {
+  .timeline { grid-template-columns: minmax(0, 1fr); }
+  .stage { border-right: 0; border-bottom: 1px solid var(--border); }
+  .stage:last-child { border-bottom: 0; }
+}
+
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+.fact { border-left: 3px solid var(--accent); padding: 4px 0 4px 14px; display: flex; flex-direction: column; gap: 4px; }
+.fact strong { font-family: "DM Sans", sans-serif; font-weight: 600; font-size: 15px; }
+.fact span { color: var(--muted); font-size: 14px; }
+
+.legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 13px; color: var(--muted); }
+.legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; border: 1px solid; }
+.lg-pan { background: #ffd6d6; border-color: #c0392b !important; }
+.lg-db { background: #fff4d6; border-color: #b8860b !important; }
+.lg-pop { background: #e8e8ff; border-color: #5b5bd6 !important; }
+.lg-br { background: #e6f7ea; border-color: #2e8b57 !important; }
+
+.diagram {
+  background: var(--diagram-bg); border: 1px solid var(--border); border-radius: 14px;
+  padding: 20px; overflow-x: auto;
+}
+.diagram pre.mermaid { margin: 0; background: transparent; display: flex; justify-content: center; min-width: min-content; }
+.callout { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; font-size: 14px; color: var(--muted); }
+.callout b { color: var(--ink); }
+
+.tbl-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { text-align: left; padding: 11px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+tr:last-child td { border-bottom: 0; }
+th { font: 600 12px/1.3 "Manrope", sans-serif; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); background: var(--bg); }
+.yes { color: var(--pending); font-weight: 600; }
+.no { color: var(--permanent); font-weight: 600; }
+footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--border); padding-top: 18px; }
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <span class="eyebrow">Unifolio · CAS import</span>
+    <h1>When does the PAN enter the database?</h1>
+    <p class="lede">At upload. Both PAN columns are written together, in one database write, while the “Parsing…” spinner is on screen. Confirm Import only makes that PAN permanent.</p>
+    <nav aria-label="Sections">
+      <a href="#answer">The answer</a>
+      <a href="#justme">Just Me flow</a>
+      <a href="#family">Family flow</a>
+      <a href="#timeline">Upload → Confirm timeline</a>
+      <a href="#lifecycle">PAN column lifecycle</a>
+      <a href="#er">ER diagram</a>
+      <a href="#where">Where PAN is stored</a>
+    </nav>
+  </header>
+
+  <section id="answer">
+    <div class="section-head">
+      <h2>The three PAN-related columns, screen by screen</h2>
+      <p>All three live on <code>household_members</code>. <code>pan_pending_until</code> holds no PAN: it only says whether the PAN is still pending.</p>
+    </div>
+    <div class="timeline" role="list">
+      <div class="stage" role="listitem">
+        <span class="when">1 · Member created</span>
+        <span class="screen">Just Me screen / Add Family Members</span>
+        <div class="cols">
+          <div class="col"><span class="name">pan_encrypted</span><span class="val v-null">NULL</span></div>
+          <div class="col"><span class="name">pan_lookup_hash</span><span class="val v-null">NULL</span></div>
+          <div class="col"><span class="name">pan_pending_until</span><span class="val v-null">NULL</span></div>
+        </div>
+        <span class="note">A row exists for the person, with no PAN yet.</span>
+      </div>
+      <div class="stage hl-pending" role="listitem">
+        <span class="when">2 · Upload accepted</span>
+        <span class="screen">“Parsing…” spinner</span>
+        <div class="cols">
+          <div class="col"><span class="name">pan_encrypted</span><span class="val v-pending">encrypted PAN</span></div>
+          <div class="col"><span class="name">pan_lookup_hash</span><span class="val v-pending">HMAC hash</span></div>
+          <div class="col"><span class="name">pan_pending_until</span><span class="val v-pending">now + 65 min</span></div>
+        </div>
+        <span class="note"><b>The PAN enters the database here.</b> One UPDATE and one COMMIT, during <code>POST /imports/parse</code>.</span>
+      </div>
+      <div class="stage" role="listitem">
+        <span class="when">3 · Reviewing</span>
+        <span class="screen">Review CAS Import screen</span>
+        <div class="cols">
+          <div class="col"><span class="name">pan_encrypted</span><span class="val v-pending">encrypted PAN</span></div>
+          <div class="col"><span class="name">pan_lookup_hash</span><span class="val v-pending">HMAC hash</span></div>
+          <div class="col"><span class="name">pan_pending_until</span><span class="val v-pending">counting down</span></div>
+        </div>
+        <span class="note">Leaving here (Try again / Cancel, or 65 min pass) wipes all three.</span>
+      </div>
+      <div class="stage hl-perm" role="listitem">
+        <span class="when">4 · Confirm Import clicked</span>
+        <span class="screen">“Import complete”</span>
+        <div class="cols">
+          <div class="col"><span class="name">pan_encrypted</span><span class="val v-perm">unchanged</span></div>
+          <div class="col"><span class="name">pan_lookup_hash</span><span class="val v-perm">unchanged</span></div>
+          <div class="col"><span class="name">pan_pending_until</span><span class="val v-perm">NULL = permanent</span></div>
+        </div>
+        <span class="note">Confirm only clears the pending flag. It also saves the import, folios, transactions and the CAS PDF.</span>
+      </div>
+    </div>
+    <div class="facts">
+      <div class="fact"><strong>Never one without the other</strong><span><code>pan_encrypted</code> and <code>pan_lookup_hash</code> are always saved in the same write.</span></div>
+      <div class="fact"><strong>Before upload: memory only</strong><span>Until then the raw PAN exists only in server memory, never on disk in plain form.</span></div>
+      <div class="fact"><strong>Conflict = nothing written</strong><span>If the PAN belongs to someone else, a popup appears and the database is untouched.</span></div>
+      <div class="fact"><strong>Family: one member at a time</strong><span>Picking files only queues them in the browser. Each PAN is written after “Import now”, in turn.</span></div>
+    </div>
+  </section>
+
+  <section id="justme">
+    <div class="section-head">
+      <h2>Just Me: from clicking “Just Me” to “Import complete”</h2>
+      <p>Every screen, server step and database write, in order. The red boxes are the two moments the PAN columns change.</p>
+    </div>
+    <div class="legend">
+      <span><i class="lg-pan"></i>PAN columns change</span>
+      <span><i class="lg-db"></i>Other database writes</span>
+      <span><i class="lg-pop"></i>Popup shown</span>
+    </div>
+    <div class="diagram"><pre class="mermaid">flowchart TD
+    A["Onboarding: Q4 Household screen"] --&gt;|User clicks Just Me| B["SoloCasUpload screen loads"]
+    B --&gt; B1[("DB write 1&lt;br/&gt;INSERT household_members&lt;br/&gt;relationship = self&lt;br/&gt;pan_encrypted = NULL&lt;br/&gt;pan_lookup_hash = NULL&lt;br/&gt;pan_pending_until = NULL")]
+    B1 --&gt; C["Import screen: choose path&lt;br/&gt;(Request from CAMS / I already have a statement)"]
+    C --&gt;|I already have a statement| D["Upload form: pick CAS PDF + enter PDF password"]
+    D --&gt;|Clicks Upload Statement| E["'Parsing…' spinner shown"]
+    E --&gt; F["Browser → POST /imports/parse&lt;br/&gt;(file, password, household_member_id)"]
+    F --&gt; G{"Server: PDF valid&lt;br/&gt;and password correct?"}
+    G --&gt;|No| G1["Error screen with Try again&lt;br/&gt;(nothing written to DB)"]
+    G --&gt;|Yes| H["Server parses CAS in memory&lt;br/&gt;(raw PAN now in server memory only)"]
+    H --&gt; I["Server looks up fund details online (mfapi)&lt;br/&gt;and creates the review session in memory"]
+    I --&gt; J{"Server checks the PAN&lt;br/&gt;against household_members.pan_lookup_hash"}
+    J --&gt;|"PAN belongs to a&lt;br/&gt;different account"| K1["409 cross_account_pan_blocked&lt;br/&gt;(nothing written)"]
+    K1 --&gt; K1s["Popup: 'Import blocked'&lt;br/&gt;Back → household step"]
+    J --&gt;|"PAN belongs to another&lt;br/&gt;member of this account,&lt;br/&gt;or doesn't match this&lt;br/&gt;member's permanent PAN"| K2["409 pan_belongs_to_other_member /&lt;br/&gt;pan_mismatch_for_member&lt;br/&gt;(nothing written)"]
+    K2 --&gt; K2s["Popup: 'This PAN already exists'&lt;br/&gt;Change CAS file / Cancel → back to upload form"]
+    J --&gt;|"PAN is new, or already&lt;br/&gt;this member's"| L[("DB write 2: PAN ENTERS THE DATABASE&lt;br/&gt;UPDATE household_members SET&lt;br/&gt;pan_encrypted = encrypt(PAN)&lt;br/&gt;pan_lookup_hash = HMAC(PAN)&lt;br/&gt;pan_pending_until = now + 65 min&lt;br/&gt;→ COMMIT")]
+    L --&gt; M["Review screen: 'Review … CAS Import'&lt;br/&gt;(schemes, folios, transactions)"]
+    M --&gt;|User clicks Confirm Import| N["Browser → POST /imports/confirm"]
+    N --&gt; O[("DB write 3: PAN MADE PERMANENT&lt;br/&gt;UPDATE household_members&lt;br/&gt;SET pan_pending_until = NULL&lt;br/&gt;(pan_encrypted &amp; pan_lookup_hash unchanged)")]
+    O --&gt; P[("DB write 4 (same transaction)&lt;br/&gt;INSERT imports (status = confirmed,&lt;br/&gt;file_reference, file_expires_at = +30 days)&lt;br/&gt;INSERT schemes (if new), folios, transactions&lt;br/&gt;CAS PDF saved to file storage (S3 / disk)&lt;br/&gt;→ COMMIT")]
+    P --&gt; Q["'Import complete' screen → next step"]
+    M -.-&gt;|"User abandons: Try again after a&lt;br/&gt;failed confirm"| R["Browser → POST /imports/sessions/{id}/discard"]
+    R --&gt; S[("UPDATE household_members SET&lt;br/&gt;pan_encrypted = NULL, pan_lookup_hash = NULL,&lt;br/&gt;pan_pending_until = NULL → COMMIT")]
+    M -.-&gt;|"User just closes the tab"| T["After 65 min the pending PAN counts as expired&lt;br/&gt;and is wiped the next time anyone checks that PAN"]
+
+    classDef db fill:#fff4d6,stroke:#b8860b,color:#000
+    classDef pan fill:#ffd6d6,stroke:#c0392b,color:#000,stroke-width:2px
+    classDef popup fill:#e8e8ff,stroke:#5b5bd6,color:#000
+    class B1,P,S db
+    class L,O pan
+    class K1s,K2s popup</pre></div>
+    <p class="callout">In a fresh Just Me account the only popup that can realistically appear is <b>Import blocked</b>, when the same CAS was already imported under a different Unifolio account.</p>
+  </section>
+
+  <section id="family">
+    <div class="section-head">
+      <h2>Family: files are queued, then each member is uploaded in turn</h2>
+      <p>Picking files on the member cards sends nothing to the server. Each member’s PAN is checked and written only after “Import now”.</p>
+    </div>
+    <div class="legend">
+      <span><i class="lg-pan"></i>PAN columns change</span>
+      <span><i class="lg-db"></i>Other database writes</span>
+      <span><i class="lg-pop"></i>Popup shown</span>
+      <span><i class="lg-br"></i>Browser only, nothing sent</span>
+    </div>
+    <div class="diagram"><pre class="mermaid">flowchart TD
+    A["Onboarding: Q4 Household screen"] --&gt;|User clicks Family Too| B["Add Family Members screen"]
+    B --&gt;|Each member added| B1[("DB write 1 (per member)&lt;br/&gt;INSERT household_members&lt;br/&gt;e.g. Mom, Dad&lt;br/&gt;all PAN columns = NULL")]
+    B1 --&gt;|Continue| C["Family CAS cards: one card per member"]
+    C --&gt;|"For each member: pick PDF + password&lt;br/&gt;(or Skip for now)"| C1["File QUEUED IN THE BROWSER ONLY&lt;br/&gt;nothing sent, nothing written"]
+    C1 --&gt; D["'Upload your own CAS?' screen"]
+    D --&gt;|Upload now| D1[("If no self member yet:&lt;br/&gt;INSERT household_members relationship = self&lt;br/&gt;PAN columns = NULL")]
+    D1 --&gt; D2["Own file also QUEUED in browser"]
+    D --&gt;|Upload later| E
+    D2 --&gt; E["Parse Queue screen: list of queued files"]
+    E --&gt;|User clicks Import now| F["Take the NEXT queued member (e.g. Mom)"]
+    F --&gt; G["'Parsing…' spinner&lt;br/&gt;Browser → POST /imports/parse&lt;br/&gt;(Mom's file, password, Mom's member id)"]
+    G --&gt; H{"PDF valid +&lt;br/&gt;password correct?"}
+    H --&gt;|No| H1["Per-member error screen&lt;br/&gt;Try again / Skip Mom for now&lt;br/&gt;(nothing written)"]
+    H --&gt;|Yes| I["Server parses CAS + looks up funds&lt;br/&gt;(PAN in server memory only)"]
+    I --&gt; J{"Server checks PAN against&lt;br/&gt;household_members.pan_lookup_hash"}
+    J --&gt;|"Any conflict:&lt;br/&gt;other account, other family member,&lt;br/&gt;or not Mom's permanent PAN"| K["409 (nothing written)"]
+    K --&gt; K1["Popup: 'This PAN already exists'&lt;br/&gt;'The statement you uploaded for Mom belongs to a PAN&lt;br/&gt;that's already in Unifolio. Please choose Mom's own CAS.'"]
+    K1 --&gt;|Change CAS file| K2["Upload form for Mom (with Back → popup)"]
+    K2 --&gt;|New file uploaded| G
+    K1 --&gt;|Skip Mom for now| X
+    J --&gt;|"PAN new, or already Mom's"| L[("DB write 2: PAN ENTERS THE DATABASE&lt;br/&gt;UPDATE household_members (Mom) SET&lt;br/&gt;pan_encrypted = encrypt(PAN)&lt;br/&gt;pan_lookup_hash = HMAC(PAN)&lt;br/&gt;pan_pending_until = now + 65 min&lt;br/&gt;→ COMMIT")]
+    L --&gt; M["Review screen: 'Review Mom's CAS Import'"]
+    M --&gt;|Confirm Import| N[("DB write 3: PAN MADE PERMANENT&lt;br/&gt;UPDATE household_members (Mom)&lt;br/&gt;SET pan_pending_until = NULL")]
+    N --&gt; O[("DB write 4 (same transaction)&lt;br/&gt;INSERT imports / folios / transactions&lt;br/&gt;CAS PDF saved, file_expires_at = +30 days&lt;br/&gt;→ COMMIT")]
+    O --&gt; X{"More queued members?"}
+    X --&gt;|"Yes (e.g. Dad)"| F
+    X --&gt;|No| Y["'Import complete' (all members combined) → Get my first score"]
+
+    classDef db fill:#fff4d6,stroke:#b8860b,color:#000
+    classDef pan fill:#ffd6d6,stroke:#c0392b,color:#000,stroke-width:2px
+    classDef popup fill:#e8e8ff,stroke:#5b5bd6,color:#000
+    classDef browser fill:#e6f7ea,stroke:#2e8b57,color:#000
+    class B1,D1,O db
+    class L,N pan
+    class K1 popup
+    class C1,D2 browser</pre></div>
+    <p class="callout"><b>Why the order matters:</b> Mom’s PAN is permanent before Dad’s file is even uploaded. If Dad’s slot holds Mom’s statement by mistake, Dad’s upload hits the “This PAN already exists” popup.</p>
+  </section>
+
+  <section id="timeline">
+    <div class="section-head">
+      <h2>One upload → confirm, step by step</h2>
+      <p>What sits in server memory versus the database at each step.</p>
+    </div>
+    <div class="diagram"><pre class="mermaid">sequenceDiagram
+    autonumber
+    actor U as User
+    participant FE as Browser (ImportFlow / FamilyImportFlow)
+    participant API as Backend /imports
+    participant MEM as Server memory (review session)
+    participant DB as Database (household_members)
+    participant FS as File storage (S3 / disk)
+
+    U-&gt;&gt;FE: Pick CAS PDF + password, click Upload
+    FE-&gt;&gt;API: POST /imports/parse (file, password, member_id)
+    API-&gt;&gt;API: Check the member belongs to this user
+    API-&gt;&gt;API: Decrypt + parse PDF (casparser)
+    Note over API: Raw PAN exists only in RAM from here
+    API-&gt;&gt;MEM: Create review session (parsed CAS incl. raw PAN, member_id, user_id)
+    API-&gt;&gt;DB: SELECT … WHERE pan_lookup_hash = HMAC(PAN)
+    alt Conflict found
+        API--&gt;&gt;MEM: Delete the review session
+        API--&gt;&gt;FE: 409 + code
+        FE--&gt;&gt;U: Popup (Import blocked / This PAN already exists)
+        Note over DB: Nothing written
+    else No conflict
+        API-&gt;&gt;DB: UPDATE pan_encrypted, pan_lookup_hash, pan_pending_until=now+65m
+        API-&gt;&gt;DB: COMMIT ← PAN IS NOW IN THE DATABASE (pending)
+        API--&gt;&gt;FE: Preview (masked PAN only, e.g. L********R)
+        FE--&gt;&gt;U: Review screen
+        U-&gt;&gt;FE: Click Confirm Import
+        FE-&gt;&gt;API: POST /imports/confirm (session_id, member_id)
+        API-&gt;&gt;MEM: Load review session (must be same user + member, &lt; 60 min old)
+        API-&gt;&gt;DB: UPDATE pan_pending_until = NULL ← PAN NOW PERMANENT
+        API-&gt;&gt;DB: INSERT imports, schemes, folios, transactions
+        API-&gt;&gt;FS: Save CAS PDF (kept 30 days)
+        API-&gt;&gt;DB: COMMIT
+        API--&gt;&gt;MEM: Delete the review session
+        API--&gt;&gt;FE: added / skipped counts
+        FE--&gt;&gt;U: Import complete
+    end</pre></div>
+  </section>
+
+  <section id="lifecycle">
+    <div class="section-head">
+      <h2>Lifecycle of the PAN columns on one member</h2>
+      <p>A member’s PAN is always in one of three states: empty, pending or permanent.</p>
+    </div>
+    <div class="diagram"><pre class="mermaid">stateDiagram-v2
+    [*] --&gt; Empty: Member created (Just Me screen / Add Family Members)
+    Empty: pan_encrypted = NULL&lt;br/&gt;pan_lookup_hash = NULL&lt;br/&gt;pan_pending_until = NULL
+    Pending: pan_encrypted = encrypted PAN&lt;br/&gt;pan_lookup_hash = HMAC&lt;br/&gt;pan_pending_until = upload time + 65 min
+    Permanent: pan_encrypted = encrypted PAN&lt;br/&gt;pan_lookup_hash = HMAC&lt;br/&gt;pan_pending_until = NULL
+
+    Empty --&gt; Pending: Upload accepted (POST /imports/parse)
+    Pending --&gt; Permanent: Confirm Import (POST /imports/confirm)
+    Pending --&gt; Empty: Discard (Try again / Cancel)
+    Pending --&gt; Empty: 65 min pass with no Confirm (wiped lazily on next check)
+    Pending --&gt; Pending: Same member uploads again (expiry refreshed, or a different PAN replaces it)
+    Permanent --&gt; Permanent: Later imports of the same PAN (no change)
+    Permanent --&gt; Permanent: Upload with a different PAN → refused, popup, no change</pre></div>
+    <p class="callout">The emailed request-CAS path (<code>/cas-imports</code>) has no review screen, so it goes straight from <b>Empty</b> to <b>Permanent</b>. The current app screens don’t use it.</p>
+  </section>
+
+  <section id="er">
+    <div class="section-head">
+      <h2>ER diagram: the tables an import touches</h2>
+      <p>The PAN lives on <code>household_members</code>. The unique index on <code>pan_lookup_hash</code> enforces one PAN, one member, across all of Unifolio, and a pending PAN holds that slot too.</p>
+    </div>
+    <div class="diagram"><pre class="mermaid">erDiagram
+    users ||--o{ household_members : "has"
+    household_members ||--o{ imports : "owns"
+    household_members ||--o{ folios : "owns"
+    schemes ||--o{ folios : "is held in"
+    folios ||--o{ transactions : "has" 
+    imports ||--o{ transactions : "created"
+
+    users {
+        uuid id PK
+        string phone_number UK
+        string email
+        timestamptz created_at
+        string onboarding_step
+        timestamptz onboarding_completed_at
+        enum investor_type
+        enum primary_goal
+    }
+
+    household_members {
+        uuid id PK
+        uuid user_id FK
+        string name
+        enum relationship "self | spouse | parent | child | sibling | other"
+        string relationship_other_label
+        timestamptz created_at
+        string pan_encrypted "PAN column 1: AES-256-GCM ciphertext. Written at UPLOAD"
+        string pan_lookup_hash UK "PAN column 2: HMAC-SHA256, UNIQUE index. Written at UPLOAD, same write as pan_encrypted"
+        timestamptz pan_pending_until "Set at UPLOAD (+65 min), cleared to NULL at CONFIRM"
+    }
+
+    imports {
+        uuid id PK
+        uuid household_member_id FK
+        enum status
+        enum source_cas_type
+        json raw_parser_output "parsed CAS with PAN REDACTED"
+        timestamptz uploaded_at
+        timestamptz confirmed_at
+        string file_reference "stored CAS PDF key. Written at CONFIRM"
+        timestamptz file_expires_at "CONFIRM + 30 days"
+        int new_transactions_count
+        int duplicate_transactions_count
+    }
+
+    folios {
+        uuid id PK
+        uuid household_member_id FK
+        uuid scheme_id FK
+        string folio_number
+        enum plan_type
+        bool has_coverage_gap
+    }
+
+    schemes {
+        uuid id PK
+        string amfi_code UK
+        string isin
+        string name
+        string amc_name
+        string sebi_category
+    }
+
+    transactions {
+        uuid id PK
+        uuid folio_id FK
+        uuid import_id FK
+        enum type
+        date date
+        numeric amount
+        numeric units
+        numeric nav
+    }</pre></div>
+  </section>
+
+  <section id="where">
+    <div class="section-head">
+      <h2>Where the PAN is, and isn’t, stored</h2>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Place</th><th>PAN stored?</th><th>Detail</th></tr></thead>
+        <tbody>
+          <tr><td><code>household_members.pan_encrypted</code></td><td class="yes">Yes</td><td>AES-256-GCM encrypted; readable only with the server key.</td></tr>
+          <tr><td><code>household_members.pan_lookup_hash</code></td><td class="yes">Yes, as a fingerprint</td><td>One-way HMAC-SHA256; cannot be turned back into the PAN.</td></tr>
+          <tr><td><code>imports.raw_parser_output</code></td><td class="no">No</td><td>The PAN is removed before the parsed CAS is saved.</td></tr>
+          <tr><td>Stored CAS PDF (<code>imports.file_reference</code>)</td><td class="yes">Inside the PDF</td><td>As printed on the statement; deleted after 30 days.</td></tr>
+          <tr><td>Any API response or screen</td><td class="no">No</td><td>Only the masked form, e.g. <span class="mono">L********R</span>.</td></tr>
+          <tr><td>Server logs</td><td class="no">No</td><td>Logs name the member id only.</td></tr>
+          <tr><td>Server memory (review session)</td><td class="yes">Yes, raw</td><td>For at most 60 minutes, until Confirm, Discard or expiry.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer>Source: <span class="mono">Docs/orchestration/pan-storage-flow-and-er-diagram.md</span> · reflects the PAN-at-upload change of 24 Sep 2026 (<span class="mono">pan_claims.py</span>, migration 0016).</footer>
+</div>
+
+<!-- Standalone copy: the claude.ai viewer draws Mermaid itself; a plain
+     browser needs the library, loaded here. Needs an internet connection. -->
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.min.js"></script>
+<script>
+  var dark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+  mermaid.initialize({ startOnLoad: true, securityLevel: "strict", theme: dark ? "dark" : "default",
+                       flowchart: { useMaxWidth: false }, sequence: { useMaxWidth: false },
+                       er: { useMaxWidth: false }, state: { useMaxWidth: false } });
+</script>
+</body>
+</html>

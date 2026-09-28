@@ -1,6 +1,8 @@
 # ADR-004: Object storage — S3 scoped to reference-data cache and exports; the CAS PDF is not retained
 
-Status: Accepted
+Status: **Superseded by [ADR-007](ADR-007-pan-storage-and-encryption.md), 2026-09-18** — the
+"CAS PDF not retained, ever" premise of this ADR was formally reopened and reversed. See the
+addendum below. Kept in full as the historical record of the original decision and reasoning.
 Date: 2026-07-22
 Related: ADR-003 (where user data actually lives), `06-architecture/quality-and-constraints.md`,
 `07-risks-and-debt.md` (contradicting statement in `Updated-CAS-PRD.md`)
@@ -120,3 +122,39 @@ ADR is treated as authoritative pending your confirmation.
 - Corroborating: `Database-Schema-Unifolio.md` Data Classification table ("No PAN column
   exists anywhere in this schema")
 - Conflicting: `Updated-CAS-PRD.md` FR-3 Security, NFR table
+
+## Addendum — 2026-09-28: superseded — the CAS PDF is now retained 30 days, and PAN is now stored
+
+On 2026-09-18 this ADR's "not in S3, not elsewhere" premise was formally
+reopened, in the same discussion that produced
+[ADR-007](ADR-007-pan-storage-and-encryption.md)'s PAN-encryption
+decision. Both the PDF-retention question this ADR settles and the
+PAN-storage question ADR-007 settles were reversed together, for the same
+reason: fragile name-based matching of a CAS statement to the right
+household member needed a reliable signal, and only the PAN (present in
+every CAS, absent from nothing this ADR discarded) provides one.
+
+**What changed:** the raw CAS PDF is now retained 30 days post-parse, then
+deleted (migration `0015`, 2026-09-18) — not indefinitely, not as a
+user-facing download feature, but long enough to support re-parsing or a
+dispute. This ADR's Option 2 disadvantages (unmasked PAN exposure,
+DPDP-Act legal-review overhead) are the same ones ADR-007 now accepts as
+a deliberate, reasoned trade rather than an oversight — see ADR-007's
+Consequences section.
+
+**What this addendum does not settle:** the legal-review-including-DPDP-Act
+precondition this ADR itself named as required before reopening ("its own
+fresh product/security review, including a legal read on DPDP-Act
+implications") is not evidenced in the material read for this addendum.
+See [R-066](../07-risks-and-debt.md).
+
+**This resolves [R-002](../07-risks-and-debt.md)** (raw CAS PDF retained,
+Open, high) as a decision, not a documentation cleanup — the ADR's own
+premise changed underneath it.
+
+### Addendum evidence
+
+- `02-journey/2026-09-18-pan-persistence-and-cas-attribution.md`
+- `08-evidence/documents/orchestration/pan-and-cas-file-storage-design-summary.md`
+- `08-evidence/documents/engineering-loop/database.md`, 2026-09-18 entry
+  (migration `0015`)

@@ -45,6 +45,15 @@ formal, Accepted decision record with reasoning; the PRD language is conditional
 at all"), reading more like a defensive clause than a requirement. Confirm and the
 conflict closes.
 
+**Resolved 2026-09-28** — overtaken by events, not by the recommended resolution above.
+ADR-004 itself was reopened and reversed 2026-09-18 (migration `0015`): the raw CAS PDF
+is now retained 30 days, then deleted. The PRD's suggested window ("e.g. 7 days") differs
+from what was actually built (30 days), but both satisfy the PRD's actual requirement — a
+short, enforced, encrypted retention window rather than indefinite storage. See
+[ADR-004](03-decisions/ADR-004-object-storage-scope-and-cas-pdf-retention.md)'s 2026-09-28
+addendum and
+[02-journey/2026-09-18-pan-persistence-and-cas-attribution.md](02-journey/2026-09-18-pan-persistence-and-cas-attribution.md).
+
 ### R-003 — Three different transaction dedupe keys (Open, medium)
 
 | Source | Key |
@@ -1619,6 +1628,54 @@ anything beyond what's already been spot-checked.
 
 *Source: `08-evidence/documents/darshan changes.md`.* See also
 [R-052](#r-052)'s 2026-09-24 update (same source, a different finding).
+
+### R-066 — Should Unifolio verify PAN *ownership* at signup? (Open — research complete, decision pending)
+
+A 2026-09-23 research document (explicitly "research only — nothing here
+is built or decided") examined whether to verify PAN at signup, following
+the 2026-09-18 decision to store PAN at all
+([ADR-007](03-decisions/ADR-007-pan-storage-and-encryption.md);
+[journey entry](02-journey/2026-09-18-pan-persistence-and-cas-attribution.md)).
+Key findings:
+
+- PAN can be verified synchronously (~1 second, ~₹1-5) via an aggregator
+  API. **This proves the PAN exists and matches a name — it does not
+  prove the person typing it owns it.** Only DigiLocker (Aadhaar OTP) or
+  an MF Central-pulled CAS (RTA-registered-contact OTP) prove ownership.
+- Verifying existence-only at signup, alone, makes the existing
+  cross-account fraud guard *worse*, not better: an impostor who knows a
+  real PAN and name passes existence verification and locks the real
+  owner out when they sign up later and hit the collision block.
+- Unifolio does not need KYC (SEBI/KRA/CKYC) as a read-only tracker with
+  no transactions, advice, or money handling — KYC only attaches if it
+  becomes an MF distributor, execution-only platform, adviser, or Account
+  Aggregator FIU. One flagged exception: the fund **scorer**, if its
+  output is read as a personalised buy/switch recommendation, could be
+  construed as investment advice under SEBI IA Regulations — needs
+  counsel, not an engineering call.
+- The governing data-protection regime is the DPDP Act 2023 + DPDP Rules
+  2025 (substantive obligations from 14 May 2027); IT Act §43A/SPDI Rules
+  2011 apply until then. No law bars collecting PAN with consent for a
+  stated purpose, but itemised notice, purpose limitation, and an erasure
+  path tied into the existing account-deletion flow are all required.
+
+**This document also flags three vault-adjacent statements as now
+stale**, not corrected here per the vault's rule against silently editing
+source material: `PRD-02-Signup-Onboarding.md`'s non-goal listing
+"KYC/identity verification beyond CAS parsing," `DEFERRED_FEATURES.md`
+line 34, and `decisions.md`'s (the code repo's own changelog) reference
+to the pre-09-18 no-PAN rule as "final, non-negotiable."
+
+**Not resolved by this entry, still needing a human/product/legal
+decision:** whether to verify PAN at signup at all, name-returning vs.
+flags-only verification, how to handle a verified-PAN collision
+(DigiLocker proof / MF Central proof / support-only), the
+"PAN already registered" enumeration trade-off (confirming to an outside
+party that a given PAN uses Unifolio), and — separately, per ADR-004's
+2026-09-28 addendum — the DPDP-Act legal review ADR-004 itself required
+before reopening, not evidenced as having happened.
+
+*Source: `08-evidence/documents/orchestration/2026-09-23-pan-verification-kyc-research.md`.*
 
 ## Deferred by decision (not debt, tracked so it is not lost)
 
