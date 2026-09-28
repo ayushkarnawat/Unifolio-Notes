@@ -742,3 +742,24 @@ rejection before typing a code, matching email's timing.
 Source: `08-evidence/documents/engineering-loop/decisions.md`, 2026-09-22
 entry; `08-evidence/documents/engineering-loop/backend.md` and
 `log.md`, same date.
+
+## 2026-09-15 — Direct /login and /signup URL entry points planned, no router library
+
+A plan to give the landing site direct deep links (`/login`, `/signup`)
+into the existing single-screen auth flow — a pathname check in `MainApp`
+seeds `authInitialMode`, then the existing internal Login/Sign Up toggle
+works unchanged. **Why no router:** two static paths don't justify adding
+`react-router-dom`; the codebase already has a working precedent for
+pathname branching without one (`isMobileRoute`'s `/mobile` check,
+`main.tsx`'s `/print/analytics` check) — this is a third, identical check,
+not a new pattern. Deliberately deferred: syncing the URL when the user
+clicks the *internal* toggle, and clearing the path back to `/` after
+login (neither needed for the stated requirement — deep link + refresh
+survival — and both add surface area without a driving need).
+
+**Status: planned, not built.** The plan itself scopes this pass as
+"review/documentation only... do not implement until the user confirms,"
+on a fresh branch cut from `main`. No evidence anywhere in this vault
+shows that branch or this change was ever made.
+
+Source: `08-evidence/documents/plans/2026-09-15-login-signup-url-routes.md`.
