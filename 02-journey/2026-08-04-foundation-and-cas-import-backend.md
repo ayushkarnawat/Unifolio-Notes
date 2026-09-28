@@ -122,3 +122,6 @@ that. Recorded as [R-018](../07-risks-and-debt.md).
 - [Risks and debt](../07-risks-and-debt.md) — R-018, R-021, R-022
 - Sources: `08-evidence/documents/plans/2026-08-04-phase-0-foundation.md`,
   `08-evidence/documents/plans/2026-08-04-phase-1-cas-import-backend.md`
+- `08-evidence/documents/mf-import-README.md` (2026-09-28 addition) — the
+  prototype's own setup README, corroborating finding 1 above ("Vite +
+  Vanilla TypeScript SPA")
