@@ -98,3 +98,44 @@ the auth test suite; nothing tests real delivery.
   comparison and cost table)
 - `08-evidence/documents/plans/2026-08-14-multi-method-auth-backend-plan.md`
   (Global Constraints: stub only)
+
+## Addendum — 2026-09-28: Postmark actually shipped 2026-09-17, then fully reversed to SES 2026-09-22/23
+
+The code repository's changelog files confirm this decision was executed,
+then reversed — a real status change, not a rewrite of anything above.
+
+**2026-09-17: `PostmarkEmailProvider` shipped** as the first real
+(non-stub) `EmailProvider` implementation, behind the protocol this ADR
+established. `email_delivery_mode` was split into its own setting,
+independent of phone/SMS's `otp_delivery_mode`, with an autouse test
+fixture guarding every test against picking up a live local `.env` value
+for either. This resolved [R-024](../07-risks-and-debt.md) as it stood —
+email login could now actually send mail in production.
+
+**2026-09-22/23: reversed.** `SesEmailProvider` was added behind the same
+`EmailProvider` abstraction (IAM-role `boto3` auth, no new secret/token
+store — the abstraction this ADR specified paid for itself exactly as
+intended for a provider swap). Postmark's provider class, Terraform
+secrets/variables, and DNS records were then **removed from the codebase
+entirely**, not kept as a dormant rollback path — a deliberate
+"don't keep it dormant" simplicity choice, explicitly recorded as not
+cost-driven (dormant Postmark cost would have been $0, free tier, no
+expiry). Full comparison: `Docs/orchestration/
+email-provider-alternatives-comparison.md` (not yet ingested into this
+vault). Same window, a related but separate fix: both Postmark and SES
+were made to raise a shared `EmailSendError` on any send failure, caught
+once per route and mapped to a `502` (was an unhandled `500`) — a failed
+send no longer leaves an orphaned, self-throttling `OtpRequest` row behind.
+
+**This resolves [R-024](../07-risks-and-debt.md)** (email OTP couldn't work
+in production) — SES is confirmed live as of 2026-09-23. Phone/SMS OTP is
+unaffected by any of this and remains `"stub"` — see
+[R-025](../07-risks-and-debt.md), still open.
+
+### Addendum evidence
+
+- `08-evidence/documents/engineering-loop/backend.md`, 2026-09-17,
+  2026-09-22, and 2026-09-23 entries
+- `08-evidence/documents/engineering-loop/decisions.md`, 2026-09-22/23 entry
+- `08-evidence/documents/engineering-loop/log.md`, 2026-09-17, 2026-09-22,
+  and 2026-09-23 entries

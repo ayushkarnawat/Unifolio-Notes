@@ -375,6 +375,13 @@ ADR-007's own follow-up note.
 
 *Sources: `08-evidence/documents/specs/2026-08-25-phase-2-stocks-demat-research.md` §7-A and §8a; `08-evidence/documents/specs/2026-08-25-phase-2-demat-integration-decision-memo.md` constraints and option H; `08-evidence/documents/plans/2026-08-26-phase-2-stocks-demat-import-backend.md` deviation 1; ADR-007; vault owner, live conversation, 2026-09-19*
 
+**Resolved 2026-09-28** — migration `0015` (2026-09-18) actually implemented
+position 4/5 (PAN encrypted at rest, per ADR-007), and migration `0016`
+(2026-09-24) amended the flow to claim PAN at upload time rather than
+Confirm. See [ADR-007](03-decisions/ADR-007-pan-storage-and-encryption.md)'s
+2026-09-28 addendum. The in-transit encryption question (TLS 1.3) and the
+DPDP Act compliance assessment remain open — not closed by this resolution.
+
 ### R-046 — The marketing brief's trust-bar claim contradicts how Unifolio actually imports statements (Open, high — launch-facing)
 
 The 2026-08-31 marketing brief's placeholder trust-bar copy reads "Works with
@@ -564,6 +571,12 @@ user experiences.
 
 Also note the cost comparison behind ADR-009 is a point-in-time snapshot of
 published pricing and should be re-checked before signing up.
+
+**Resolved 2026-09-28** — a real `PostmarkEmailProvider` shipped 2026-09-17,
+then was replaced entirely by `SesEmailProvider` 2026-09-22/23 (Postmark
+removed, not kept dormant). SES is confirmed live in staging. See
+[ADR-009](03-decisions/ADR-009-transactional-email-provider.md)'s 2026-09-28
+addendum. Phone/SMS OTP is unaffected — see R-025, still open.
 
 ### R-025 — No SMS provider has been chosen; phone OTP is also a stub (Open, medium)
 

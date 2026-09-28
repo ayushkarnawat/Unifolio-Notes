@@ -716,3 +716,29 @@ explicit pre-production gate. Neither literal credential value is
 reproduced anywhere in this vault; the raw inbox evidence copy containing
 the RDS password was redacted in place before this batch was committed,
 so that the literal value never enters this repository's git history.
+
+## 2026-08-24 — Analytics PDF export: Allocation section fixed (unrelated to the AMFI TER fix from the same day)
+
+The Analytics page's "Export PDF" button produced a PDF with an empty
+Allocation section — a separate bug from the AMFI TER concurrency/timeout
+issue fixed the same day (see
+[INV-009](../04-investigations/INV-009-amfi-ter-readtimeout-event-loop-starvation.md)).
+**Why:** the PDF export path built its Allocation chart data independently
+of the on-screen Analytics view instead of reusing it, and had silently
+drifted out of sync with a field rename on the on-screen path. Fixed by
+sourcing both from the same data-shaping function.
+
+## 2026-09-22 — Phone-gate collision now rejects like email's, instead of silently logging the caller into someone else's account
+
+Signup's mandatory phone-number gate previously called
+`attach_pending_identity` unconditionally whenever the number entered
+matched an existing identity, silently completing the caller's signup as a
+sign-in to that unrelated existing account — a live bug, not a design gap.
+**Why:** brought in line with `signup_email`'s existing 409 "already
+exists — log in instead" response for a duplicate email; the check was
+also moved from `otp/verify` to `otp/request` so the caller sees the
+rejection before typing a code, matching email's timing.
+
+Source: `08-evidence/documents/engineering-loop/decisions.md`, 2026-09-22
+entry; `08-evidence/documents/engineering-loop/backend.md` and
+`log.md`, same date.

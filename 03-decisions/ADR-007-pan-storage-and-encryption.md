@@ -192,3 +192,64 @@ now reaffirmed) without closing them (in-transit mechanism unconfirmed,
 no written documentation yet to cite as a source).
 
 Source: vault owner, live conversation, 2026-09-19.
+
+## Addendum — 2026-09-28: implemented — migration 0015 (2026-09-18), amended by migration 0016 (2026-09-24)
+
+The code repository's own changelog files (`backend.md`, `database.md`,
+`decisions.md`, `log.md`) confirm this ADR's target state actually shipped.
+This is a real status change, not a rewrite of anything above.
+
+**Migration `0015_pan_and_cas_file_storage`, 2026-09-18.** `household_members`
+gained `pan_encrypted` (AES-256-GCM envelope encryption, base64) and
+`pan_lookup_hash` (HMAC-SHA256, deterministic — allows equality matching
+without decrypting another household's PAN; made `UNIQUE` in a same-day
+review fix closing a TOCTOU race where two concurrent imports of the same PAN
+under different accounts could both see "no match"). `imports` gained
+`file_reference` (opaque storage key for the retained CAS PDF — local disk in
+dev, S3 in production) and `file_expires_at` (30 days from upload, swept by a
+manual CLI entry point). `attribution.py` was rewritten to match by PAN
+first: a PAN match within the same household auto-attributes; a PAN already
+claimed by a different account raises `CrossAccountPanBlockedError`; falls
+back to folio+AMC matching when the CAS has no PAN. `tests/models/
+test_no_pan_field.py`'s guard was broadened, not deleted, to assert PAN only
+ever lives in these two named encrypted/hashed columns, on every mapped
+model — the "no PAN persistence" invariant this ADR's Context section
+describes as stale is now enforced as "no *unencrypted* PAN," not removed.
+
+**Migration `0016_pending_pan_claims`, 2026-09-24** (amends, does not reverse,
+the above — same storage, same matching rules, different point in the flow
+where the check/claim happens). A member's PAN was previously only stored
+*after* a Confirm Import, so PAN-based attribution could never match on a
+fresh account's first upload — every first import showed a false "couldn't
+match this statement" error. Fix: `household_members.pan_pending_until`
+added; `/imports/parse` now claims the parsed PAN as a *pending* claim for
+the uploading member immediately (released on discard or after a
+timeout); `/imports/confirm` only finalizes, no prompts. `attribution.py`
+itself was replaced by `backend/app/services/import_/pan_claims.py`.
+
+**This resolves [R-043](../07-risks-and-debt.md) (PAN persistence's five
+dated positions)** — the schema change R-043 was waiting on has landed, and
+the "encrypted at rest" mechanism confirmed in the 2026-09-19 addendum above
+matches what actually shipped. The 2026-09-19 addendum's in-transit
+question (TLS 1.3) and the DPDP Act compliance follow-up are **not**
+addressed by this addendum — neither is evidenced in the source material
+read for this pass, both remain open.
+
+**Known gap, not yet built** (out of scope for this ADR, tracked separately):
+a family CAS statement covering several people is only ever attributed to
+the *first* folio's PAN holder — `casparser` exposes PAN per-folio but
+folios carry no holder name, so a multi-person statement silently imports
+everyone's funds under one member. Drafted as a plan, no code written:
+`Docs/superpowers/plans/2026-09-24-per-pan-statement-splitting.md` (not yet
+ingested into this vault).
+
+### Addendum evidence
+
+- `08-evidence/documents/engineering-loop/backend.md`, 2026-09-18 and
+  2026-09-24 entries
+- `08-evidence/documents/engineering-loop/database.md`, 2026-09-18/24 entry
+  (migrations 0015/0016)
+- `08-evidence/documents/engineering-loop/decisions.md`, 2026-09-18 and
+  2026-09-24 entries
+- `08-evidence/documents/engineering-loop/log.md`, 2026-09-18, 2026-09-19,
+  and 2026-09-24 entries
