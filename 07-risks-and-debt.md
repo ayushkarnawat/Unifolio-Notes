@@ -497,6 +497,13 @@ a `LATERAL` join backed by the composite index on `(scheme_id, date)` — then r
 `EXPLAIN ANALYZE` to confirm the plan actually changed before calling it closed. **Do not
 assume the direction; the SQLite result shows theory can be wrong in practice here.**
 
+**Update — 2026-09-28:** Postgres has been live in staging since 2026-09-09 (see
+[2026-09-09 journey entry](02-journey/2026-09-09-terraform-applied-and-iam-key-incident.md)),
+so this risk's own stated precondition is now met. The `EXPLAIN ANALYZE`
+re-measurement above has not been done — flagged in the repo's own `CLAUDE.md` as
+"worth revisiting now, not just a hypothetical future follow-up." Still Open.
+*Source: `08-evidence/documents/engineering-loop/CLAUDE.md`*
+
 ### R-013 — ECS Express Mode is newer than what it replaces (Open, low)
 
 Launched November 2025. Less battle-tested, thinner community tooling than App Runner had.
@@ -1278,6 +1285,10 @@ since been fixed.
 *Source: `08-evidence/documents/engineering-loop/session.md`, "Still open"
 list item 9; corroborated by the evidence-copy
 `08-evidence/documents/engineering-loop/CLAUDE.md`'s "Still open" summary.*
+
+**Update — 2026-09-28:** re-confirmed still present as of 2026-09-26 per the
+repo's own `CLAUDE.md` ("Still open" section) — no status change, still Open,
+still explicitly deferred by product-owner decision.
 
 ### R-057 — Two real staging credentials (an RDS database password and an AWS IAM access key) are confirmed live and have not been rotated (Open, high — must be rotated before production)
 
