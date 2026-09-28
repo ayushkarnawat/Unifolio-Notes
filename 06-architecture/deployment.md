@@ -217,3 +217,59 @@ live `.tf` files as part of this ingestion):**
 - `08-evidence/documents/aws-golive-readiness-report.md` (§9, §12, §19)
 - `08-evidence/documents/aws-technical-architecture-flow.md` (network-layout
   table, RDS spec row, module-list section)
+
+## Update — 2026-09-28: the next infra increment (CAS-files S3 + PAN/Postmark secrets) — authored, not applied
+
+A design doc and a runbook, both dated 2026-09-19, describe the infra
+needed to run the already-built PAN-persistence/CAS-file-retention feature
+(see [the 2026-09-18 journey entry](../02-journey/2026-09-18-pan-persistence-and-cas-attribution.md))
+and Postmark for real in staging. This is corroborating/completing detail
+on top of the already-applied Phase 1-5 architecture above, describing
+work that comes *after* it — not a new decision, and **not confirmed
+applied**.
+
+- **New `infra/modules/storage/` module:** a private CAS-files S3 bucket,
+  SSE-KMS-encrypted with the same shared customer-managed key already
+  documented above, with a 30-day Lifecycle rule. The plan is explicit
+  that this rule is a **backstop, not the primary deletion mechanism** —
+  the app's own `expire_cas_files.py` sweep is meant to do the real
+  deleting; see [R-070](../07-risks-and-debt.md) for why that sweep isn't
+  actually scheduled anywhere yet.
+- **Two new Secrets Manager secrets:** `pan-keys` (a JSON secret holding
+  both the PAN encryption key and the lookup-hash pepper as separate
+  fields) and `postmark-api-token`.
+- **IAM, two separate changes, not one:** the ECS *execution* role's
+  existing inline policy (`rds_master_secret_read`) is renamed to
+  `ecs_secrets_read` and widened to also read the two new secrets — a
+  delete+create of the inline policy document, not a change to the role
+  itself. Separately, and this is the change the plan calls out as the
+  real gap: the *runtime* role (`backend_task`, what the app's own AWS SDK
+  calls run as) had **zero S3 or KMS permissions at all** before this —
+  it only ever had `ecs:RunTask` for the analytics dispatcher. A new
+  `backend_task_cas_files` policy grants it S3 get/put/delete on the
+  bucket's objects and KMS encrypt/decrypt on the shared key.
+- **App-side:** a new `S3FileStorage` class behind the existing
+  `FileStorage` protocol (the swap point the 09-18 work deliberately left
+  ready), selected by a new `cas_file_storage_backend` setting
+  (`"local"` vs `"s3"`). No code change was needed for the PAN keys or the
+  Postmark token themselves — ECS's `secrets` block makes a
+  Secrets-Manager-sourced value appear as an ordinary environment
+  variable, the same mechanism already used for the RDS password.
+- **Verified against real remote state, read-only:** `terraform plan`
+  showed 21 to add, 8 to change, 8 to destroy — the destroys are the
+  renamed IAM policy plus 6 old scheduler-job task-definition revisions
+  being replaced (picking up new, unused-by-them env vars), never the
+  RDS instance, VPC, or ECS cluster/service itself.
+
+**Not confirmed applied.** The code repository's own engineering-loop
+`log.md` (2026-09-19 entry) states this infra was "authored, not yet
+applied (no `.tfstate` for this environment existed at the time)," and no
+later-dated material read into this vault confirms an apply happened —
+treat as still pending, the same posture this file already takes with
+other unconfirmed steps above.
+
+### 2026-09-28 update evidence
+
+- `08-evidence/documents/plans/2026-09-19-aws-staging-prerequisites.md`
+- `08-evidence/documents/plans/2026-09-19-cas-s3-postmark-secrets-infra.md`
+- `08-evidence/documents/engineering-loop/log.md`, 2026-09-19 entry

@@ -1797,8 +1797,17 @@ EventBridge, per the plan's own note, but that mapping is not built. This
 compounds [R-066](#r-066)'s still-open DPDP-Act legal review, since
 data-minimisation was ADR-004's original reopening justification.
 
+**2026-09-28 addition:** the staging Terraform to wire exactly this
+schedule (an EventBridge-triggered `cas_file_expiry_daily` Fargate task)
+was authored 2026-09-19 (commit `2c360df`) — but the code repository's own
+`log.md` records it as "authored, not yet applied" that same day, and
+nothing later-dated confirms an apply since. Doesn't change the
+conclusion above; it's the concrete evidence for it. See
+[the deployment architecture update](06-architecture/deployment.md).
+
 *Source: `08-evidence/documents/plans/2026-09-18-pan-cas-attribution.md`,
-`08-evidence/documents/plans/2026-09-24-pan-at-upload-attribution.md`;
+`08-evidence/documents/plans/2026-09-24-pan-at-upload-attribution.md`,
+`08-evidence/documents/plans/2026-09-19-aws-staging-prerequisites.md`;
 [02-journey/2026-09-18-pan-persistence-and-cas-attribution.md](02-journey/2026-09-18-pan-persistence-and-cas-attribution.md).*
 
 ## Deferred by decision (not debt, tracked so it is not lost)
