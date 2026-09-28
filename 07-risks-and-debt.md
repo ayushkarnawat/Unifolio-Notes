@@ -1699,6 +1699,90 @@ removal decision was made same-week.
 *Source: `08-evidence/documents/orchestration/ses-terraform-deploy-runbook.md`,
 `08-evidence/documents/orchestration/2026-09-23-ses-cutover-execution-guide.md`.*
 
+### R-068 — Account-hard-delete correctness is unconfirmed for multi-account households and never tested against real Postgres (Open, medium)
+
+A 2026-09-15/16 backend audit (a read-only, internally-facing report,
+independently re-deriving facts from the code rather than trusting
+earlier docs) flagged two gaps in the 2026-09-11 account-deletion
+feature (see [R-065](#r-065), same batch) that go beyond the
+already-recorded missing-review-gate problem:
+
+- **Household-wide cascade is unconfirmed.** The product spec calls for
+  the *whole household* to be deleted together when the account being
+  deleted is the "self"/primary one. The shipped code only sets the
+  `pending_deletion` flag on the single `User` row being deleted. This
+  is only correct if "one household = exactly one `User` account with
+  family members underneath it" always holds in this schema — which
+  appears to be the design, but has not been verified against a real
+  second account inside the same household.
+- **The Postgres-specific cascade-delete tests have never run against
+  real Postgres.** Two tests specifically covering the real
+  account-hard-delete path (the ordered delete across transactions,
+  imports, snapshots, precomputed analytics, folios, sessions, login
+  methods, household members) exist and pass locally against SQLite,
+  but this feature's whole reason for existing — a permanent, ordered,
+  multi-table delete — is exactly the kind of logic most likely to
+  behave differently under Postgres's real foreign-key/transaction
+  semantics than under SQLite's.
+
+**Recommended:** verify both before trusting this feature fully —
+create a real second household member under one account, delete the
+primary, confirm the whole household is gone; and run the two
+Postgres-specific tests against a real Postgres instance (staging RDS,
+once reachable) rather than only SQLite.
+
+*Source: `08-evidence/documents/orchestration/backend-audit-report-2026-09-15.md`, §8.2/§9.*
+
+### R-069 — AI agent feature: model/architecture research complete, but scope and the SEBI-advice line are undecided (Open — research complete, decision pending)
+
+A 2026-09-08 research document (explicitly "research only — no build
+decision made yet") surveyed commercial and open-source LLMs, agent
+frameworks, RAG/vector-DB options, and India's regulatory landscape for
+a proposed in-app AI agent (answer questions about a user's own
+portfolio, and optionally help with financial decisions). Key findings:
+
+- **No frontier LLM — commercial or open — is reliably good at
+  financial arithmetic**, provider-agnostic (documented hallucination
+  rates up to 41% on finance-domain benchmarks). The load-bearing
+  design constraint this creates: **the agent must never compute
+  portfolio numbers itself** — every number must come from Unifolio's
+  existing `Decimal`-safe backend services as a tool-call result, the
+  same tier of non-negotiable as the existing Decimal-never-float rule.
+- Recommended stack, if built: **Claude Sonnet 5** (Haiku 4.5 for cheap
+  lookups), a **hand-rolled tool-calling loop with no agent framework**
+  (LangChain/CrewAI/AutoGen all rejected as unneeded orchestration
+  overhead for a single-agent, monolith-backend case), and **no
+  RAG/vector DB** for v1 since portfolio data is already structured in
+  Postgres (pgvector recommended only if a future unstructured
+  knowledge-base feature is scoped).
+- **The regulatory line, not the technology, is the real blocker.**
+  SEBI treats *personalized* buy/sell/hold recommendations as investment
+  advice requiring RIA (or Research Analyst) registration; showing a
+  user their own already-computed data does not. Whether an LLM
+  reasoning over a user's own data and phrased as "here's what the data
+  shows" rather than "I recommend" crosses that line is an explicitly
+  unsettled "definitional gap" in current SEBI regulation, per cited
+  legal-academic commentary — not a solved problem. The one verifiable
+  local competitor precedent (Novelty Wealth / NovaAI) chose to get
+  RIA-licensed rather than word around it. DPDP Act consent requirements
+  (sending portfolio data to a third-party LLM API is its own
+  "processing" event needing explicit consent, not coverage-by-ToS) and
+  an unresolved RBI data-localization question (does the payment-data
+  circular reach portfolio data sent to a foreign LLM API — uncertain)
+  both compound this.
+
+**This is the same underlying SEBI-advice question already flagged in
+[R-066](#r-066)** against the fund scorer — both need one counsel-level
+decision on where Unifolio's "show data" vs. "give advice" line sits,
+not two separate calls.
+
+**Not resolved by this entry:** whether the agent ships at all, its
+scope ("explain your data" only vs. phrased suggestions), data-residency
+posture, and a budget ceiling for the model layer — all named in the
+source document as product decisions, not technical ones.
+
+*Source: `08-evidence/documents/orchestration/ai-agent-model-selection-research.md`.*
+
 ## Deferred by decision (not debt, tracked so it is not lost)
 
 - **Cap-wise portfolio composition and stock-level overlap between funds** — deferred in

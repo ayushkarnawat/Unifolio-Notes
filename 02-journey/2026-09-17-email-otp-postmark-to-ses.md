@@ -158,3 +158,54 @@ Postmark code (see [R-067](../07-risks-and-debt.md)).
   `08-evidence/documents/orchestration/email-otp-send-failure-handling-handoff.md`,
   `08-evidence/documents/orchestration/2026-09-23-ses-cutover-execution-guide.md`,
   `08-evidence/documents/orchestration/ses-terraform-deploy-runbook.md`
+
+### Addendum — 2026-09-28: two more rejected alternatives, and the real dispatch/commit detail
+
+A short stakeholder-facing summary of the same 2026-09-21 decision point
+(written for/by a non-engineering reader) names two rejected email
+alternatives not present in the fuller vendor-comparison doc this entry
+was originally written from: a **self-hosted open-source option (e.g.
+Postal)** — rejected because it trades a solvable waiting problem
+(Postmark's approval queue) for a harder one, building an email-sending
+reputation from scratch against inbox providers that treat unproven
+senders as suspicious by default, plus ongoing server upkeep; and
+**Gmail API / Google Workspace** — rejected outright, since Unifolio's
+company email runs on Microsoft 365, not Google Workspace, and the Gmail
+API is built for one person's mailbox (a 2,000-email/day cap, with
+Google able to suspend the account for exceeding it), not automated app
+sending.
+
+The same summary also gives a more precise account of the Microsoft 365
+delivery problem than "anti-spoofing... fixed by completing DKIM setup"
+above: the actual finding was **two conflicting DMARC records** on the
+domain instead of one, which could have made mail providers ignore the
+DMARC setup entirely — fixed and confirmed live, but explicitly named as
+a separate bug from the cross-domain trial restriction that ultimately
+drove the SES switch, not its cause.
+
+**Dispatch and commit detail**, from the code repository's own
+delegation log (previously not read for this entry): the 2026-09-17
+Postmark work was two separate plans —
+`2026-09-17-postmark-email-otp-provider.md` (commits `508fbbc`,
+`d0b8b3d`) and `2026-09-17-decouple-email-otp-delivery-mode.md` (commits
+`44dc72a`, `4bec9fe`, the `email_delivery_mode`/`otp_delivery_mode`
+split) — both implemented directly by the orchestrator, not dispatched
+to a subagent, because the session's WSL `/mnt/*` mount makes a Codex
+sandbox unreachable for writes and each task was small and fully
+specified in its plan. The 2026-09-22 SES build (`SesEmailProvider`,
+`EmailSendError`, the `otp.py`/`auth.py` fixes) ran as two parallel
+Claude subagents against disjoint file sets, landing as commits
+`db66f97`, `49b0bca`, `fc53f55`, `1fb3a82f`, `8ec2276a` — distinct from,
+and earlier than, the Postmark-removal commits (`18c13b4`, `49fd1ae`)
+already cited above from the cutover-execution guide. A mandatory
+adversarial-review gate ran against the full 6-commit SES diff before
+this was marked done: zero Critical or Important findings; one
+sub-threshold cosmetic gap (`SES_FROM_EMAIL` undocumented in
+`.env.example`) was fixed directly rather than triggering a re-review
+round.
+
+#### Addendum evidence
+
+- `08-evidence/documents/orchestration/cross-domain-otp-issue-summary.md`
+- `08-evidence/documents/orchestration/delegation-log.md`, 2026-09-17 and
+  2026-09-22 entries
