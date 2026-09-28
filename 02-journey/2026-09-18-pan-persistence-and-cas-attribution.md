@@ -175,11 +175,21 @@ Two items surfaced that the summary above doesn't cover:
 - Neither plan schedules the `expire_cas_files.py` sweep named above —
   see [R-070](../07-risks-and-debt.md), added this pass.
 
+The two design specs behind the 09-18/09-24 plans
+(`2026-09-18-pan-cas-attribution-design.md`,
+`2026-09-24-pan-at-upload-attribution-design.md`) were also read this pass;
+they corroborate the plans down to the same detail (migrations, encryption
+design, the 409 codes, the upload-time rule table) and add nothing new —
+the one point that looked new on first read, that preview sessions live in
+process memory, is already covered by [R-054](../07-risks-and-debt.md).
+
 #### Addendum evidence
 
 - `08-evidence/documents/plans/2026-09-18-pan-cas-attribution.md`
 - `08-evidence/documents/plans/2026-09-24-pan-at-upload-attribution.md`
 - `08-evidence/documents/plans/2026-09-24-per-pan-statement-splitting.md`
+- `08-evidence/documents/specs/2026-09-18-pan-cas-attribution-design.md`
+- `08-evidence/documents/specs/2026-09-24-pan-at-upload-attribution-design.md`
 
 ### Related
 
