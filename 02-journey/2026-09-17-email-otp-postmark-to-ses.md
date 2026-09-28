@@ -204,8 +204,24 @@ sub-threshold cosmetic gap (`SES_FROM_EMAIL` undocumented in
 `.env.example`) was fixed directly rather than triggering a re-review
 round.
 
+**Correction (same day):** the commit-to-plan mapping above, taken from
+`delegation-log.md`'s prose, had it backwards. Verified directly against
+the plan files themselves and the repo's own git log: `e991646`
+(`feat(auth): add PostmarkEmailProvider...`) and `194d489`
+(`test(auth): retarget the email-provider placeholder test...`) are the
+**Postmark plan**'s two commits; `508fbbc`, `d0b8b3d`, `44dc72a`, and
+`4bec9fe` are all four of the **decouple-delivery-mode plan**'s commits
+(not two of them, as first written). The SES-build and Postmark-removal
+commit hashes elsewhere in this entry were independently verified and are
+unaffected by this correction.
+
 #### Addendum evidence
 
 - `08-evidence/documents/orchestration/cross-domain-otp-issue-summary.md`
 - `08-evidence/documents/orchestration/delegation-log.md`, 2026-09-17 and
   2026-09-22 entries
+- `08-evidence/documents/plans/2026-09-17-postmark-email-otp-provider.md`,
+  `08-evidence/documents/plans/2026-09-17-decouple-email-otp-delivery-mode.md`
+  — source of the correction above
+- `08-evidence/documents/plans/2026-09-21-ses-email-provider-migration.md`,
+  `08-evidence/documents/plans/2026-09-22-ses-cutover-and-postmark-removal.md`
