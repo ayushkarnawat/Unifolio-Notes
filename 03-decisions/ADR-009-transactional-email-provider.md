@@ -139,3 +139,33 @@ unaffected by any of this and remains `"stub"` — see
 - `08-evidence/documents/engineering-loop/decisions.md`, 2026-09-22/23 entry
 - `08-evidence/documents/engineering-loop/log.md`, 2026-09-17, 2026-09-22,
   and 2026-09-23 entries
+
+## Addendum — 2026-09-28 (fuller account): the "don't keep it dormant" choice reversed an explicit day-earlier plan
+
+Now ingested: the primary-source `Docs/orchestration/` material behind
+the addendum above, giving a fuller account than the code repository's
+own changelog files alone supported. See
+[the dedicated journey entry](../02-journey/2026-09-17-email-otp-postmark-to-ses.md)
+for the full step-by-step (Postmark's trial-tier same-domain restriction
+as the actual forcing cause, the vendor comparison's full reasoning, and
+the `EmailSendError`/CORS-masking bug's exact mechanism).
+
+One detail worth surfacing at this ADR's level: the "deliberate
+'don't keep it dormant' simplicity choice" recorded above was not simply
+a fresh decision — the Terraform deploy runbook written 2026-09-22 (one
+day before cutover) explicitly instructed **"Don't remove Postmark...
+keep it dormant as a documented rollback path."** The team that executed
+the cutover the next day overrode that instruction and removed Postmark
+entirely. This makes the removal a stronger, more deliberate statement
+than "chose simplicity" alone suggests — it's a same-week reversal of an
+already-written operational plan, not just the path of least resistance.
+See [R-067](../07-risks-and-debt.md) for the operational consequence:
+no live, config-flag rollback exists post-removal.
+
+### Addendum evidence
+
+- `08-evidence/documents/orchestration/email-otp-postmark-technical-documentation.md`
+- `08-evidence/documents/orchestration/email-provider-alternatives-comparison.md`
+- `08-evidence/documents/orchestration/email-otp-send-failure-handling-handoff.md`
+- `08-evidence/documents/orchestration/2026-09-23-ses-cutover-execution-guide.md`
+- `08-evidence/documents/orchestration/ses-terraform-deploy-runbook.md`

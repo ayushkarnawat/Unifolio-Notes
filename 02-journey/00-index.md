@@ -37,6 +37,7 @@ file with the full for-stakeholders/technical-detail record.
 | 2026-09-11 | [Fund Score card redesigned for plain-English readability](2026-09-11-fund-score-card-redesign.md) | A plain-verdict card and a tier-display fix designed and fully planned (ADR-017). No execution evidence in this batch (R-053) |
 | 2026-09-11 | [A 10-item investor-requested feature batch is built, reviewed twice, and left open](2026-09-11-investor-beta-feature-batch.md) | Profile page, account deletion with grace period, contact change, dashboard XIRR and more — two full review rounds each found real issues, all fixed; a third review gate remains owed. Status confirmed OPEN, not DONE |
 | 2026-09-16 | [This documentation vault itself is designed and built](2026-09-16-second-brain-vault-built.md) | ADR-016: flat Markdown + Git, manual pull, propose-then-approve sync. Fully executed the same day — the vault this index lives in |
+| 2026-09-17 → 2026-09-23 | [Email OTP goes live on Postmark, hits a trial-account wall, and is fully replaced by SES within a week](2026-09-17-email-otp-postmark-to-ses.md) | Postmark shipped 2026-09-17, trial same-domain restriction hit 2026-09-21, SES chosen and cut over 2026-09-23 (resolves R-024). CORS-masking send-failure bug fixed same window. Runbook's "keep Postmark dormant" reversed to full removal next day (R-067) |
 | 2026-09-18 → 2026-09-24 | [ADR-004 is formally reopened: PAN is stored, encrypted, and CAS statements matched by it](2026-09-18-pan-persistence-and-cas-attribution.md) | Migration `0015`: PAN encrypted at rest, CAS file retained 30 days, cross-account PAN match blocked with no override (resolves R-002, R-043). Migration `0016` (09-24) fixes a first-upload matching gap. DPDP legal review ADR-004 itself required is not evidenced (R-066) |
 
 ```mermaid
@@ -121,6 +122,11 @@ flowchart LR
     Z --> AA["2026-09-11\nFund Score card\nredesign (ADR-017)"]
     AA -->|"Designed + planned,\nno execution evidence"| AA2["R-053 — OPEN\n(now Resolved, see\naddendum 2026-09-22)"]
     AA --> AB["2026-09-16\nThis vault's own\narchitecture (ADR-016)"]
+    AB --> AN["2026-09-17 → 09-23\nEmail OTP: Postmark\nshipped, trial wall hit,\nreplaced by SES"]
+    AN -->|"Same-domain trial\nrestriction, 4+ days\nno approval"| AN2["R-024 resolved"]
+    AN -->|"Runbook said keep\nPostmark dormant;\nreversed next day"| AN3["R-067 — OPEN,\nno live fallback"]
+    AN2 --> H
+    AN3 --> H
     AB --> AM["2026-09-18 → 09-24\nADR-004 reopened:\nPAN stored encrypted,\nmatched by PAN"]
     AM -->|"CAS PDF retained 30 days,\ncross-account PAN blocked"| AM2["R-002, R-043\nresolved"]
     AM -->|"Legal review ADR-004\nitself required, unevidenced"| AM3["R-066 — OPEN,\nKYC/ownership decision"]

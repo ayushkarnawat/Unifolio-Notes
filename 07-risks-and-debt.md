@@ -584,8 +584,11 @@ published pricing and should be re-checked before signing up.
 **Resolved 2026-09-28** — a real `PostmarkEmailProvider` shipped 2026-09-17,
 then was replaced entirely by `SesEmailProvider` 2026-09-22/23 (Postmark
 removed, not kept dormant). SES is confirmed live in staging. See
-[ADR-009](03-decisions/ADR-009-transactional-email-provider.md)'s 2026-09-28
-addendum. Phone/SMS OTP is unaffected — see R-025, still open.
+[ADR-009](03-decisions/ADR-009-transactional-email-provider.md)'s addenda
+and the [full journey entry](02-journey/2026-09-17-email-otp-postmark-to-ses.md)
+for the trial-restriction root cause and the same-window send-failure bug
+fix. Phone/SMS OTP is unaffected — see R-025, still open. The removal
+itself creates a new, small risk — see [R-067](#r-067).
 
 ### R-025 — No SMS provider has been chosen; phone OTP is also a stub (Open, medium)
 
@@ -1676,6 +1679,25 @@ party that a given PAN uses Unifolio), and — separately, per ADR-004's
 before reopening, not evidenced as having happened.
 
 *Source: `08-evidence/documents/orchestration/2026-09-23-pan-verification-kyc-research.md`.*
+
+### R-067 — No live fallback if Amazon SES has an outage or gets throttled (Open, low)
+
+When Postmark was removed entirely during the 2026-09-23 SES cutover
+(see [the journey entry](02-journey/2026-09-17-email-otp-postmark-to-ses.md)
+and [ADR-009](03-decisions/ADR-009-transactional-email-provider.md)'s
+addenda), the 2026-09-22 Terraform runbook's own recommendation — keep
+`PostmarkEmailProvider` wired in, dormant, as a rollback path — was
+overridden in favour of full removal. The cutover execution guide's own
+rollback procedure confirms the consequence: recovering from an SES
+outage or a production-sending throttle means redeploying an older
+container image/task definition that still contains the Postmark code,
+not flipping a `email_delivery_mode`-style config value while the
+current deployment keeps running. There is no evidence this trade-off
+was weighed against SES's own reliability track record before the
+removal decision was made same-week.
+
+*Source: `08-evidence/documents/orchestration/ses-terraform-deploy-runbook.md`,
+`08-evidence/documents/orchestration/2026-09-23-ses-cutover-execution-guide.md`.*
 
 ## Deferred by decision (not debt, tracked so it is not lost)
 
