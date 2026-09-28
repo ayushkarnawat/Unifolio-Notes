@@ -1783,6 +1783,24 @@ source document as product decisions, not technical ones.
 
 *Source: `08-evidence/documents/orchestration/ai-agent-model-selection-research.md`.*
 
+### R-070 — The 30-day CAS-file retention window is not actually enforced yet (Open, medium)
+
+[R-002](#r-002) was marked resolved on the strength of the 30-day retention
+*design* built 2026-09-18 (raw CAS PDF kept 30 days, then deleted) — but
+both the 2026-09-18 and 2026-09-24 implementation plans behind that design
+name the same gap without fixing it: `expire_cas_files.py` exists and is
+tested, but nothing runs it on a schedule, in any environment. Files are
+therefore not actually being deleted after 30 days anywhere yet; the
+retention window is enforced only in the sense that the CLI *could* be run
+manually. Production would map this to `infra/modules/scheduler` +
+EventBridge, per the plan's own note, but that mapping is not built. This
+compounds [R-066](#r-066)'s still-open DPDP-Act legal review, since
+data-minimisation was ADR-004's original reopening justification.
+
+*Source: `08-evidence/documents/plans/2026-09-18-pan-cas-attribution.md`,
+`08-evidence/documents/plans/2026-09-24-pan-at-upload-attribution.md`;
+[02-journey/2026-09-18-pan-persistence-and-cas-attribution.md](02-journey/2026-09-18-pan-persistence-and-cas-attribution.md).*
+
 ## Deferred by decision (not debt, tracked so it is not lost)
 
 - **Cap-wise portfolio composition and stock-level overlap between funds** — deferred in

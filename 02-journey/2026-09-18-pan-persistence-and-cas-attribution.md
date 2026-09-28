@@ -147,6 +147,40 @@ fixed six days later without reversing the underlying design. The
 DPDP-Act legal review ADR-004 itself called for as a precondition to
 reopening is not evidenced as having happened.
 
+### Addendum — 2026-09-28: implementation-plan detail now ingested, one dead API field, one enforcement gap named
+
+Three plan documents behind the 2026-09-18/24 work above are now ingested
+as evidence: `2026-09-18-pan-cas-attribution.md` (the 09-18 build itself),
+`2026-09-24-pan-at-upload-attribution.md` (the 09-24 fix, including the
+exact 409 codes `cross_account_pan_blocked`, `pan_belongs_to_other_member`,
+`pan_mismatch_for_member`, and a new `/imports/sessions/{id}/discard`
+endpoint), and `2026-09-24-per-pan-statement-splitting.md` — a **draft,
+not-yet-built** plan for the multi-person-per-statement gap already named
+above, proposing a "who-is-who" screen between upload and review (one
+person-card per PAN, pre-filled from known household members, a new
+`/imports/sessions/{id}/assignments` endpoint) so a family statement that
+covers several folios' worth of PANs can be split across members instead
+of attributed to the first folio only. All three corroborate the summary
+above down to implementation detail; nothing in them contradicts it.
+
+Two items surfaced that the summary above doesn't cover:
+
+- The 2026-09-18 plan's own self-review names a small, deliberately
+  deferred cleanup: `CASImportStatusResponse.parse_warnings` and
+  `ImportConfirmResponse.warnings` became permanently empty (`[]`) once
+  the cross-account case turned into a hard block instead of a soft
+  warning, but the fields were left in the API schema rather than removed,
+  to avoid an unrelated frontend contract change under that pass's time
+  budget.
+- Neither plan schedules the `expire_cas_files.py` sweep named above —
+  see [R-070](../07-risks-and-debt.md), added this pass.
+
+#### Addendum evidence
+
+- `08-evidence/documents/plans/2026-09-18-pan-cas-attribution.md`
+- `08-evidence/documents/plans/2026-09-24-pan-at-upload-attribution.md`
+- `08-evidence/documents/plans/2026-09-24-per-pan-statement-splitting.md`
+
 ### Related
 
 - [ADR-004](../03-decisions/ADR-004-object-storage-scope-and-cas-pdf-retention.md)
@@ -160,6 +194,8 @@ reopening is not evidenced as having happened.
   positions, resolved by this stage (see the ADR-007 addendum)
 - [R-066](../07-risks-and-debt.md) — the DPDP-Act legal review and the
   separate, unresolved question of verifying PAN *ownership* at signup
+- [R-070](../07-risks-and-debt.md) — new risk this stage's addendum
+  creates: the 30-day retention window isn't actually enforced anywhere yet
 - Evidence: `08-evidence/documents/orchestration/pan-and-cas-file-storage-design-summary.md`,
   `08-evidence/documents/orchestration/pan-cas-attribution-feature-documentation.md`,
   `08-evidence/documents/orchestration/pan-storage-flow-and-er-diagram.md`,
